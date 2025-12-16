@@ -4,9 +4,23 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.db.models import Count, Q
+from django.core.files.uploadedfile import InMemoryUploadedFile
 import json
 import re
 import requests
+import csv
+import io
+import os
+try:
+    import fitz  # PyMuPDF
+    PDF_AVAILABLE = True
+except ImportError:
+    PDF_AVAILABLE = False
+try:
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
 from .models import (
     Course,
     Lesson,
@@ -293,6 +307,22 @@ def dashboard_course_detail(request, course_slug):
 
 
 @staff_member_required
+@require_http_methods(["POST"])
+def dashboard_delete_course(request, course_slug):
+    """Delete a course"""
+    course = get_object_or_404(Course, slug=course_slug)
+    course_name = course.name
+    
+    try:
+        course.delete()
+        messages.success(request, f'Course "{course_name}" has been deleted successfully.')
+    except Exception as e:
+        messages.error(request, f'Error deleting course: {str(e)}')
+    
+    return redirect('dashboard_courses')
+
+
+@staff_member_required
 def dashboard_lesson_quiz(request, lesson_id):
     """Create and manage a simple quiz for a lesson."""
     lesson = get_object_or_404(Lesson, id=lesson_id)
@@ -354,6 +384,70 @@ def dashboard_lesson_quiz(request, lesson_id):
 
 
 @staff_member_required
+@require_http_methods(["POST"])
+def dashboard_delete_quiz(request, lesson_id):
+    """Delete a quiz for a lesson"""
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+    
+    try:
+        if hasattr(lesson, 'quiz'):
+            quiz_title = lesson.quiz.title
+            lesson.quiz.delete()
+            messages.success(request, f'Quiz "{quiz_title}" has been deleted successfully.')
+        else:
+            messages.warning(request, 'No quiz found for this lesson.')
+    except Exception as e:
+        messages.error(request, f'Error deleting quiz: {str(e)}')
+    
+    return redirect('dashboard_lesson_quiz', lesson_id=lesson.id)
+
+
+@staff_member_required
+def dashboard_quizzes(request):
+    """List all quizzes across all lessons"""
+    # Get filter parameters
+    course_filter = request.GET.get('course', '')
+    search_query = request.GET.get('search', '')
+    
+    # Get all quizzes with related lesson and course info
+    quizzes = LessonQuiz.objects.select_related('lesson', 'lesson__course').prefetch_related('questions').all()
+    
+    # Apply course filter
+    if course_filter:
+        quizzes = quizzes.filter(lesson__course_id=course_filter)
+    
+    # Apply search filter
+    if search_query:
+        quizzes = quizzes.filter(
+            Q(title__icontains=search_query) |
+            Q(lesson__title__icontains=search_query) |
+            Q(lesson__course__name__icontains=search_query)
+        )
+    
+    # Order by course and lesson
+    quizzes = quizzes.order_by('lesson__course__name', 'lesson__order', 'lesson__id')
+    
+    # Get quiz data with question counts
+    quiz_data = []
+    for quiz in quizzes:
+        quiz_data.append({
+            'quiz': quiz,
+            'lesson': quiz.lesson,
+            'course': quiz.lesson.course,
+            'question_count': quiz.questions.count(),
+        })
+    
+    courses = Course.objects.all()
+    
+    return render(request, 'dashboard/quizzes.html', {
+        'quiz_data': quiz_data,
+        'courses': courses,
+        'course_filter': course_filter,
+        'search_query': search_query,
+    })
+
+
+@staff_member_required
 def dashboard_course_lessons(request, course_slug):
     """View all lessons for a course"""
     course = get_object_or_404(Course, slug=course_slug)
@@ -388,7 +482,8 @@ def dashboard_add_course(request):
             status=status,
             coach_name=coach_name,
         )
-        return redirect('dashboard_course_detail', course_slug=course.slug)
+        messages.success(request, f'Course "{course.name}" has been created successfully.')
+        return redirect('dashboard_courses')
     
     return render(request, 'dashboard/add_course.html')
 
@@ -415,6 +510,371 @@ def dashboard_lessons(request):
         'status_filter': status_filter,
         'course_filter': course_filter,
     })
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def dashboard_delete_lesson(request, lesson_id):
+    """Delete a lesson"""
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+    lesson_title = lesson.title
+    course_slug = lesson.course.slug if lesson.course else None
+    
+    try:
+        lesson.delete()
+        messages.success(request, f'Lesson "{lesson_title}" has been deleted successfully.')
+    except Exception as e:
+        messages.error(request, f'Error deleting lesson: {str(e)}')
+    
+    # Redirect back to lessons list or course lessons if we have course info
+    if course_slug:
+        return redirect('dashboard_course_lessons', course_slug=course_slug)
+    return redirect('dashboard_lessons')
+
+
+@staff_member_required
+def dashboard_upload_quiz(request):
+    """Upload quiz from CSV/PDF file or generate with AI"""
+    courses = Course.objects.all()
+    lessons = Lesson.objects.select_related('course').order_by('-created_at')
+    
+    if request.method == 'POST':
+        lesson_id = request.POST.get('lesson_id')
+        generation_method = request.POST.get('generation_method', 'upload')  # 'upload' or 'ai'
+        
+        if not lesson_id:
+            messages.error(request, 'Please select a lesson.')
+            return render(request, 'dashboard/upload_quiz.html', {
+                'courses': courses,
+                'lessons': lessons,
+                'openai_available': OPENAI_AVAILABLE,
+            })
+        
+        lesson = get_object_or_404(Lesson, id=lesson_id)
+        
+        try:
+            # Get or create quiz
+            quiz, created = LessonQuiz.objects.get_or_create(
+                lesson=lesson,
+                defaults={
+                    'title': f'{lesson.title} Quiz',
+                    'passing_score': 70,
+                },
+            )
+            
+            questions_created = 0
+            
+            if generation_method == 'ai':
+                # Generate quiz using AI
+                num_questions = int(request.POST.get('num_questions', 5))
+                questions_created = generate_ai_quiz(lesson, quiz, num_questions)
+            else:
+                # Upload from file
+                uploaded_file = request.FILES.get('quiz_file')
+                if not uploaded_file:
+                    messages.error(request, 'Please select a file to upload.')
+                    return render(request, 'dashboard/upload_quiz.html', {
+                        'courses': courses,
+                        'lessons': lessons,
+                        'openai_available': OPENAI_AVAILABLE,
+                    })
+                
+                file_extension = uploaded_file.name.split('.')[-1].lower()
+                
+                if file_extension == 'csv':
+                    questions_created = parse_csv_quiz(uploaded_file, quiz)
+                elif file_extension == 'pdf':
+                    if not PDF_AVAILABLE:
+                        messages.error(request, 'PDF parsing is not available. Please install PyMuPDF.')
+                        return render(request, 'dashboard/upload_quiz.html', {
+                            'courses': courses,
+                            'lessons': lessons,
+                            'openai_available': OPENAI_AVAILABLE,
+                        })
+                    questions_created = parse_pdf_quiz(uploaded_file, quiz)
+                else:
+                    messages.error(request, f'Unsupported file format: {file_extension}. Please upload a CSV or PDF file.')
+                    return render(request, 'dashboard/upload_quiz.html', {
+                        'courses': courses,
+                        'lessons': lessons,
+                        'openai_available': OPENAI_AVAILABLE,
+                    })
+            
+            if questions_created > 0:
+                messages.success(request, f'Successfully created {questions_created} quiz question(s) for "{lesson.title}".')
+                return redirect('dashboard_lesson_quiz', lesson_id=lesson.id)
+            else:
+                messages.warning(request, 'No questions were created. Please check your file format or lesson content.')
+        
+        except Exception as e:
+            messages.error(request, f'Error processing: {str(e)}')
+    
+    return render(request, 'dashboard/upload_quiz.html', {
+        'courses': courses,
+        'lessons': lessons,
+        'openai_available': OPENAI_AVAILABLE,
+    })
+
+
+def parse_csv_quiz(uploaded_file, quiz):
+    """Parse CSV file and create quiz questions"""
+    # Read the file
+    file_content = uploaded_file.read().decode('utf-8')
+    csv_reader = csv.DictReader(io.StringIO(file_content))
+    
+    questions_created = 0
+    max_order = quiz.questions.aggregate(models.Max('order'))['order__max'] or 0
+    
+    for row_num, row in enumerate(csv_reader, start=1):
+        try:
+            # Expected CSV format: question, option_a, option_b, option_c, option_d, correct_answer
+            question_text = row.get('question', '').strip()
+            if not question_text:
+                continue
+            
+            option_a = row.get('option_a', '').strip()
+            option_b = row.get('option_b', '').strip()
+            option_c = row.get('option_c', '').strip()
+            option_d = row.get('option_d', '').strip()
+            correct_answer = row.get('correct_answer', 'A').strip().upper()
+            
+            if not option_a or not option_b:
+                continue
+            
+            # Validate correct_answer
+            if correct_answer not in ['A', 'B', 'C', 'D']:
+                correct_answer = 'A'
+            
+            # Create question
+            LessonQuizQuestion.objects.create(
+                quiz=quiz,
+                text=question_text,
+                option_a=option_a,
+                option_b=option_b,
+                option_c=option_c if option_c else '',
+                option_d=option_d if option_d else '',
+                correct_option=correct_answer,
+                order=max_order + row_num,
+            )
+            questions_created += 1
+        except Exception as e:
+            # Skip rows with errors but continue processing
+            continue
+    
+    return questions_created
+
+
+def generate_ai_quiz(lesson, quiz, num_questions=5):
+    """Generate quiz questions using AI based on lesson content"""
+    if not OPENAI_AVAILABLE:
+        raise Exception('OpenAI is not available. Please install the openai package.')
+    
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
+        raise Exception('OPENAI_API_KEY not found in environment variables.')
+    
+    try:
+        client = OpenAI(api_key=api_key)
+        
+        # Gather lesson content for AI context
+        lesson_content = []
+        if lesson.title:
+            lesson_content.append(f"Lesson Title: {lesson.title}")
+        if lesson.description:
+            lesson_content.append(f"Description: {lesson.description}")
+        if lesson.transcription:
+            lesson_content.append(f"Transcription: {lesson.transcription[:2000]}")  # Limit transcription length
+        if lesson.ai_full_description:
+            lesson_content.append(f"Full Description: {lesson.ai_full_description}")
+        
+        if not lesson_content:
+            raise Exception('Lesson does not have enough content for AI generation. Please add a description or transcription.')
+        
+        content_text = "\n\n".join(lesson_content)
+        
+        # Create prompt for AI
+        prompt = f"""Based on the following lesson content, generate {num_questions} multiple-choice quiz questions.
+
+Lesson Content:
+{content_text}
+
+Generate {num_questions} quiz questions with the following format:
+- Each question should test understanding of key concepts from the lesson
+- Each question should have 4 options (A, B, C, D)
+- One option should be clearly correct
+- The other options should be plausible but incorrect
+- Questions should vary in difficulty
+
+Return the questions in JSON format:
+{{
+  "questions": [
+    {{
+      "question": "Question text here",
+      "option_a": "Option A text",
+      "option_b": "Option B text",
+      "option_c": "Option C text",
+      "option_d": "Option D text",
+      "correct_answer": "A"
+    }}
+  ]
+}}
+
+Only return valid JSON, no additional text."""
+        
+        # Call OpenAI API
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that creates educational quiz questions. Always return valid JSON only."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=2000
+        )
+        
+        # Parse response
+        response_text = response.choices[0].message.content.strip()
+        
+        # Clean up response (remove markdown code blocks if present)
+        if response_text.startswith('```'):
+            response_text = response_text.split('```')[1]
+            if response_text.startswith('json'):
+                response_text = response_text[4:]
+            response_text = response_text.strip()
+        if response_text.endswith('```'):
+            response_text = response_text.rsplit('```', 1)[0].strip()
+        
+        # Parse JSON
+        try:
+            quiz_data = json.loads(response_text)
+        except json.JSONDecodeError:
+            # Try to extract JSON from response
+            json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+            if json_match:
+                quiz_data = json.loads(json_match.group())
+            else:
+                raise Exception('Failed to parse AI response as JSON.')
+        
+        # Create quiz questions
+        questions_created = 0
+        max_order = quiz.questions.aggregate(models.Max('order'))['order__max'] or 0
+        
+        for idx, q_data in enumerate(quiz_data.get('questions', []), start=1):
+            try:
+                question_text = q_data.get('question', '').strip()
+                option_a = q_data.get('option_a', '').strip()
+                option_b = q_data.get('option_b', '').strip()
+                option_c = q_data.get('option_c', '').strip()
+                option_d = q_data.get('option_d', '').strip()
+                correct_answer = q_data.get('correct_answer', 'A').strip().upper()
+                
+                if not question_text or not option_a or not option_b:
+                    continue
+                
+                if correct_answer not in ['A', 'B', 'C', 'D']:
+                    correct_answer = 'A'
+                
+                LessonQuizQuestion.objects.create(
+                    quiz=quiz,
+                    text=question_text,
+                    option_a=option_a,
+                    option_b=option_b,
+                    option_c=option_c if option_c else '',
+                    option_d=option_d if option_d else '',
+                    correct_option=correct_answer,
+                    order=max_order + idx,
+                )
+                questions_created += 1
+            except Exception as e:
+                continue
+        
+        return questions_created
+    
+    except Exception as e:
+        raise Exception(f'AI generation failed: {str(e)}')
+
+
+def parse_pdf_quiz(uploaded_file, quiz):
+    """Parse PDF file and create quiz questions"""
+    # Read PDF content
+    pdf_bytes = uploaded_file.read()
+    pdf_doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    
+    text_content = ""
+    for page in pdf_doc:
+        text_content += page.get_text()
+    
+    pdf_doc.close()
+    
+    # Try to parse questions from PDF text
+    # Expected format: Questions should be numbered (1., 2., etc.) with options A, B, C, D
+    questions_created = 0
+    max_order = quiz.questions.aggregate(models.Max('order'))['order__max'] or 0
+    
+    # Split by question numbers (1., 2., etc.)
+    question_pattern = r'(\d+\.\s+.*?)(?=\d+\.|$)'
+    questions_text = re.findall(question_pattern, text_content, re.DOTALL | re.IGNORECASE)
+    
+    for idx, question_block in enumerate(questions_text, start=1):
+        try:
+            lines = [line.strip() for line in question_block.split('\n') if line.strip()]
+            if len(lines) < 3:  # Need at least question + 2 options
+                continue
+            
+            question_text = lines[0].lstrip('0123456789. ').strip()
+            if not question_text:
+                continue
+            
+            # Extract options (looking for A., B., C., D. patterns)
+            options = {}
+            current_option = None
+            option_text = []
+            
+            for line in lines[1:]:
+                # Check if line starts with option letter
+                option_match = re.match(r'^([A-D])[\.\)]\s*(.*)$', line, re.IGNORECASE)
+                if option_match:
+                    # Save previous option if exists
+                    if current_option:
+                        options[current_option] = ' '.join(option_text).strip()
+                    current_option = option_match.group(1).upper()
+                    option_text = [option_match.group(2)]
+                elif current_option:
+                    option_text.append(line)
+            
+            # Save last option
+            if current_option:
+                options[current_option] = ' '.join(option_text).strip()
+            
+            # Need at least A and B options
+            if 'A' not in options or 'B' not in options:
+                continue
+            
+            # Determine correct answer (look for "Answer:" or "Correct:" patterns)
+            correct_answer = 'A'  # Default
+            for line in lines:
+                answer_match = re.search(r'(?:answer|correct)[:\s]+([A-D])', line, re.IGNORECASE)
+                if answer_match:
+                    correct_answer = answer_match.group(1).upper()
+                    break
+            
+            # Create question
+            LessonQuizQuestion.objects.create(
+                quiz=quiz,
+                text=question_text,
+                option_a=options.get('A', ''),
+                option_b=options.get('B', ''),
+                option_c=options.get('C', ''),
+                option_d=options.get('D', ''),
+                correct_option=correct_answer if correct_answer in ['A', 'B', 'C', 'D'] else 'A',
+                order=max_order + idx,
+            )
+            questions_created += 1
+        except Exception as e:
+            # Skip questions with errors
+            continue
+    
+    return questions_created
 
 
 @staff_member_required

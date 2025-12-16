@@ -1,0 +1,145 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}{{ student.get_full_name|default:student.username }} - Student Details{% endblock %}
+{% block page_title %}{{ student.get_full_name|default:student.username }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Back Button -->
+    <div>
+        <a href="{% url 'dashboard_students' %}" class="text-cyan-electric hover:text-cyan-electric/80 text-sm mb-4 inline-flex items-center gap-2">
+            <i class="fas fa-arrow-left"></i> Back to Students
+        </a>
+    </div>
+
+    <!-- Student Info Header -->
+    <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
+        <div class="flex items-center gap-6">
+            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-electric to-purple-accent flex items-center justify-center text-[#0a0e27] font-bold text-2xl">
+                {{ student.username|first|upper }}
+            </div>
+            <div class="flex-1">
+                <h2 class="text-2xl font-bold mb-2">{{ student.get_full_name|default:student.username }}</h2>
+                <p class="text-gray-400 mb-1"><i class="fas fa-envelope mr-2"></i>{{ student.email }}</p>
+                <p class="text-sm text-gray-500">Joined: {{ student.date_joined|date:"M d, Y" }}</p>
+            </div>
+            <div>
+                <a href="mailto:{{ student.email }}" class="px-4 py-2 bg-cyan-electric/10 hover:bg-cyan-electric/20 border border-cyan-electric/20 rounded-lg text-sm font-medium transition-all">
+                    <i class="fas fa-envelope mr-2"></i>Send Email
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Progress -->
+    {% for data in course_data %}
+    <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold">{{ data.course.name }}</h3>
+            {% if data.enrollment %}
+            <span class="text-sm text-gray-400">Enrolled: {{ data.enrollment.enrolled_at|date:"M d, Y" }}</span>
+            {% endif %}
+        </div>
+
+        <!-- Lesson Progress -->
+        <div class="mb-6">
+            <h4 class="text-sm font-semibold mb-3 text-gray-300">Lessons Progress</h4>
+            <div class="space-y-2">
+                {% for lp in data.lesson_progress %}
+                <div class="bg-[#1a1f3a]/50 rounded-lg p-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3 flex-1">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center
+                            {% if lp.completed %}bg-green-500/20 text-green-400
+                            {% elif lp.status == 'in_progress' %}bg-cyan-electric/20 text-cyan-electric
+                            {% else %}bg-gray-500/20 text-gray-400{% endif %}">
+                            {% if lp.completed %}
+                            <i class="fas fa-check text-xs"></i>
+                            {% elif lp.status == 'in_progress' %}
+                            <i class="fas fa-play text-xs"></i>
+                            {% else %}
+                            <i class="fas fa-circle text-xs"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-sm font-medium">{{ lp.lesson.title }}</div>
+                            {% if lp.watch_percentage > 0 %}
+                            <div class="text-xs text-gray-400">{{ lp.watch_percentage|floatformat:0 }}% watched</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="text-xs px-2 py-1 rounded
+                        {% if lp.completed %}bg-green-500/20 text-green-400
+                        {% elif lp.status == 'in_progress' %}bg-cyan-electric/20 text-cyan-electric
+                        {% else %}bg-gray-500/20 text-gray-400{% endif %}">
+                        {% if lp.completed %}Completed{% elif lp.status == 'in_progress' %}In Progress{% else %}Not Started{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Exam Attempts -->
+        {% if data.exam_attempts %}
+        <div class="mb-6">
+            <h4 class="text-sm font-semibold mb-3 text-gray-300">Exam Attempts</h4>
+            <div class="space-y-2">
+                {% for attempt in data.exam_attempts %}
+                <div class="bg-[#1a1f3a]/50 rounded-lg p-3 flex items-center justify-between">
+                    <div>
+                        <div class="text-sm font-medium">Attempt #{{ forloop.counter }}</div>
+                        <div class="text-xs text-gray-400">{{ attempt.started_at|date:"M d, Y H:i" }}</div>
+                    </div>
+                    <div class="text-right">
+                        {% if attempt.score is not None %}
+                        <div class="text-sm font-bold {% if attempt.passed %}text-green-400{% else %}text-red-400{% endif %}">
+                            {{ attempt.score|floatformat:1 }}%
+                        </div>
+                        <div class="text-xs {% if attempt.passed %}text-green-400{% else %}text-red-400{% endif %}">
+                            {% if attempt.passed %}Passed{% else %}Failed{% endif %}
+                        </div>
+                        {% else %}
+                        <div class="text-xs text-gray-400">In Progress</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Certification -->
+        {% if data.certification %}
+        <div class="bg-[#1a1f3a]/50 rounded-lg p-4">
+            <h4 class="text-sm font-semibold mb-2 text-gray-300">Certification</h4>
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                        {% if data.certification.status == 'passed' %}bg-yellow-500/20 text-yellow-300 border border-yellow-500/30
+                        {% elif data.certification.status == 'failed' %}bg-red-500/20 text-red-400 border border-red-500/30
+                        {% else %}bg-gray-500/20 text-gray-400 border border-gray-500/30{% endif %}">
+                        {{ data.certification.get_status_display }}
+                    </span>
+                    {% if data.certification.issued_at %}
+                    <span class="text-xs text-gray-400 ml-3">Issued: {{ data.certification.issued_at|date:"M d, Y" }}</span>
+                    {% endif %}
+                </div>
+                {% if data.certification.accredible_certificate_url %}
+                <a href="{{ data.certification.accredible_certificate_url }}" target="_blank" class="text-xs text-cyan-electric hover:text-cyan-electric/80">
+                    <i class="fas fa-external-link-alt mr-1"></i>View Certificate
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-12 text-center">
+        <i class="fas fa-book text-6xl text-gray-600 mb-4"></i>
+        <h3 class="text-xl font-semibold mb-2">No Course Enrollments</h3>
+        <p class="text-gray-400">This student is not enrolled in any courses.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+

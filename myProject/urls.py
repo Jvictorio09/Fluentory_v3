@@ -25,11 +25,16 @@ urlpatterns = [
     path('dashboard/courses/', dashboard_views.dashboard_courses, name='dashboard_courses'),
     path('dashboard/courses/add/', dashboard_views.dashboard_add_course, name='dashboard_add_course'),
     path('dashboard/courses/<slug:course_slug>/', dashboard_views.dashboard_course_detail, name='dashboard_course_detail'),
+    path('dashboard/courses/<slug:course_slug>/delete/', dashboard_views.dashboard_delete_course, name='dashboard_delete_course'),
     path('dashboard/courses/<slug:course_slug>/lessons/', dashboard_views.dashboard_course_lessons, name='dashboard_course_lessons'),
     path('dashboard/lessons/', dashboard_views.dashboard_lessons, name='dashboard_lessons'),
     path('dashboard/lessons/add/', dashboard_views.dashboard_add_lesson, name='dashboard_add_lesson'),
+    path('dashboard/lessons/upload-quiz/', dashboard_views.dashboard_upload_quiz, name='dashboard_upload_quiz'),
     path('dashboard/lessons/<int:lesson_id>/edit/', dashboard_views.dashboard_edit_lesson, name='dashboard_edit_lesson'),
+    path('dashboard/lessons/<int:lesson_id>/delete/', dashboard_views.dashboard_delete_lesson, name='dashboard_delete_lesson'),
     path('dashboard/lessons/<int:lesson_id>/quiz/', dashboard_views.dashboard_lesson_quiz, name='dashboard_lesson_quiz'),
+    path('dashboard/lessons/<int:lesson_id>/quiz/delete/', dashboard_views.dashboard_delete_quiz, name='dashboard_delete_quiz'),
+    path('dashboard/quizzes/', dashboard_views.dashboard_quizzes, name='dashboard_quizzes'),
     
     # Student Progress Monitoring
     path('dashboard/students/', dashboard_views.dashboard_students, name='dashboard_students'),

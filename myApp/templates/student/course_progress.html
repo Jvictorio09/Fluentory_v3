@@ -76,11 +76,13 @@
                     {% endfor %}
                 </div>
                 {% endif %}
-                {% if not exam_attempts|last.passed or not exam_attempts %}
+                {% with exam_attempts|last as last_attempt %}
+                {% if not exam_attempts or not last_attempt.passed %}
                 <button class="w-full mt-4 px-4 py-2 bg-gradient-to-r from-cyan-electric to-purple-accent hover:from-cyan-electric/90 hover:to-purple-accent/90 text-[#0a0e27] font-semibold rounded-lg transition-all">
                     {% if exam_attempts %}Retake Exam{% else %}Start Exam{% endif %}
                 </button>
                 {% endif %}
+                {% endwith %}
             </div>
             {% else %}
             <div class="text-center py-4">
