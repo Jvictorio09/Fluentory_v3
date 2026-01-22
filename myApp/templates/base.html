@@ -45,20 +45,25 @@
 <body class="bg-gradient-to-br from-[#0a0e27] via-[#1a1f3a] to-[#000000] min-h-screen text-white">
     <!-- Top Navigation Bar -->
     <nav class="bg-[#0a0e27] border-b border-cyan-electric/40 sticky top-0 z-50">
-        <div class="max-w-[1200px] mx-auto px-6 py-4 flex items-center justify-between">
+        <div class="max-w-[1200px] mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
             <!-- Left: Logo -->
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3">
                 <img 
                     src="https://res.cloudinary.com/dcuswyfur/image/upload/v1769099735/Frame_82_a2yvmn.png"
                     alt="Swedish Wealth Institute Logo"
-                    class="h-16 w-auto"
+                    class="h-12 sm:h-16 w-auto"
                     loading="eager"
                 >
-                <div class="text-lg font-bold text-white">Swedish Wealth Institute</div>
+                <div class="text-sm sm:text-lg font-bold text-white hidden sm:block">Swedish Wealth Institute</div>
             </div>
             
-            <!-- Right: Navigation Links -->
-            <div class="flex items-center gap-8">
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-btn" class="md:hidden p-2 text-white hover:text-cyan-electric transition-colors">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            
+            <!-- Right: Navigation Links (Desktop) -->
+            <div class="hidden md:flex items-center gap-6 lg:gap-8">
                 <a href="{% url 'courses' %}" class="text-sm font-medium text-white hover:text-cyan-electric transition-colors">Courses</a>
                 {% if user.is_authenticated %}
                 <a href="{% url 'student_dashboard' %}" class="text-sm font-medium text-white hover:text-cyan-electric transition-colors">My Dashboard</a>
@@ -70,10 +75,47 @@
                 <a href="{% url 'logout' %}" class="px-4 py-2 rounded-lg border border-cyan-electric text-white text-sm font-medium hover:bg-cyan-electric/10 hover:border-cyan-electric/70 transition-all bg-[#0a0e27]">Log Out</a>
             </div>
         </div>
+        
+        <!-- Mobile Menu (Hidden by default) -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-cyan-electric/20 bg-[#0a0e27]">
+            <div class="px-4 py-4 space-y-3">
+                <a href="{% url 'courses' %}" class="block px-4 py-2 text-sm font-medium text-white hover:text-cyan-electric hover:bg-cyan-electric/10 rounded-lg transition-colors">Courses</a>
+                {% if user.is_authenticated %}
+                <a href="{% url 'student_dashboard' %}" class="block px-4 py-2 text-sm font-medium text-white hover:text-cyan-electric hover:bg-cyan-electric/10 rounded-lg transition-colors">My Dashboard</a>
+                <a href="{% url 'student_certifications' %}" class="block px-4 py-2 text-sm font-medium text-white hover:text-cyan-electric hover:bg-cyan-electric/10 rounded-lg transition-colors">Certifications</a>
+                {% endif %}
+                {% if user.is_staff %}
+                <a href="{% url 'dashboard_home' %}" class="block px-4 py-2 text-sm font-medium text-white hover:text-cyan-electric hover:bg-cyan-electric/10 rounded-lg transition-colors">Admin</a>
+                {% endif %}
+                <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm font-medium text-white hover:text-cyan-electric hover:bg-cyan-electric/10 rounded-lg transition-colors border border-cyan-electric/30">Log Out</a>
+            </div>
+        </div>
     </nav>
     
+    <script>
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                    const icon = mobileMenuBtn.querySelector('i');
+                    if (mobileMenu.classList.contains('hidden')) {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    } else {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    }
+                });
+            }
+        });
+    </script>
+    
     <!-- Main Content -->
-    <main class="max-w-[1200px] mx-auto px-6 py-12">
+    <main class="max-w-[1200px] mx-auto px-4 sm:px-6 py-6 sm:py-12">
         {% block content %}{% endblock %}
     </main>
     
@@ -136,6 +178,213 @@
             });
         }
     });
+    </script>
+    
+    <!-- Sprint Coach - Mobile Only Floating Chat Head -->
+    <div id="sprint-coach-button" class="md:hidden fixed bottom-6 right-6 z-40">
+        <button 
+            onclick="toggleSprintCoach()" 
+            class="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-electric to-purple-accent shadow-2xl shadow-cyan-electric/50 flex items-center justify-center transition-all hover:scale-110 active:scale-95 ring-2 ring-cyan-electric/30"
+            aria-label="Sprint Coach"
+        >
+            <i class="fas fa-brain text-2xl text-[#0a0e27]"></i>
+        </button>
+    </div>
+
+    <!-- Sprint Coach Chat Interface - Mobile Only (Hidden by default) -->
+    <div id="sprint-coach-chat" class="md:hidden fixed inset-0 bg-[#0a0e27]/95 backdrop-blur-md z-50 hidden flex flex-col">
+        <!-- Chat Header -->
+        <div class="flex items-center justify-between p-4 border-b border-cyan-electric/20 bg-[#0a0e27]">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-electric to-purple-accent flex items-center justify-center shadow-lg shadow-cyan-electric/20">
+                    <i class="fas fa-brain text-lg text-[#0a0e27]"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white text-base">Sprint Coach</h3>
+                    <div class="text-xs text-cyan-electric/70 flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-electric animate-pulse"></span>
+                        <span>Online</span>
+                    </div>
+                </div>
+            </div>
+            <button onclick="toggleSprintCoach()" class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+        
+        <!-- Chat Messages Area -->
+        <div id="coach-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+            <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-electric to-purple-accent flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-brain text-sm text-[#0a0e27]"></i>
+                </div>
+                <div class="flex-1 bg-[#1a1f3a] border border-cyan-electric/20 rounded-2xl rounded-tl-md px-4 py-3">
+                    <p class="text-sm text-gray-200 leading-relaxed">
+                        Hi! I'm your AI Lesson Coach. I'm wired to this program and your lesson history.
+                    </p>
+                    <p class="text-sm text-gray-200 leading-relaxed mt-2">
+                        Ask me anything about this lesson, or try one of the suggestions below.
+                    </p>
+                    <div class="text-[10px] text-gray-500 mt-2">Just now</div>
+                </div>
+            </div>
+            
+            <!-- Quick Action Suggestions -->
+            <div id="coach-quick-suggestions" class="space-y-2 ml-11">
+                <button onclick="sendQuickAction('5-bullet summary')" class="w-full text-left bg-[#1a1f3a] border border-cyan-electric/20 rounded-xl px-4 py-3 hover:bg-[#1a1f3a]/80 hover:border-cyan-electric/30 transition-all">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-list text-cyan-electric text-sm"></i>
+                        <span class="text-sm text-gray-200">5-bullet summary</span>
+                    </div>
+                </button>
+                <button onclick="sendQuickAction('3-step action plan')" class="w-full text-left bg-[#1a1f3a] border border-cyan-electric/20 rounded-xl px-4 py-3 hover:bg-[#1a1f3a]/80 hover:border-cyan-electric/30 transition-all">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-list-check text-cyan-electric text-sm"></i>
+                        <span class="text-sm text-gray-200">3-step action plan</span>
+                    </div>
+                </button>
+                <button onclick="sendQuickAction('Delegation guide')" class="w-full text-left bg-[#1a1f3a] border border-cyan-electric/20 rounded-xl px-4 py-3 hover:bg-[#1a1f3a]/80 hover:border-cyan-electric/30 transition-all">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-users text-cyan-electric text-sm"></i>
+                        <span class="text-sm text-gray-200">Delegation guide</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Chat Input Area -->
+        <div class="border-t border-cyan-electric/20 bg-[#0a0e27] p-4">
+            <div class="flex items-end gap-2">
+                <textarea 
+                    id="coach-input" 
+                    rows="1"
+                    placeholder="Ask me anything..." 
+                    class="flex-1 bg-[#1a1f3a] border border-cyan-electric/20 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-electric/40 focus:ring-1 focus:ring-cyan-electric/20 resize-none"
+                    style="min-height: 44px; max-height: 120px;"
+                    onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendCoachMessage(); }"
+                ></textarea>
+                <button 
+                    onclick="sendCoachMessage()" 
+                    class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-electric to-purple-accent hover:from-cyan-electric/90 hover:to-purple-accent/90 flex items-center justify-center text-white shadow-lg shadow-cyan-electric/20 transition-all flex-shrink-0"
+                >
+                    <i class="fas fa-paper-plane text-base"></i>
+                </button>
+            </div>
+            <div class="flex items-center justify-center mt-2">
+                <div class="text-[10px] text-gray-500 flex items-center gap-1.5">
+                    <i class="fas fa-keyboard text-[8px]"></i>
+                    <span>Enter to send · Shift+Enter for new line</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSprintCoach() {
+            const chat = document.getElementById('sprint-coach-chat');
+            const button = document.getElementById('sprint-coach-button');
+            
+            if (chat.classList.contains('hidden')) {
+                chat.classList.remove('hidden');
+                button.style.opacity = '0.7';
+                button.style.transform = 'scale(0.95)';
+                // Auto-focus input when opening
+                setTimeout(() => {
+                    const input = document.getElementById('coach-input');
+                    if (input) input.focus();
+                }, 100);
+            } else {
+                chat.classList.add('hidden');
+                button.style.opacity = '1';
+                button.style.transform = 'scale(1)';
+            }
+        }
+
+        function sendQuickAction(action) {
+            sendCoachMessage(action, true);
+        }
+
+        function sendCoachMessage(message = null, isQuickAction = false) {
+            const input = document.getElementById('coach-input');
+            const messageText = message || input.value.trim();
+            
+            if (!messageText) return;
+            
+            const messagesContainer = document.getElementById('coach-messages');
+            const quickSuggestions = document.getElementById('coach-quick-suggestions');
+            
+            // Hide quick suggestions after first message
+            if (quickSuggestions && !isQuickAction) {
+                quickSuggestions.style.display = 'none';
+            }
+            
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'flex items-start gap-3 justify-end';
+            userMessage.innerHTML = `
+                <div class="flex-1 bg-cyan-electric/20 border border-cyan-electric/30 rounded-2xl rounded-tr-md px-4 py-3 max-w-[85%] ml-auto">
+                    <p class="text-sm text-white leading-relaxed">${escapeHtml(messageText)}</p>
+                </div>
+            `;
+            messagesContainer.appendChild(userMessage);
+            
+            // Clear input if not quick action
+            if (!isQuickAction) {
+                input.value = '';
+                input.style.height = 'auto';
+            }
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Add thinking message
+            const thinkingMessage = document.createElement('div');
+            thinkingMessage.className = 'flex items-start gap-3';
+            thinkingMessage.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-electric to-purple-accent flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-brain text-sm text-[#0a0e27]"></i>
+                </div>
+                <div class="flex-1 bg-[#1a1f3a] border border-cyan-electric/20 rounded-2xl rounded-tl-md px-4 py-3">
+                    <div class="flex items-center gap-2 text-cyan-electric">
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-cyan-electric"></div>
+                        <p class="text-sm">AI is thinking...</p>
+                    </div>
+                </div>
+            `;
+            messagesContainer.appendChild(thinkingMessage);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Simulate AI response (replace with actual API call later)
+            setTimeout(() => {
+                thinkingMessage.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-electric to-purple-accent flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-brain text-sm text-[#0a0e27]"></i>
+                    </div>
+                    <div class="flex-1 bg-[#1a1f3a] border border-cyan-electric/20 rounded-2xl rounded-tl-md px-4 py-3">
+                        <p class="text-sm text-gray-200 leading-relaxed">I'm here to help! This is a placeholder response. Connect me to your AI backend to get real answers based on your lesson content.</p>
+                        <div class="text-[10px] text-gray-500 mt-2">Just now</div>
+                    </div>
+                `;
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 1500);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Auto-resize textarea
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('coach-input');
+            if (input) {
+                input.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+                });
+            }
+        });
     </script>
     
     {% block extra_js %}{% endblock %}
