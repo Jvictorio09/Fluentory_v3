@@ -27,7 +27,9 @@ from .models import (
 )
 from django.db.models import Avg, Count, Q
 from django.db import models
+from django.utils import timezone
 from .utils.transcription import transcribe_video
+from .utils.access import has_course_access
 
 
 def home(request):
@@ -1262,3 +1264,328 @@ def student_certifications(request):
         'certifications': certifications,
         'eligible_courses': eligible_courses,
     })
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def train_lesson_chatbot(request, lesson_id):
+    """Send transcript to training webhook and update lesson status"""
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+    
+    try:
+        data = json.loads(request.body)
+        transcript = data.get('transcript', '').strip()
+        
+        if not transcript:
+            return JsonResponse({'success': False, 'error': 'Transcript is required'}, status=400)
+        
+        # Update lesson status
+        lesson.transcription = transcript
+        lesson.ai_chatbot_training_status = 'training'
+        lesson.save()
+        
+        # Prepare payload for training webhook
+        training_webhook_url = 'https://katalyst-crm2.fly.dev/webhook/425e8e67-2aa6-4c50-b67f-0162e2496b51'
+        
+        payload = {
+            'transcript': transcript,
+            'lesson_id': lesson.id,
+            'lesson_title': lesson.title,
+            'course_name': lesson.course.name,
+            'lesson_slug': lesson.slug,
+        }
+        
+        # Send to training webhook
+        try:
+            response = requests.post(
+                training_webhook_url,
+                json=payload,
+                timeout=30,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                
+                # Store chatbot webhook ID if returned
+                chatbot_webhook_id = response_data.get('chatbot_webhook_id') or response_data.get('webhook_id') or response_data.get('id')
+                
+                if chatbot_webhook_id:
+                    lesson.ai_chatbot_webhook_id = str(chatbot_webhook_id)
+                
+                lesson.ai_chatbot_training_status = 'trained'
+                lesson.ai_chatbot_trained_at = timezone.now()
+                lesson.ai_chatbot_enabled = True
+                lesson.save()
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Chatbot trained successfully',
+                    'chatbot_webhook_id': chatbot_webhook_id
+                })
+            else:
+                lesson.ai_chatbot_training_status = 'failed'
+                lesson.ai_chatbot_training_error = f"Webhook returned status {response.status_code}: {response.text[:500]}"
+                lesson.save()
+                
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Training webhook returned error: {response.status_code}'
+                }, status=500)
+                
+        except requests.exceptions.RequestException as e:
+            lesson.ai_chatbot_training_status = 'failed'
+            lesson.ai_chatbot_training_error = str(e)
+            lesson.save()
+            
+            return JsonResponse({
+                'success': False,
+                'error': f'Failed to connect to training webhook: {str(e)}'
+            }, status=500)
+            
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        lesson.ai_chatbot_training_status = 'failed'
+        lesson.ai_chatbot_training_error = str(e)
+        lesson.save()
+        
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def lesson_chatbot(request, lesson_id):
+    """Handle chatbot interactions for a lesson"""
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+    
+    # Check if chatbot is enabled and trained
+    if not lesson.ai_chatbot_enabled or lesson.ai_chatbot_training_status != 'trained':
+        return JsonResponse({
+            'success': False,
+            'error': 'Chatbot is not available for this lesson'
+        }, status=400)
+    
+    # Check if user has access to this lesson
+    if not has_course_access(request.user, lesson.course):
+        return JsonResponse({
+            'success': False,
+            'error': 'You do not have access to this lesson'
+        }, status=403)
+    
+    try:
+        data = json.loads(request.body)
+        user_message = data.get('message', '').strip()
+        
+        if not user_message:
+            return JsonResponse({'success': False, 'error': 'Message is required'}, status=400)
+        
+        # Use the chatbot webhook
+        chatbot_webhook_url = 'https://katalyst-crm2.fly.dev/webhook/d39397da-cf2c-4282-b531-51a321af8586'
+        
+        payload = {
+            'message': user_message,
+            'lesson_id': lesson.id,
+            'lesson_title': lesson.title,
+            'course_name': lesson.course.name,
+            'user_id': request.user.id,
+            'user_email': request.user.email,
+            'chatbot_webhook_id': lesson.ai_chatbot_webhook_id,  # If webhook needs specific ID
+        }
+        
+        # Send to chatbot webhook
+        try:
+            response = requests.post(
+                chatbot_webhook_url,
+                json=payload,
+                timeout=30,
+                headers={'Content-Type': 'application/json'}
+            )
+            
+            if response.status_code == 200:
+                # Try to parse as JSON first
+                response_text = response.text
+                
+                # Log raw response for debugging
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"Raw webhook response for lesson {lesson.id} (first 500 chars): {response_text[:500]}")
+                logger.info(f"Response headers: {dict(response.headers)}")
+                
+                # Check if it's HTML error page
+                if response_text.strip().startswith('<!DOCTYPE') or response_text.strip().startswith('<html'):
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Webhook returned HTML instead of JSON. Please check the webhook configuration.'
+                    }, status=500)
+                
+                # Try to parse as JSON
+                response_data = None
+                try:
+                    response_data = response.json()
+                    logger.info(f"Parsed JSON response: {response_data}")
+                except (ValueError, json.JSONDecodeError) as e:
+                    logger.warning(
+                        f"Failed to parse as JSON: {e}. Raw response (first 1000 chars): {response_text[:1000]}"
+                    )
+                    # Not JSON, treat as plain text / salvage malformed JSON (common when quotes are not escaped)
+                    if response_text and response_text.strip():
+                        cleaned_text = response_text.strip()
+                        import re
+
+                        # 1) Strong salvage: capture everything between the opening quote after Response/message/text/etc
+                        # and the final quote before the closing brace. This works even if the content contains
+                        # unescaped quotes (which breaks JSON).
+                        key_names = ["Response", "response", "message", "Message", "text", "Text", "answer", "Answer"]
+                        extracted_text = None
+                        for key in key_names:
+                            # Example broken JSON we see:
+                            # { "Response": "Here ... \"Time Management...\" ...\nMore text" }
+                            # But if quotes aren't escaped, json.loads fails; we still want the full value.
+                            pattern = rf'"{re.escape(key)}"\s*:\s*"([\s\S]*)"\s*\}}'
+                            m = re.search(pattern, cleaned_text)
+                            if m and m.group(1) and len(m.group(1).strip()) > 0:
+                                extracted_text = m.group(1)
+                                break
+
+                        # 2) Fallback: try a more conventional (escaped) match
+                        if not extracted_text:
+                            for key in key_names:
+                                pattern = rf'"{re.escape(key)}"\s*:\s*"((?:[^"\\]|\\.)*)"'
+                                m = re.search(pattern, cleaned_text, flags=re.DOTALL)
+                                if m and m.group(1) and len(m.group(1).strip()) > 0:
+                                    extracted_text = m.group(1)
+                                    break
+
+                        final_response = extracted_text if extracted_text else cleaned_text
+
+                        # Unescape common sequences so the chat looks right
+                        final_response = (
+                            final_response.replace("\\n", "\n")
+                            .replace("\\t", "\t")
+                            .replace("\\r", "\r")
+                            .replace('\\"', '"')
+                            .replace("\\'", "'")
+                        ).strip()
+
+                        return JsonResponse({'success': True, 'response': final_response})
+
+                    logger.error("Webhook returned empty response text")
+                    return JsonResponse({'success': False, 'error': 'Webhook returned empty response'}, status=500)
+                
+                # Only process JSON response if we have response_data
+                if response_data is None:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Webhook returned invalid response format'
+                    }, status=500)
+                
+                # Extract AI response (adjust based on actual webhook response format)
+                # Try multiple possible field names
+                ai_response = None
+                if isinstance(response_data, dict):
+                    ai_response = (
+                        response_data.get('response') or 
+                        response_data.get('Response') or 
+                        response_data.get('message') or 
+                        response_data.get('Message') or 
+                        response_data.get('text') or 
+                        response_data.get('Text') or 
+                        response_data.get('answer') or 
+                        response_data.get('Answer') or 
+                        response_data.get('content') or
+                        response_data.get('Content') or
+                        response_data.get('output') or
+                        response_data.get('Output') or
+                        None
+                    )
+                    
+                    # If still None, try to get the first string value from the dict
+                    if ai_response is None:
+                        for key, value in response_data.items():
+                            if isinstance(value, str) and value.strip():
+                                ai_response = value
+                                break
+                else:
+                    # If it's not a dict, convert to string
+                    ai_response = str(response_data)
+                
+                # If still None, convert entire dict to string
+                if ai_response is None:
+                    ai_response = str(response_data)
+                
+                logger.info(f"Extracted ai_response (type: {type(ai_response)}, value: {str(ai_response)[:200]})")
+                
+                # Clean the response - handle JSON strings and dict-like strings
+                if isinstance(ai_response, str):
+                    # Try to parse if it looks like JSON
+                    if ai_response.strip().startswith('{') or ai_response.strip().startswith('['):
+                        try:
+                            parsed = json.loads(ai_response)
+                            # Extract Response, response, message, text, or answer field
+                            ai_response = parsed.get('Response') or parsed.get('response') or parsed.get('message') or parsed.get('text') or parsed.get('answer') or ai_response
+                        except (json.JSONDecodeError, TypeError):
+                            # If parsing fails, try to extract quoted text
+                            import re
+                            # Try to extract Response field from dict-like string
+                            response_match = re.search(r"['\"]Response['\"]\s*:\s*['\"]([^'\"]+)['\"]", ai_response, re.IGNORECASE)
+                            if response_match:
+                                ai_response = response_match.group(1)
+                            else:
+                                # Try to extract any quoted text that's longer than 10 chars
+                                quoted_match = re.search(r"['\"]([^'\"]{10,})['\"]", ai_response)
+                                if quoted_match:
+                                    ai_response = quoted_match.group(1)
+                
+                # If response is still empty, try one more time with the full response_text
+                if not ai_response or (isinstance(ai_response, str) and not ai_response.strip()):
+                    logger.warning(f"Empty response extracted. Trying response_text directly.")
+                    # If response_text itself is not empty, use it
+                    if response_text and response_text.strip() and not response_text.strip().startswith('<!DOCTYPE') and not response_text.strip().startswith('<html'):
+                        # Try to parse it as JSON one more time
+                        try:
+                            text_parsed = json.loads(response_text)
+                            if isinstance(text_parsed, dict):
+                                ai_response = text_parsed.get('response') or text_parsed.get('Response') or text_parsed.get('message') or text_parsed.get('Message') or text_parsed.get('text') or text_parsed.get('Text') or text_parsed.get('answer') or text_parsed.get('Answer') or str(text_parsed)
+                            else:
+                                ai_response = str(text_parsed)
+                        except:
+                            # If it's not JSON, use it as plain text
+                            ai_response = response_text[:500]
+                
+                # Ensure we have a clean string response
+                if not ai_response or (isinstance(ai_response, str) and (not ai_response.strip() or ai_response.strip().startswith('{'))):
+                    logger.error(f"Still empty after all attempts.")
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'The AI chatbot did not return a valid response. Please try again.'
+                    }, status=500)
+                
+                logger.info(f"Final ai_response: {str(ai_response)[:200]}")
+                
+                return JsonResponse({
+                    'success': True,
+                    'response': str(ai_response)
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Chatbot webhook returned error: {response.status_code}'
+                }, status=500)
+                
+        except requests.exceptions.RequestException as e:
+            return JsonResponse({
+                'success': False,
+                'error': f'Failed to connect to chatbot webhook: {str(e)}'
+            }, status=500)
+            
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)

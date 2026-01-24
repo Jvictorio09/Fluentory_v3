@@ -30,6 +30,161 @@
     </div>
     {% endif %}
 
+    <!-- AI Chatbot Transcript Section -->
+    <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-purple-accent/20 rounded-xl p-6 mb-6" style="position: relative; z-index: 1; pointer-events: auto;">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 class="text-lg font-bold mb-1">AI Chatbot Setup</h3>
+                <p class="text-sm text-gray-400">Train an AI assistant for this lesson using the transcript</p>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-semibold
+                {% if lesson.ai_chatbot_training_status == 'trained' %}bg-green-500/20 text-green-400 border border-green-500/30
+                {% elif lesson.ai_chatbot_training_status == 'training' %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30
+                {% elif lesson.ai_chatbot_training_status == 'failed' %}bg-red-500/20 text-red-400 border border-red-500/30
+                {% else %}bg-gray-500/20 text-gray-400 border border-gray-500/30{% endif %}">
+                {% if lesson.ai_chatbot_training_status == 'trained' %}
+                    <i class="fas fa-check-circle mr-1"></i> Trained
+                {% elif lesson.ai_chatbot_training_status == 'training' %}
+                    <i class="fas fa-spinner fa-spin mr-1"></i> Training
+                {% elif lesson.ai_chatbot_training_status == 'failed' %}
+                    <i class="fas fa-exclamation-circle mr-1"></i> Failed
+                {% else %}
+                    <i class="fas fa-clock mr-1"></i> Not Trained
+                {% endif %}
+            </span>
+        </div>
+        
+        <div class="space-y-4">
+            <!-- Transcript Input Options -->
+            <div>
+                <label class="block text-sm font-medium mb-2 text-gray-300">Lesson Transcript</label>
+                <div class="flex gap-2 mb-3">
+                    <button type="button" id="use-existing-transcript" class="px-4 py-2 bg-cyan-electric/10 border border-cyan-electric/30 rounded-lg text-sm hover:bg-cyan-electric/20 transition-all text-cyan-electric cursor-pointer" style="pointer-events: auto !important; z-index: 100; position: relative;" onclick="if(window.handleUseExistingTranscript){window.handleUseExistingTranscript(event);}else{alert('Function not loaded yet');} return false;">
+                        <i class="fas fa-file-alt mr-2"></i> Use Existing Transcription
+                    </button>
+                    <button type="button" id="upload-transcript" class="px-4 py-2 bg-cyan-electric/10 border border-cyan-electric/30 rounded-lg text-sm hover:bg-cyan-electric/20 transition-all text-cyan-electric cursor-pointer" style="pointer-events: auto !important; z-index: 100; position: relative;" onclick="if(window.handleUploadTranscript){window.handleUploadTranscript(event);}else{alert('Function not loaded yet');} return false;">
+                        <i class="fas fa-upload mr-2"></i> Upload File
+                    </button>
+                </div>
+                
+                <!-- Textarea for pasting transcript -->
+                <textarea 
+                    id="transcript-input"
+                    name="transcript"
+                    rows="10"
+                    placeholder="Paste transcript here or use existing transcription...&#10;&#10;The AI will learn from this transcript to answer student questions about the lesson."
+                    class="w-full bg-[#0a0e27]/40 border border-cyan-electric/20 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-cyan-electric/50 resize-none text-gray-300 placeholder-gray-500"
+                >{{ lesson.transcription }}</textarea>
+                
+                <!-- File upload input (hidden) -->
+                <input type="file" id="transcript-file-input" accept=".txt,.md,.doc,.docx" class="hidden">
+                
+                <p class="text-xs text-gray-500 mt-2">
+                    <i class="fas fa-info-circle mr-1"></i> Supported formats: Text files (.txt, .md) or Word documents (.doc, .docx)
+                </p>
+            </div>
+            
+            <!-- Training Status Display -->
+            {% if lesson.ai_chatbot_training_status == 'trained' %}
+            <div class="bg-green-500/10 border border-green-500/30 rounded-lg p-4 mb-4">
+                <div class="flex items-center gap-2 text-green-400">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <p class="font-semibold">AI Chatbot trained successfully!</p>
+                        <p class="text-sm text-green-300">Trained on {{ lesson.ai_chatbot_trained_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Test Chatbot Interface -->
+            <div class="bg-purple-accent/10 border border-purple-accent/30 rounded-xl p-4 mb-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="font-bold text-sm flex items-center gap-2 text-purple-accent">
+                        <i class="fas fa-flask"></i>
+                        Test AI Chatbot
+                    </h4>
+                    <button id="toggle-test-chatbot" class="text-gray-400 hover:text-white transition-all">
+                        <i class="fas fa-chevron-down" id="test-chatbot-icon"></i>
+                    </button>
+                </div>
+                
+                <div id="test-chatbot-container" class="hidden">
+                    <div id="test-chatbot-messages" class="space-y-3 mb-4 max-h-64 overflow-y-auto bg-[#0a0e27]/40 rounded-lg p-3">
+                        <div class="bg-purple-accent/10 border border-purple-accent/20 rounded-lg p-3 text-sm">
+                            <div class="flex items-start gap-2">
+                                <i class="fas fa-robot text-purple-accent mt-1"></i>
+                                <div>
+                                    <p class="font-semibold mb-1 text-purple-accent">AI Assistant</p>
+                                    <p class="text-gray-300">Hi! I'm the AI assistant for this lesson. Ask me anything about the lesson content to test my knowledge!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <input 
+                            type="text" 
+                            id="test-chatbot-input" 
+                            placeholder="Ask a question to test the AI..."
+                            class="flex-1 bg-[#0a0e27]/40 border border-purple-accent/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-purple-accent/50 text-white placeholder-gray-500"
+                        >
+                        <button 
+                            id="test-chatbot-send-btn"
+                            class="px-4 py-2 bg-purple-accent text-white rounded-lg hover:bg-purple-accent/90 transition-all font-semibold"
+                        >
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2 text-center">
+                        <i class="fas fa-info-circle mr-1"></i> Test the chatbot to verify it understands the lesson content
+                    </p>
+                </div>
+            </div>
+            {% elif lesson.ai_chatbot_training_status == 'training' %}
+            <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                <div class="flex items-center gap-2 text-yellow-400">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span>Training in progress... This may take a few moments.</span>
+                </div>
+            </div>
+            {% elif lesson.ai_chatbot_training_status == 'failed' %}
+            <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+                <div class="flex items-start gap-2 text-red-400">
+                    <i class="fas fa-exclamation-circle mt-1"></i>
+                    <div>
+                        <p class="font-semibold mb-1">Training failed</p>
+                        <p class="text-sm text-red-300">{{ lesson.ai_chatbot_training_error|truncatewords:30 }}</p>
+                        <p class="text-xs text-red-400 mt-2">Please check the transcript and try again.</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Train Button -->
+            <button 
+                type="button" 
+                id="train-chatbot-btn"
+                class="w-full px-6 py-3 bg-purple-accent text-white rounded-full font-bold hover:bg-purple-accent/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                style="pointer-events: auto !important; z-index: 100; position: relative;"
+                onclick="if(window.handleTrainChatbot){window.handleTrainChatbot(event);}else{alert('Function not loaded yet');} return false;"
+            >
+                <i class="fas fa-robot mr-2"></i> 
+                {% if lesson.ai_chatbot_training_status == 'trained' %}
+                    Retrain AI Chatbot
+                {% else %}
+                    Train AI Chatbot
+                {% endif %}
+            </button>
+            
+            {% if lesson.ai_chatbot_training_status == 'trained' %}
+            <div class="bg-purple-accent/10 border border-purple-accent/20 rounded-lg p-3 text-sm text-gray-300">
+                <i class="fas fa-lightbulb text-purple-accent mr-2"></i>
+                <strong>Tip:</strong> Students will be able to ask questions about this lesson using the AI assistant on the lesson page.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
     <form method="POST" id="ai-content-form">
         {% csrf_token %}
         
@@ -181,22 +336,493 @@
 
 {% block extra_js %}
 <script>
-    // Edit field functionality
-    document.querySelectorAll('.edit-field-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const field = this.dataset.field;
-            const display = document.getElementById(`${field.replace('_', '-')}-display`);
-            const input = document.getElementById(`${field.replace('_', '-')}-input`);
-            
-            if (display && input) {
-                display.classList.toggle('hidden');
-                input.classList.toggle('hidden');
+    // Make sure functions are in global scope
+    window.handleUseExistingTranscript = function(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        console.log('handleUseExistingTranscript called');
+        try {
+            const transcriptInput = document.getElementById('transcript-input');
+            if (!transcriptInput) {
+                console.error('Transcript input not found!');
+                alert('Error: Transcript input field not found.');
+                return false;
+            }
+            // Get existing transcript - check textarea first, then fallback to template value
+            let existingTranscript = transcriptInput.value;
+            if (!existingTranscript || !existingTranscript.trim()) {
+                // Try to get from the initial page load value
+                existingTranscript = '{{ lesson.transcription|escapejs }}';
+            }
+            console.log('Existing transcript length:', existingTranscript ? existingTranscript.length : 0);
+            if (existingTranscript && existingTranscript.trim()) {
+                transcriptInput.value = existingTranscript;
+                transcriptInput.focus();
+                transcriptInput.scrollTop = 0;
+                console.log('Transcript loaded into textarea, new length:', transcriptInput.value.length);
+                // Visual feedback
+                transcriptInput.style.borderColor = '#00f0ff';
+                setTimeout(() => {
+                    transcriptInput.style.borderColor = '';
+                }, 1000);
+                return false;
+            } else {
+                alert('No existing transcription found for this lesson. Please paste or upload a transcript.');
+                return false;
+            }
+        } catch (error) {
+            console.error('Error in handleUseExistingTranscript:', error);
+            alert('Error: ' + error.message);
+            return false;
+        }
+    }
+    
+    window.handleUploadTranscript = function(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        console.log('handleUploadTranscript called');
+        try {
+            const fileInput = document.getElementById('transcript-file-input');
+            if (fileInput) {
+                fileInput.click();
+                console.log('File input triggered');
+                return false;
+            } else {
+                console.error('File input not found!');
+                alert('Error: File input not found.');
+                return false;
+            }
+        } catch (error) {
+            console.error('Error in handleUploadTranscript:', error);
+            alert('Error: ' + error.message);
+            return false;
+        }
+    }
+    
+    window.handleTrainChatbot = async function(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        console.log('handleTrainChatbot called');
+        try {
+            const transcriptInput = document.getElementById('transcript-input');
+            if (!transcriptInput) {
+                alert('Transcript input not found.');
+                return false;
+            }
+            const transcript = transcriptInput.value.trim();
+            const lessonId = {{ lesson.id }};
+            console.log('Transcript length:', transcript.length, 'Lesson ID:', lessonId);
+            if (!transcript) {
+                alert('Please provide a transcript before training the chatbot.');
+                return false;
+            }
+            if (!confirm('This will send the transcript to train the AI chatbot. Continue?')) {
+                return false;
+            }
+            const trainBtn = document.getElementById('train-chatbot-btn');
+            if (!trainBtn) {
+                alert('Train button not found.');
+                return false;
+            }
+            const originalText = trainBtn.innerHTML;
+            trainBtn.disabled = true;
+            trainBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Training...';
+            console.log('Sending training request...');
+            try {
+                const response = await fetch(`/api/lessons/${lessonId}/train-chatbot/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ transcript: transcript })
+                });
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+                if (data.success) {
+                    alert('Chatbot training started successfully! The page will reload to show the updated status.');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to train chatbot'));
+                    trainBtn.disabled = false;
+                    trainBtn.innerHTML = originalText;
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                alert('Error: ' + error.message);
+                trainBtn.disabled = false;
+                trainBtn.innerHTML = originalText;
+            }
+            return false;
+        } catch (error) {
+            console.error('Error in handleTrainChatbot:', error);
+            alert('Error: ' + error.message);
+            return false;
+        }
+    }
+    
+    // Wait for DOM to be fully loaded
+    function initChatbotButtons() {
+        console.log('Initializing chatbot buttons...');
+        // Edit field functionality
+        document.querySelectorAll('.edit-field-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const field = this.dataset.field;
+                const display = document.getElementById(`${field.replace('_', '-')}-display`);
+                const input = document.getElementById(`${field.replace('_', '-')}-input`);
                 
-                if (!input.classList.contains('hidden')) {
-                    input.focus();
+                if (display && input) {
+                    display.classList.toggle('hidden');
+                    input.classList.toggle('hidden');
+                    
+                    if (!input.classList.contains('hidden')) {
+                        input.focus();
+                    }
+                }
+            });
+        });
+
+        // Transcript management
+        const useExistingBtn = document.getElementById('use-existing-transcript');
+        const uploadBtn = document.getElementById('upload-transcript');
+        const fileInput = document.getElementById('transcript-file-input');
+        const transcriptInput = document.getElementById('transcript-input');
+        const trainBtn = document.getElementById('train-chatbot-btn');
+
+        if (useExistingBtn) {
+            // Make sure button is clickable
+            useExistingBtn.style.pointerEvents = 'auto';
+            useExistingBtn.style.cursor = 'pointer';
+            useExistingBtn.disabled = false;
+            
+            // Add event listener (onclick handler will also work as backup)
+            useExistingBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Event listener: Use existing transcript button clicked');
+                try {
+                    window.handleUseExistingTranscript(e);
+                } catch (error) {
+                    console.error('Error in use existing handler:', error);
+                    alert('Error: ' + error.message);
+                }
+            });
+            
+            console.log('Use existing button event listener attached');
+        } else {
+            console.warn('use-existing-transcript button not found');
+        }
+
+        if (uploadBtn) {
+            // Make sure button is clickable
+            uploadBtn.style.pointerEvents = 'auto';
+            uploadBtn.style.cursor = 'pointer';
+            uploadBtn.disabled = false;
+            
+            // Add event listener (onclick handler will also work as backup)
+            uploadBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Event listener: Upload transcript button clicked');
+                try {
+                    window.handleUploadTranscript(e);
+                } catch (error) {
+                    console.error('Error in upload handler:', error);
+                    alert('Error: ' + error.message);
+                }
+            });
+            
+            console.log('Upload button event listener attached');
+        } else {
+            console.warn('upload-transcript button not found');
+        }
+
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                console.log('File selected');
+                const file = e.target.files[0];
+                if (file) {
+                    console.log('Reading file:', file.name, 'Size:', file.size);
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        console.log('File read successfully, length:', event.target.result.length);
+                        const transcriptInput = document.getElementById('transcript-input');
+                        if (transcriptInput) {
+                            transcriptInput.value = event.target.result;
+                            transcriptInput.focus();
+                            transcriptInput.scrollTop = 0;
+                            console.log('File content loaded into textarea');
+                            
+                            // Visual feedback
+                            transcriptInput.style.borderColor = '#00f0ff';
+                            setTimeout(() => {
+                                transcriptInput.style.borderColor = '';
+                            }, 1000);
+                        } else {
+                            console.error('Transcript input not found when trying to load file!');
+                        }
+                    };
+                    reader.onerror = function() {
+                        console.error('Error reading file');
+                        alert('Error reading file. Please try again.');
+                    };
+                    reader.readAsText(file);
+                } else {
+                    console.log('No file selected');
+                }
+            });
+        } else {
+            console.warn('File input not found');
+        }
+
+        // Train chatbot button
+        if (trainBtn) {
+            // Function to check if button should be enabled
+            function updateTrainButtonState() {
+                const transcriptInput = document.getElementById('transcript-input');
+                if (transcriptInput) {
+                    const hasText = transcriptInput.value.trim().length > 0;
+                    const isTrained = '{{ lesson.ai_chatbot_training_status }}' === 'trained';
+                    
+                    // Enable if there's text OR if already trained (for retraining)
+                    if (hasText || isTrained) {
+                        trainBtn.disabled = false;
+                        trainBtn.style.opacity = '1';
+                        trainBtn.style.cursor = 'pointer';
+                        console.log('Train button enabled');
+                    } else {
+                        trainBtn.disabled = true;
+                        trainBtn.style.opacity = '0.5';
+                        trainBtn.style.cursor = 'not-allowed';
+                        console.log('Train button disabled - no transcript');
+                    }
                 }
             }
+            
+            // Check initial state
+            updateTrainButtonState();
+            
+            // Listen for changes in the textarea
+            if (transcriptInput) {
+                transcriptInput.addEventListener('input', updateTrainButtonState);
+                transcriptInput.addEventListener('paste', function() {
+                    setTimeout(updateTrainButtonState, 100);
+                });
+            }
+            
+            // Make sure button is clickable when enabled
+            trainBtn.style.pointerEvents = 'auto';
+            
+            // Add event listener (onclick handler will also work as backup)
+            trainBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Event listener: Train chatbot button clicked');
+                try {
+                    if (!trainBtn.disabled) {
+                        // Call async function without await - it handles its own promises
+                        window.handleTrainChatbot(e).catch(function(error) {
+                            console.error('Error training chatbot:', error);
+                            alert('Error: ' + error.message);
+                        });
+                    } else {
+                        alert('Please add a transcript first before training the chatbot.');
+                    }
+                } catch (error) {
+                    console.error('Error in train handler:', error);
+                    alert('Error: ' + error.message);
+                }
+            });
+            
+            console.log('Train button event listener attached');
+        } else {
+            console.warn('train-chatbot-btn not found');
+        }
+        
+        console.log('Chatbot buttons initialized');
+        
+        // Test chatbot interface (only if trained)
+        {% if lesson.ai_chatbot_training_status == 'trained' %}
+        initTestChatbot();
+        {% endif %}
+    }
+    
+    // Test Chatbot Interface
+    function initTestChatbot() {
+        const toggleBtn = document.getElementById('toggle-test-chatbot');
+        const container = document.getElementById('test-chatbot-container');
+        const icon = document.getElementById('test-chatbot-icon');
+        const messagesDiv = document.getElementById('test-chatbot-messages');
+        const input = document.getElementById('test-chatbot-input');
+        const sendBtn = document.getElementById('test-chatbot-send-btn');
+        
+        if (!toggleBtn || !container) {
+            console.warn('Test chatbot elements not found');
+            return;
+        }
+        
+        let isOpen = false;
+        
+        toggleBtn.addEventListener('click', function() {
+            isOpen = !isOpen;
+            if (isOpen) {
+                container.classList.remove('hidden');
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                container.classList.add('hidden');
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
         });
+        
+        function addTestMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `bg-${isUser ? 'cyan-electric' : 'purple-accent'}/10 border border-${isUser ? 'cyan-electric' : 'purple-accent'}/20 rounded-lg p-3 text-sm`;
+            
+            const iconClass = isUser ? 'fa-user' : 'fa-robot';
+            const color = isUser ? 'cyan-electric' : 'purple-accent';
+            
+            messageDiv.innerHTML = `
+                <div class="flex items-start gap-2">
+                    <i class="fas ${iconClass} text-${color} mt-1"></i>
+                    <div class="flex-1">
+                        <p class="font-semibold mb-1 text-${color}">${isUser ? 'You' : 'AI Assistant'}</p>
+                        <p class="text-gray-300">${content}</p>
+                    </div>
+                </div>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        function sendTestMessage() {
+            const message = input.value.trim();
+            if (!message) return;
+            
+            // Add user message
+            addTestMessage(message, true);
+            input.value = '';
+            sendBtn.disabled = true;
+            
+            // Show loading
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'test-chatbot-loading';
+            loadingDiv.className = 'bg-purple-accent/10 border border-purple-accent/20 rounded-lg p-3 text-sm';
+            loadingDiv.innerHTML = `
+                <div class="flex items-start gap-2">
+                    <i class="fas fa-robot text-purple-accent mt-1"></i>
+                    <div class="flex-1">
+                        <p class="font-semibold mb-1 text-purple-accent">AI Assistant</p>
+                        <p class="text-gray-300"><i class="fas fa-spinner fa-spin"></i> Thinking...</p>
+                    </div>
+                </div>
+            `;
+            messagesDiv.appendChild(loadingDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            // Send to chatbot API
+            fetch(`/api/lessons/{{ lesson.id }}/chatbot/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    message: message
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Remove loading
+                loadingDiv.remove();
+                
+                if (data.success) {
+                    // Clean the response - extract text from various formats
+                    let cleanResponse = data.response || data.message || data.text || data.answer || '';
+                    
+                    // If response is a JSON string, try to parse it
+                    if (typeof cleanResponse === 'string') {
+                        // Try to parse if it looks like JSON
+                        if (cleanResponse.trim().startsWith('{') || cleanResponse.trim().startsWith('[')) {
+                            try {
+                                const parsed = JSON.parse(cleanResponse);
+                                // Extract Response, response, message, text, or answer field
+                                cleanResponse = parsed.Response || parsed.response || parsed.message || parsed.text || parsed.answer || cleanResponse;
+                            } catch (e) {
+                                // If parsing fails, check if it's a dict-like string
+                                const responseMatch = cleanResponse.match(/['"]Response['"]\s*:\s*['"]([^'"]+)['"]/i);
+                                if (responseMatch) {
+                                    cleanResponse = responseMatch[1];
+                                } else {
+                                    // Try to extract any quoted text
+                                    const quotedMatch = cleanResponse.match(/['"]([^'"]+)['"]/);
+                                    if (quotedMatch && quotedMatch[1].length > 10) {
+                                        cleanResponse = quotedMatch[1];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // If still empty or looks like raw JSON, show fallback
+                    if (!cleanResponse || cleanResponse.trim() === '' || cleanResponse.trim().startsWith('{')) {
+                        cleanResponse = 'I apologize, but I couldn\'t generate a response.';
+                    }
+                    
+                    addTestMessage(cleanResponse);
+                } else {
+                    addTestMessage('Sorry, I encountered an error: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                loadingDiv.remove();
+                addTestMessage('Sorry, I encountered an error. Please try again.');
+                console.error('Test chatbot error:', error);
+            })
+            .finally(() => {
+                sendBtn.disabled = false;
+            });
+        }
+        
+        if (sendBtn) {
+            sendBtn.addEventListener('click', sendTestMessage);
+        }
+        
+        if (input) {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendTestMessage();
+                }
+            });
+        }
+        
+        console.log('Test chatbot interface initialized');
+    }
+    
+    // Run on DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initChatbotButtons);
+    } else {
+        // DOM is already ready
+        initChatbotButtons();
+    }
+    
+    // Test if functions are accessible
+    console.log('Functions defined:', {
+        handleUseExistingTranscript: typeof window.handleUseExistingTranscript,
+        handleUploadTranscript: typeof window.handleUploadTranscript,
+        handleTrainChatbot: typeof window.handleTrainChatbot
     });
 </script>
 {% endblock %}

@@ -156,6 +156,23 @@ class Lesson(models.Model):
     # Editor.js Content
     content = models.JSONField(default=dict, blank=True, help_text="Editor.js content blocks for lesson content")
     
+    # AI Chatbot Integration Fields
+    ai_chatbot_enabled = models.BooleanField(default=False, help_text="Whether AI chatbot is enabled for this lesson")
+    ai_chatbot_webhook_id = models.CharField(max_length=200, blank=True, help_text="Chatbot webhook ID from training")
+    ai_chatbot_trained_at = models.DateTimeField(null=True, blank=True, help_text="When transcript was sent for training")
+    ai_chatbot_training_status = models.CharField(
+        max_length=20, 
+        default='pending', 
+        choices=[
+            ('pending', 'Pending'),
+            ('training', 'Training'),
+            ('trained', 'Trained'),
+            ('failed', 'Failed'),
+        ],
+        help_text="Status of AI training"
+    )
+    ai_chatbot_training_error = models.TextField(blank=True, help_text="Error message if training fails")
+    
     class Meta:
         ordering = ['order', 'id']
         unique_together = ['course', 'slug']

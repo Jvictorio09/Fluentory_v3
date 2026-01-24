@@ -590,6 +590,15 @@
     
     // Function to add AI message to chat
     function addAIMessage(message, isThinking = false) {
+        if (!chatMessages) {
+            console.error('chatMessages is not initialized!');
+            chatMessages = document.getElementById('chat-messages');
+            if (!chatMessages) {
+                console.error('Could not find chat-messages element!');
+                return null;
+            }
+        }
+        
         const messageDiv = document.createElement('div');
         messageDiv.className = 'chat-message ai-message';
         const content = isThinking 
@@ -675,55 +684,98 @@
             quickSuggestions.style.display = 'none';
         }
         
-        // Add thinking message
-        const thinkingMessage = addAIMessage('', true);
-        
         // Get current lesson and course info
         const lessonId = {{ lesson.id }};
         const lessonTitle = '{{ lesson.title|escapejs }}';
         const courseName = '{{ course.name|escapejs }}';
         
-        // Show loading indicator in chat
-        const chatMessages = document.getElementById('chat-messages');
-        if (chatMessages) {
-            const thinkingMessage = document.createElement('div');
-            thinkingMessage.className = 'bg-[#0a0e27]/60 border border-cyan-electric/20 rounded-lg p-4 mb-4';
-            thinkingMessage.innerHTML = '<div class="flex items-center gap-2 text-cyan-electric"><div class="animate-spin rounded-full h-4 w-4 border-b-2 border-cyan-electric"></div><span>AI is thinking...</span></div>';
-            chatMessages.appendChild(thinkingMessage);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
+        // Add thinking message
+        const thinkingMessage = addAIMessage('', true);
+        
+        // Determine which chatbot endpoint to use
+        const useLessonChatbot = {% if lesson.ai_chatbot_enabled and lesson.ai_chatbot_training_status == 'trained' %}true{% else %}false{% endif %};
+        const chatbotEndpoint = useLessonChatbot 
+            ? `/api/lessons/{{ lesson.id }}/chatbot/`
+            : '/api/chatbot/';
         
         // Send request to chatbot webhook
-        fetch('/api/chatbot/', {
+        fetch(chatbotEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': csrftoken
             },
-            body: JSON.stringify({
-                action: action || 'free_form',
-                action_text: userMessage,
-                user_message: userMessage,
-                lesson_id: lessonId,
-                lesson_title: lessonTitle,
-                course_name: courseName
-            })
+            body: JSON.stringify(
+                useLessonChatbot ? {
+                    message: userMessage
+                } : {
+                    action: action || 'free_form',
+                    action_text: userMessage,
+                    user_message: userMessage,
+                    lesson_id: lessonId,
+                    lesson_title: lessonTitle,
+                    course_name: courseName
+                }
+            )
         })
         .then(response => response.json())
         .then(data => {
             // Remove thinking message
-            if (chatMessages && thinkingMessage) {
+            if (thinkingMessage && thinkingMessage.parentNode) {
                 thinkingMessage.remove();
             }
-            if (data.error) {
-                updateAIMessage(thinkingMessage, `Error: ${data.error}`);
+            
+            if (useLessonChatbot) {
+                // Lesson-specific chatbot response format (same as test chatbot)
+                if (data.success) {
+                    // Backend already cleaned the response, so use it directly
+                    let cleanResponse = data.response || data.message || data.text || data.answer || '';
+                    
+                    console.log('Frontend: Response received, length:', cleanResponse.length);
+                    
+                    // Only try to parse if it's still JSON (shouldn't happen, but just in case)
+                    if (typeof cleanResponse === 'string' && cleanResponse.trim().startsWith('{') && !cleanResponse.includes('\n')) {
+                        try {
+                            const parsed = JSON.parse(cleanResponse);
+                            cleanResponse = parsed.Response || parsed.response || parsed.message || parsed.text || parsed.answer || cleanResponse;
+                        } catch (e) {
+                            // If parsing fails, backend should have handled it, but try extraction as fallback
+                            console.warn('Frontend: Still JSON-like, attempting extraction');
+                            const responseMatch = cleanResponse.match(/['"]Response['"]\s*:\s*['"]((?:[^"'\\]|\\.|\\n)*)['"]/i);
+                            if (responseMatch && responseMatch[1]) {
+                                cleanResponse = responseMatch[1].replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, '\n');
+                            }
+                        }
+                    }
+                    
+                    // If still empty, show fallback
+                    if (!cleanResponse || cleanResponse.trim() === '') {
+                        console.warn('Frontend: Empty response, using fallback');
+                        cleanResponse = 'I apologize, but I couldn\'t generate a response.';
+                    }
+                    
+                    console.log('Frontend: Displaying response, length:', cleanResponse.length);
+                    addAIMessage(cleanResponse, false);
+                } else {
+                    addAIMessage('Sorry, I encountered an error: ' + (data.error || 'Unknown error'), false);
+                }
             } else {
-                const responseText = data.response || data.message || JSON.stringify(data);
-                updateAIMessage(thinkingMessage, responseText);
+                // General chatbot response format
+                if (data.error) {
+                    addAIMessage(`Error: ${data.error}`, false);
+                } else {
+                    const responseText = data.response || data.message || JSON.stringify(data);
+                    addAIMessage(responseText, false);
+                }
             }
         })
         .catch(error => {
-            updateAIMessage(thinkingMessage, `Error: ${error.message}`);
+            // Remove thinking message
+            if (thinkingMessage && thinkingMessage.parentNode) {
+                thinkingMessage.remove();
+            }
+            console.error('Chatbot error:', error);
+            addAIMessage('Sorry, I encountered an error. Please try again.', false);
         });
     }
     

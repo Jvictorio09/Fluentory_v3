@@ -70,6 +70,10 @@ urlpatterns = [
     # Chatbot webhook endpoint
     path('api/chatbot/', views.chatbot_webhook, name='chatbot_webhook'),
     
+    # AI Chatbot endpoints
+    path('api/lessons/<int:lesson_id>/train-chatbot/', views.train_lesson_chatbot, name='train_lesson_chatbot'),
+    path('api/lessons/<int:lesson_id>/chatbot/', views.lesson_chatbot, name='lesson_chatbot'),
+    
     # Lesson progress tracking endpoints
     path('api/lessons/<int:lesson_id>/progress/', views.update_video_progress, name='update_video_progress'),
     path('api/lessons/<int:lesson_id>/complete/', views.complete_lesson, name='complete_lesson'),

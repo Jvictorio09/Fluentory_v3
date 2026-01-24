@@ -6,13 +6,27 @@
         <!-- Chat Header -->
         <div class="flex items-center gap-3 px-4 py-3 border-b border-cyan-electric/10 bg-gradient-to-r from-cyan-electric/5 to-transparent">
             <div class="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-electric via-purple-accent to-cyan-electric flex items-center justify-center shadow-lg shadow-cyan-electric/20 flex-shrink-0">
+                {% if lesson.ai_chatbot_enabled and lesson.ai_chatbot_training_status == 'trained' %}
+                <i class="fas fa-robot text-white text-xs"></i>
+                {% else %}
                 <i class="fas fa-sparkles text-white text-xs"></i>
+                {% endif %}
             </div>
             <div class="flex-1 min-w-0">
-                <div class="text-sm font-bold text-white truncate leading-tight">{{ course.coach_name }}</div>
+                <div class="text-sm font-bold text-white truncate leading-tight">
+                    {% if lesson.ai_chatbot_enabled and lesson.ai_chatbot_training_status == 'trained' %}
+                    Lesson AI Assistant
+                    {% else %}
+                    {{ course.coach_name }}
+                    {% endif %}
+                </div>
                 <div class="text-[11px] text-cyan-electric/70 flex items-center gap-1 mt-0.5">
                     <span class="w-1.5 h-1.5 rounded-full bg-cyan-electric animate-pulse"></span>
+                    {% if lesson.ai_chatbot_enabled and lesson.ai_chatbot_training_status == 'trained' %}
+                    <span>Trained on this lesson</span>
+                    {% else %}
                     Online
+                    {% endif %}
                 </div>
             </div>
             <button class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-cyan-electric/70 hover:text-cyan-electric transition-all" id="clear-chat" title="Clear chat">
@@ -30,12 +44,21 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="bg-[#0d1230] border border-cyan-electric/15 rounded-2xl rounded-tl-md px-3.5 py-3">
+                            {% if lesson.ai_chatbot_enabled and lesson.ai_chatbot_training_status == 'trained' %}
+                            <p class="text-[13px] text-gray-200 leading-[1.6]">
+                                Hi! I'm your AI Assistant for this lesson. I've been trained on the lesson content and can answer your questions!
+                            </p>
+                            <p class="text-[13px] text-gray-200 leading-[1.6] mt-2">
+                                Ask me anything about this specific lesson, or try one of the suggestions below.
+                            </p>
+                            {% else %}
                             <p class="text-[13px] text-gray-200 leading-[1.6]">
                                 Hi! I'm your AI Lesson Coach. I'm wired to this program and your lesson history.
                             </p>
                             <p class="text-[13px] text-gray-200 leading-[1.6] mt-2">
                                 Ask me anything about this lesson, or try one of the suggestions below.
                             </p>
+                            {% endif %}
                         </div>
                         <div class="text-[10px] text-gray-500 mt-1.5 ml-1">Just now</div>
                     </div>
