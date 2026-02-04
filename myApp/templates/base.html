@@ -47,7 +47,7 @@
     <nav class="bg-[#0a0e27] border-b border-cyan-electric/40 sticky top-0 z-50">
         <div class="max-w-[1200px] mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
             <!-- Left: Logo -->
-            <div class="flex items-center gap-2 sm:gap-3">
+            <a href="{% url 'home' %}" class="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity cursor-pointer">
                 <img 
                     src="https://res.cloudinary.com/dcuswyfur/image/upload/v1769099735/Frame_82_a2yvmn.png"
                     alt="Swedish Wealth Institute Logo"
@@ -55,7 +55,7 @@
                     loading="eager"
                 >
                 <div class="text-sm sm:text-lg font-bold text-white hidden sm:block">Swedish Wealth Institute</div>
-            </div>
+            </a>
             
             <!-- Mobile Menu Button -->
             <button id="mobile-menu-btn" class="md:hidden p-2 text-white hover:text-cyan-electric transition-colors">
