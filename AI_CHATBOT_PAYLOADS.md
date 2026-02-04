@@ -150,7 +150,7 @@ The Django backend enriches the payload before sending to the webhook:
 ```
 
 ### Webhook Endpoint
-**POST** `https://katalyst-crm2.fly.dev/webhook/d39397da-cf2c-4282-b531-51a321af8586`
+**POST** `https://katalyst-crm2.fly.dev/webhook/swi-chatbot`
 
 ### Enriched Payload Fields (Sent to Webhook)
 
@@ -323,7 +323,7 @@ curl -X POST https://katalyst-crm2.fly.dev/webhook/425e8e67-2aa6-4c50-b67f-0162e
 ### Chat with Chatbot
 
 ```bash
-curl -X POST https://katalyst-crm2.fly.dev/webhook/d39397da-cf2c-4282-b531-51a321af8586 \
+curl -X POST https://katalyst-crm2.fly.dev/webhook/swi-chatbot \
   -H "Content-Type: application/json" \
   -d '{
     "message": "What are the key points in this lesson?",
@@ -347,7 +347,7 @@ https://katalyst-crm2.fly.dev/webhook/425e8e67-2aa6-4c50-b67f-0162e2496b51
 
 ### Chatbot Webhook (Default)
 ```
-https://katalyst-crm2.fly.dev/webhook/d39397da-cf2c-4282-b531-51a321af8586
+https://katalyst-crm2.fly.dev/webhook/swi-chatbot
 ```
 
 **Note:** The chatbot webhook ID may be returned from the training webhook and stored per lesson. If a lesson-specific webhook ID is stored, it will be used instead of the default.

@@ -13,7 +13,7 @@ Each lesson will have its own AI chatbot that learns from the lesson transcript.
   - Purpose: Receives transcript and trains the AI for that specific lesson
   - Input: Transcript text + Lesson metadata
   
-- **Chatbot Webhook**: `https://katalyst-crm2.fly.dev/webhook/d39397da-cf2c-4282-b531-51a321af8586`
+- **Chatbot Webhook**: `https://katalyst-crm2.fly.dev/webhook/swi-chatbot`
   - Purpose: Handles chat interactions with the trained AI
   - Input: User message + Lesson context
   - Output: AI response
@@ -508,7 +508,7 @@ def lesson_chatbot(request, lesson_id):
             return JsonResponse({'success': False, 'error': 'Message is required'}, status=400)
         
         # Use the chatbot webhook
-        chatbot_webhook_url = 'https://katalyst-crm2.fly.dev/webhook/d39397da-cf2c-4282-b531-51a321af8586'
+        chatbot_webhook_url = 'https://katalyst-crm2.fly.dev/webhook/swi-chatbot'
         
         payload = {
             'message': user_message,
@@ -614,4 +614,5 @@ python manage.py migrate
 - May want to add caching for frequently asked questions
 - Consider adding a "Clear Chat" button for users
 - May want to add typing indicators for better UX
+
 

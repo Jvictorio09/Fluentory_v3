@@ -109,7 +109,7 @@ Each lesson can now have its own AI assistant that learns from the lesson transc
 
 ### Webhooks Used
 - **Training Webhook**: `https://katalyst-crm2.fly.dev/webhook/425e8e67-2aa6-4c50-b67f-0162e2496b51`
-- **Chatbot Webhook**: `https://katalyst-crm2.fly.dev/webhook/d39397da-cf2c-4282-b531-51a321af8586`
+- **Chatbot Webhook**: `https://katalyst-crm2.fly.dev/webhook/swi-chatbot`
 
 ### Database Fields Added
 - `ai_chatbot_enabled` - Boolean flag
@@ -126,4 +126,5 @@ python manage.py migrate
 ```
 
 This will add the new fields to the Lesson model.
+
 

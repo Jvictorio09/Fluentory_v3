@@ -14,3 +14,6 @@ ALTER TABLE myapp_lesson ALTER COLUMN slug TYPE varchar(200);
 -- ALTER TABLE myapp_lesson ADD COLUMN IF NOT EXISTS content JSONB DEFAULT '{}'::jsonb;
 
 
+
+
+

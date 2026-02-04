@@ -1384,7 +1384,7 @@ def lesson_chatbot(request, lesson_id):
             return JsonResponse({'success': False, 'error': 'Message is required'}, status=400)
         
         # Use the chatbot webhook
-        chatbot_webhook_url = 'https://katalyst-crm2.fly.dev/webhook/d39397da-cf2c-4282-b531-51a321af8586'
+        chatbot_webhook_url = 'https://katalyst-crm2.fly.dev/webhook/swi-chatbot'
         
         payload = {
             'message': user_message,

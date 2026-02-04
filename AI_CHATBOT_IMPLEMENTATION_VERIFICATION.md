@@ -48,7 +48,7 @@ payload = {
 
 ### Webhook URL ✅
 ```
-https://katalyst-crm2.fly.dev/webhook/d39397da-cf2c-4282-b531-51a321af8586
+https://katalyst-crm2.fly.dev/webhook/swi-chatbot
 ```
 **Status:** ✅ Matches documentation
 
@@ -187,4 +187,5 @@ All fields from documentation are implemented:
 **YES - We are using the documented payloads throughout the new AI chatbot system.**
 
 The old `chatbot_webhook` function is separate and only used as a fallback for the general chatbot when a lesson doesn't have its own trained AI.
+
 
