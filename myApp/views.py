@@ -909,14 +909,53 @@ def chatbot_webhook(request):
 
         # Extract a clean text message for the frontend chat UI.
         message_text = None
-        if isinstance(upstream_payload, dict):
+        if isinstance(upstream_payload, list) and len(upstream_payload) > 0:
+            # Handle list format like [{'output': '...'}]
+            first_item = upstream_payload[0]
+            if isinstance(first_item, dict):
+                message_text = (
+                    first_item.get('output')
+                    or first_item.get('Output')
+                    or first_item.get('message')
+                    or first_item.get('Message')
+                    or first_item.get('response')
+                    or first_item.get('Response')
+                    or first_item.get('text')
+                    or first_item.get('Text')
+                    or first_item.get('answer')
+                    or first_item.get('Answer')
+                )
+            elif isinstance(first_item, str):
+                message_text = first_item
+        elif isinstance(upstream_payload, dict):
             # Many of your test webhooks wrap like: {"Response": {"output": "..."}}.
             inner = upstream_payload.get('Response', upstream_payload)
             if isinstance(inner, dict):
                 message_text = (
                     inner.get('output')
+                    or inner.get('Output')
                     or inner.get('message')
+                    or inner.get('Message')
                     or inner.get('response')
+                    or inner.get('Response')
+                    or inner.get('text')
+                    or inner.get('Text')
+                    or inner.get('answer')
+                    or inner.get('Answer')
+                )
+            else:
+                # Try direct keys on upstream_payload
+                message_text = (
+                    upstream_payload.get('output')
+                    or upstream_payload.get('Output')
+                    or upstream_payload.get('message')
+                    or upstream_payload.get('Message')
+                    or upstream_payload.get('response')
+                    or upstream_payload.get('Response')
+                    or upstream_payload.get('text')
+                    or upstream_payload.get('Text')
+                    or upstream_payload.get('answer')
+                    or upstream_payload.get('Answer')
                 )
         if not message_text:
             message_text = str(upstream_payload)
@@ -1484,7 +1523,28 @@ def lesson_chatbot(request, lesson_id):
                 # Extract AI response (adjust based on actual webhook response format)
                 # Try multiple possible field names
                 ai_response = None
-                if isinstance(response_data, dict):
+                if isinstance(response_data, list) and len(response_data) > 0:
+                    # Handle list format like [{'output': '...'}]
+                    first_item = response_data[0]
+                    if isinstance(first_item, dict):
+                        ai_response = (
+                            first_item.get('output') or
+                            first_item.get('Output') or
+                            first_item.get('response') or 
+                            first_item.get('Response') or 
+                            first_item.get('message') or 
+                            first_item.get('Message') or 
+                            first_item.get('text') or 
+                            first_item.get('Text') or 
+                            first_item.get('answer') or 
+                            first_item.get('Answer') or 
+                            first_item.get('content') or
+                            first_item.get('Content') or
+                            None
+                        )
+                    elif isinstance(first_item, str):
+                        ai_response = first_item
+                elif isinstance(response_data, dict):
                     ai_response = (
                         response_data.get('response') or 
                         response_data.get('Response') or 
@@ -1508,7 +1568,7 @@ def lesson_chatbot(request, lesson_id):
                                 ai_response = value
                                 break
                 else:
-                    # If it's not a dict, convert to string
+                    # If it's not a dict or list, convert to string
                     ai_response = str(response_data)
                 
                 # If still None, convert entire dict to string

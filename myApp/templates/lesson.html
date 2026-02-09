@@ -733,11 +733,35 @@
                     
                     console.log('Frontend: Response received, length:', cleanResponse.length);
                     
-                    // Only try to parse if it's still JSON (shouldn't happen, but just in case)
-                    if (typeof cleanResponse === 'string' && cleanResponse.trim().startsWith('{') && !cleanResponse.includes('\n')) {
+                    // Handle list format like [{'output': '...'}]
+                    if (typeof cleanResponse === 'string' && cleanResponse.trim().startsWith('[')) {
                         try {
                             const parsed = JSON.parse(cleanResponse);
-                            cleanResponse = parsed.Response || parsed.response || parsed.message || parsed.text || parsed.answer || cleanResponse;
+                            if (Array.isArray(parsed) && parsed.length > 0) {
+                                const firstItem = parsed[0];
+                                if (typeof firstItem === 'object' && firstItem !== null) {
+                                    cleanResponse = firstItem.output || firstItem.Output || firstItem.response || firstItem.Response || 
+                                                   firstItem.message || firstItem.Message || firstItem.text || firstItem.Text || 
+                                                   firstItem.answer || firstItem.Answer || cleanResponse;
+                                } else if (typeof firstItem === 'string') {
+                                    cleanResponse = firstItem;
+                                }
+                            }
+                        } catch (e) {
+                            // If parsing fails, try regex extraction
+                            console.warn('Frontend: Failed to parse list response, attempting extraction');
+                            const listMatch = cleanResponse.match(/\[\s*\{\s*['"]output['"]\s*:\s*['"]([^'"]+)['"]/i);
+                            if (listMatch && listMatch[1]) {
+                                cleanResponse = listMatch[1].replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\n/g, '\n');
+                            }
+                        }
+                    }
+                    // Handle dict format like {'Response': '...'} or {'output': '...'}
+                    else if (typeof cleanResponse === 'string' && cleanResponse.trim().startsWith('{') && !cleanResponse.includes('\n')) {
+                        try {
+                            const parsed = JSON.parse(cleanResponse);
+                            cleanResponse = parsed.Response || parsed.response || parsed.message || parsed.text || 
+                                           parsed.answer || parsed.output || parsed.Output || cleanResponse;
                         } catch (e) {
                             // If parsing fails, backend should have handled it, but try extraction as fallback
                             console.warn('Frontend: Still JSON-like, attempting extraction');
