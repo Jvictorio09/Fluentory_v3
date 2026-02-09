@@ -42,7 +42,7 @@ def login_view(request):
     # Allow access to login page even when logged in if ?force=true (for testing)
     force = request.GET.get('force', '').lower() == 'true'
     if request.user.is_authenticated and not force:
-        return redirect('home')
+        return redirect('student_dashboard')
     
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -51,7 +51,7 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            next_url = request.GET.get('next', 'home')
+            next_url = request.GET.get('next', 'student_dashboard')
             return redirect(next_url)
         else:
             messages.error(request, 'Invalid username or password.')
