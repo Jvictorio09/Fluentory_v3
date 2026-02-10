@@ -1,462 +1,339 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Courses - Swedish Wealth Institute{% endblock %}
+{% block title %}Courses — PrimoLearn{% endblock %}
 
 {% block content %}
-<!-- Header Strip -->
-<div class="mb-8 sm:mb-12">
-  <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between lg:gap-8 mb-8">
 
-    <div class="min-w-0">
-      <div class="text-xs uppercase tracking-widest text-cyan-electric/70 font-semibold mb-2">COURSES</div>
-      <h1 class="text-3xl sm:text-4xl font-bold mb-3">Your AI-Assisted Growth Track</h1>
-      <p class="text-gray-300 text-base sm:text-lg">Every program is wired into its own AI coach. Choose your sprint; we'll handle the momentum.</p>
+<!-- PAGE HEADER (modern, clean, brand palette) -->
+<section class="mb-8 md:mb-12">
+  <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+
+    <div class="min-w-0 max-w-3xl">
+      <p class="text-[11px] font-semibold text-gray-700 tracking-[0.34em] uppercase text-slate-500">Courses</p>
+      <h1 class="mt-3 text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-ink-deep">
+        Choose what you want to master next
+      </h1>
+      <p class="mt-3 text-sm sm:text-base text-slate-600">
+        Self-paced learning, downloadable resources, and progress tracking — all in one hub.
+      </p>
     </div>
 
-    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full lg:w-auto">
+    <!-- Controls -->
+    <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
       <!-- Dropdown -->
       <div class="relative w-full sm:w-56">
-        <select class="w-full bg-[#0a0e27]/60 border border-cyan-electric/20 rounded-lg px-4 py-3 sm:py-2 pr-10 text-sm focus:outline-none focus:border-cyan-electric/50 appearance-none cursor-pointer">
-          <option>All Programs</option>
-          <option>Sprints</option>
-          <option>Speaking</option>
-          <option>Consultancy</option>
+        <i class="fas fa-filter absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+        <select class="w-full appearance-none rounded-full border border-slate-200 bg-white/80 py-3 sm:py-2 pl-9 pr-10 text-sm font-semibold text-gray-700 text-slate-700 backdrop-blur transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-teal-soft/20">
+          <option>All categories</option>
+          <option>Natural health</option>
+          <option>Personal development</option>
+          <option>Energy therapies</option>
         </select>
-        <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-cyan-electric/50 text-xs pointer-events-none"></i>
+        <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
       </div>
 
       <!-- Search -->
       <div class="relative w-full sm:w-72 lg:w-64">
-        <input type="text" placeholder="Search courses..." class="w-full bg-[#0a0e27]/60 border border-cyan-electric/20 rounded-lg px-4 py-3 sm:py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-cyan-electric/50">
-        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-cyan-electric/50 text-xs"></i>
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+        <input type="text"
+               placeholder="Search courses…"
+               class="w-full rounded-full border border-slate-200 bg-white/80 py-3 sm:py-2 pl-9 pr-4 text-sm text-slate-800 placeholder:text-slate-400 backdrop-blur transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-teal-soft/20">
       </div>
     </div>
 
   </div>
-</div>
+</section>
 
-<!-- Continue Learning Section (Courses in Progress) -->
+<!-- CONTINUE LEARNING (horizontal scroll carousel feel) -->
 {% if request.user.is_authenticated and in_progress_courses %}
-<div class="mb-12">
-  <div class="flex items-center gap-3 mb-6">
-    <div class="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-electric/50 to-transparent"></div>
-    <h2 class="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-      <i class="fas fa-play-circle text-cyan-electric"></i>
-      Continue Learning
-    </h2>
-    <div class="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-electric/50 to-transparent"></div>
+<section class="mb-10 md:mb-14">
+  <div class="flex items-center justify-between gap-4 mb-5">
+    <div>
+      <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-ink-deep">Continue learning</h2>
+      <p class="mt-1 text-sm text-slate-600">Jump back in where you left off.</p>
+    </div>
+
+    <div class="hidden md:flex items-center gap-2 text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-400">
+      <span class="inline-flex items-center gap-2">
+        <span class="h-1.5 w-1.5 rounded-full bg-teal-soft"></span> In progress
+      </span>
+    </div>
   </div>
 
-  <div class="space-y-6">
-    {% for data in in_progress_courses %}
-      {% with course=data.course %}
-      <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-2xl p-5 sm:p-6 shadow-2xl hover:shadow-cyan-electric/10 hover:border-cyan-electric/30 transition-all duration-300 hover:-translate-y-1 {% if data.is_favorited %}ring-2 ring-yellow-500/30{% endif %}">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <!-- End-to-end “rail” -->
+  <div class="relative">
+    <!-- subtle rail fade edges -->
+    <div class="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white via-white/70 to-transparent z-10"></div>
+    <div class="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white via-white/70 to-transparent z-10"></div>
 
-          <!-- Thumbnail Block -->
-          <div class="lg:col-span-4 xl:col-span-3">
-            <div class="relative rounded-xl overflow-hidden mb-4">
+    <div class="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none]"
+         style="scrollbar-width:none;">
+      <style>
+        /* hide webkit scrollbar */
+        .hide-scroll::-webkit-scrollbar { display:none; }
+      </style>
+
+      <div class="hide-scroll flex gap-4">
+        {% for data in in_progress_courses %}
+          {% with course=data.course %}
+          <article class="snap-start w-[320px] sm:w-[380px] lg:w-[420px] shrink-0 rounded-3xl border border-slate-200/70 bg-white/80 shadow-sm shadow-slate-900/5 backdrop-blur overflow-hidden transition hover:-translate-y-0.5 hover:border-slate-300 {% if data.is_favorited %} ring-2 ring-amber-200 {% endif %}">
+            <!-- Thumb -->
+            <div class="relative h-44">
               {% if course.thumbnail %}
-                <img src="{{ course.thumbnail.url }}" alt="{{ course.name }}" class="w-full h-44 sm:h-48 lg:h-40 object-cover">
+                <img src="{{ course.thumbnail.url }}" alt="{{ course.name }}" class="h-full w-full object-cover">
               {% else %}
-                <div class="w-full h-44 sm:h-48 lg:h-40 bg-gradient-to-br from-cyan-electric/20 to-purple-accent/20 flex items-center justify-center">
-                  <i class="fas fa-video text-4xl text-cyan-electric/50"></i>
+                <div class="h-full w-full bg-gradient-to-br from-teal-soft/18 to-blue-soft/18 flex items-center justify-center">
+                  <i class="fas fa-book-open text-3xl text-blue-soft/70"></i>
                 </div>
               {% endif %}
+              <div class="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent"></div>
 
-              <!-- Overlay Labels -->
-              <div class="absolute top-2 left-2">
-                <span class="bg-cyan-electric/90 text-[#0a0e27] text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold">VIDEO PROGRAM</span>
+              <div class="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/85 px-3 py-1 text-[11px] font-extrabold text-slate-700">
+                <i class="fas fa-play text-teal-soft text-[10px]"></i> Continue
               </div>
 
               {% if course.special_tag %}
-              <div class="absolute bottom-2 right-2">
-                <span class="bg-purple-accent/90 text-white text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold">{{ course.special_tag }}</span>
+              <div class="absolute right-4 top-4 inline-flex items-center rounded-full bg-coral-cta px-3 py-1 text-[11px] font-extrabold text-white shadow-lg shadow-coral-cta/20">
+                {{ course.special_tag }}
               </div>
               {% endif %}
             </div>
 
-            <div class="space-y-2 text-sm">
-              {% if course.is_subscribers_only %}
-              <div class="flex items-center gap-2 text-gray-400">
-                <i class="fas fa-lock text-cyan-electric/70"></i>
-                <span>Subscribers only</span>
-              </div>
-              {% endif %}
-              <div class="flex items-center gap-2 text-gray-400">
-                <i class="fas fa-video text-cyan-electric/70"></i>
-                <span>{{ course.get_lesson_count }} lessons</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Content Block -->
-          <div class="lg:col-span-6 xl:col-span-7 min-w-0">
-            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
-              <div class="flex items-center gap-2 min-w-0">
-                <h2 class="text-xl sm:text-2xl font-bold truncate">{{ course.name }}</h2>
+            <!-- Body -->
+            <div class="p-5">
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="text-lg font-extrabold text-ink-deep leading-snug line-clamp-2">
+                  {{ course.name }}
+                </h3>
 
                 {% if request.user.is_authenticated %}
-                <!-- Favorite Button -->
                 <button onclick="toggleFavorite({{ course.id }}, this)"
-                        class="favorite-btn p-2 rounded-lg transition-all hover:scale-110 {% if data.is_favorited %}text-yellow-400{% else %}text-gray-400 hover:text-yellow-400{% endif %}"
+                        class="favorite-btn inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/70 transition hover:bg-white hover:scale-[1.02]
+                               {% if data.is_favorited %} text-amber-600 {% else %} text-slate-400 hover:text-amber-600 {% endif %}"
                         data-course-id="{{ course.id }}"
-                        data-is-favorited="{{ data.is_favorited|yesno:'true,false' }}">
-                  <i class="fas fa-heart {% if data.is_favorited %}fas{% else %}far{% endif %}"></i>
+                        data-is-favorited="{{ data.is_favorited|yesno:'true,false' }}"
+                        aria-label="Toggle favorite">
+                  <i class="fa-heart {% if data.is_favorited %}fas{% else %}far{% endif %}"></i>
                 </button>
                 {% endif %}
               </div>
 
-              <span class="self-start px-3 py-1 rounded-full text-xs font-semibold
-                {% if course.status == 'active' %}bg-green-500/20 text-green-400 border border-green-500/30
-                {% elif course.status == 'locked' %}bg-red-500/20 text-red-400 border border-red-500/30
-                {% else %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30{% endif %}">
+              <p class="mt-2 text-sm text-slate-600 line-clamp-2">
+                {{ course.short_description }}
+              </p>
+
+              <!-- Progress (if provided in data) -->
+              {% if data.progress_percentage %}
+              <div class="mt-4">
+                <div class="flex items-center justify-between text-[12px] text-slate-500">
+                  <span>Progress</span>
+                  <span class="font-semibold text-gray-700 text-blue-soft">{{ data.progress_percentage }}%</span>
+                </div>
+                <div class="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
+                  <div class="h-full rounded-full bg-gradient-to-r from-teal-soft to-blue-soft transition-all duration-500"
+                       style="width: {{ data.progress_percentage }}%"></div>
+                </div>
+              </div>
+              {% endif %}
+
+              <div class="mt-4 flex items-center justify-between text-sm">
+                <span class="text-slate-500">
+                  <i class="fas fa-layer-group mr-2 text-slate-400"></i>{{ course.get_lesson_count }} lessons
+                </span>
+
+                <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-semibold text-gray-700 text-slate-700">
+                  {% if course.status %}{{ course.get_status_display }}{% else %}Active{% endif %}
+                </span>
+              </div>
+
+              <div class="mt-5 flex items-center gap-3">
+                {% if course.status == 'active' %}
+                  {% if course.lessons.first %}
+                    <a href="{% url 'lesson_detail' course.slug course.lessons.first.slug %}"
+                       class="flex-1 inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
+                      Continue
+                      <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                    </a>
+                  {% endif %}
+                  <a href="{% url 'student_course_progress' course.slug %}"
+                     class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/70 px-4 py-2.5 text-sm font-semibold text-gray-700 text-ink-deep transition hover:bg-white">
+                    Progress
+                  </a>
+                {% else %}
+                  <button disabled class="flex-1 rounded-2xl bg-slate-200 px-4 py-2.5 text-sm font-extrabold text-slate-500 cursor-not-allowed">
+                    Locked
+                  </button>
+                {% endif %}
+              </div>
+            </div>
+          </article>
+          {% endwith %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ALL COURSES (grid cards, modern) -->
+<section class="space-y-5">
+  <div class="flex items-end justify-between gap-4">
+    <div>
+      <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-ink-deep">
+        {% if request.user.is_authenticated %}Explore more{% else %}Explore courses{% endif %}
+      </h2>
+      <p class="mt-1 text-sm text-slate-600">
+        Browse the full catalog. Save favorites for later.
+      </p>
+    </div>
+
+    <!-- optional hint -->
+    <div class="hidden md:flex items-center gap-2 text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-400">
+      <i class="fas fa-heart text-amber-600"></i> Favorites
+    </div>
+  </div>
+
+  {% if request.user.is_authenticated %}
+    {% if not_started_courses %}
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {% for data in not_started_courses %}
+          {% with course=data.course %}
+          <article class="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm shadow-slate-900/5 backdrop-blur transition hover:-translate-y-0.5 hover:border-slate-300 {% if data.is_favorited %} ring-2 ring-amber-200 {% endif %}">
+            <div class="flex items-start justify-between gap-3">
+              <h3 class="text-lg font-extrabold text-ink-deep leading-snug line-clamp-2">
+                {{ course.name }}
+              </h3>
+
+              <button onclick="toggleFavorite({{ course.id }}, this)"
+                      class="favorite-btn inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/70 transition hover:bg-white hover:scale-[1.02]
+                             {% if data.is_favorited %} text-amber-600 {% else %} text-slate-400 hover:text-amber-600 {% endif %}"
+                      data-course-id="{{ course.id }}"
+                      data-is-favorited="{{ data.is_favorited|yesno:'true,false' }}"
+                      aria-label="Toggle favorite">
+                <i class="fa-heart {% if data.is_favorited %}fas{% else %}far{% endif %}"></i>
+              </button>
+            </div>
+
+            <p class="mt-2 text-sm text-slate-600 line-clamp-2">{{ course.short_description }}</p>
+
+            <div class="mt-4 rounded-2xl overflow-hidden border border-slate-200 bg-white/70">
+              {% if course.thumbnail %}
+                <img src="{{ course.thumbnail.url }}" alt="{{ course.name }}" class="h-40 w-full object-cover">
+              {% else %}
+                <div class="h-40 w-full bg-gradient-to-br from-teal-soft/18 to-blue-soft/18 flex items-center justify-center">
+                  <i class="fas fa-leaf text-3xl text-teal-soft/70"></i>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="mt-4 flex flex-wrap gap-2">
+              {% if course.is_accredible_certified %}
+              <span class="inline-flex items-center gap-2 rounded-full border border-blue-soft/20 bg-blue-soft/10 px-3 py-1 text-xs font-semibold text-gray-700 text-blue-soft">
+                <i class="fas fa-certificate"></i> Certified
+              </span>
+              {% endif %}
+              <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-semibold text-gray-700 text-slate-700">
+                <i class="fas fa-layer-group text-slate-400"></i> {{ course.get_lesson_count }} lessons
+              </span>
+            </div>
+
+            <div class="mt-5">
+              {% if course.status == 'active' and course.lessons.first %}
+                <a href="{% url 'lesson_detail' course.slug course.lessons.first.slug %}"
+                   class="w-full inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
+                  Start course
+                  <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </a>
+              {% elif course.status == 'active' %}
+                <a href="{% url 'student_course_progress' course.slug %}"
+                   class="w-full inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/70 px-4 py-2.5 text-sm font-semibold text-gray-700 text-ink-deep transition hover:bg-white">
+                  View details
+                </a>
+              {% else %}
+                <button disabled class="w-full rounded-2xl bg-slate-200 px-4 py-2.5 text-sm font-extrabold text-slate-500 cursor-not-allowed">
+                  Locked
+                </button>
+              {% endif %}
+            </div>
+          </article>
+          {% endwith %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="rounded-3xl border border-slate-200/70 bg-white/80 p-12 text-center shadow-sm shadow-slate-900/5 backdrop-blur">
+        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-success-soft/10">
+          <i class="fas fa-check-circle text-2xl text-success-soft"></i>
+        </div>
+        <h3 class="mt-5 text-xl font-extrabold text-ink-deep">You’re on track</h3>
+        <p class="mt-2 text-sm text-slate-600">All available courses are currently in progress. Great work.</p>
+      </div>
+    {% endif %}
+  {% else %}
+    {% if courses_data %}
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {% for data in courses_data %}
+          {% with course=data.course %}
+          <article class="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm shadow-slate-900/5 backdrop-blur transition hover:-translate-y-0.5 hover:border-slate-300">
+            <h3 class="text-lg font-extrabold text-ink-deep leading-snug line-clamp-2">{{ course.name }}</h3>
+            <p class="mt-2 text-sm text-slate-600 line-clamp-2">{{ course.short_description }}</p>
+
+            <div class="mt-4 rounded-2xl overflow-hidden border border-slate-200 bg-white/70">
+              {% if course.thumbnail %}
+                <img src="{{ course.thumbnail.url }}" alt="{{ course.name }}" class="h-40 w-full object-cover">
+              {% else %}
+                <div class="h-40 w-full bg-gradient-to-br from-teal-soft/18 to-blue-soft/18 flex items-center justify-center">
+                  <i class="fas fa-book-open text-3xl text-blue-soft/70"></i>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="mt-4 flex items-center justify-between text-sm text-slate-600">
+              <span><i class="fas fa-layer-group mr-2 text-slate-400"></i>{{ course.get_lesson_count }} lessons</span>
+              <span class="text-[11px] font-semibold text-gray-700 tracking-[0.18em] uppercase text-slate-400">
                 {{ course.get_status_display }}
               </span>
             </div>
 
-            <p class="text-gray-300 mb-3 leading-relaxed">{{ course.short_description }}</p>
-            <p class="text-sm text-gray-400 mb-4">{{ course.description|truncatewords:30 }}</p>
-
-            <!-- Feature Pills -->
-            <div class="flex flex-wrap gap-2">
-              {% if course.coach_name %}
-              <span class="px-3 py-1 bg-cyan-electric/10 border border-cyan-electric/20 rounded-full text-xs flex items-center gap-2">
-                <i class="fas fa-brain text-cyan-electric"></i>
-                AI Lesson Coach
-              </span>
-              {% endif %}
-              {% if course.is_accredible_certified %}
-              <span class="px-3 py-1 bg-cyan-electric/10 border border-cyan-electric/20 rounded-full text-xs flex items-center gap-2">
-                <i class="fas fa-certificate text-cyan-electric"></i>
-                Accredible Certified
-              </span>
-              {% endif %}
-              {% if course.has_asset_templates %}
-              <span class="px-3 py-1 bg-cyan-electric/10 border border-cyan-electric/20 rounded-full text-xs flex items-center gap-2">
-                <i class="fas fa-layer-group text-cyan-electric"></i>
-                Asset Templates Included
-              </span>
+            <div class="mt-5">
+              {% if course.status == 'active' %}
+                <a href="{% url 'course_detail' course.slug %}"
+                   class="w-full inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
+                  View course
+                  <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </a>
+              {% else %}
+                <button disabled class="w-full rounded-2xl bg-slate-200 px-4 py-2.5 text-sm font-extrabold text-slate-500 cursor-not-allowed">
+                  Locked
+                </button>
               {% endif %}
             </div>
-          </div>
-
-          <!-- Action Block -->
-          <div class="lg:col-span-2 flex flex-col gap-3">
-            {% if course.status == 'active' %}
-              {% if request.user.is_authenticated %}
-                {% if data.has_any_progress %}
-                  {% if course.lessons.first %}
-                  <a href="{% url 'lesson_detail' course.slug course.lessons.first.slug %}" class="w-full px-6 py-3 bg-gradient-to-r from-cyan-electric to-purple-accent hover:from-cyan-electric/90 hover:to-purple-accent/90 text-[#0a0e27] font-semibold rounded-full text-center transition-all duration-300">
-                    Continue Learning
-                  </a>
-                  {% endif %}
-                  <a href="{% url 'student_course_progress' course.slug %}" class="w-full px-6 py-3 border border-cyan-electric/30 rounded-full font-medium text-center hover:bg-cyan-electric/10 hover:border-cyan-electric/50 transition-all duration-300">
-                    View Progress
-                  </a>
-                {% else %}
-                  {% if course.lessons.first %}
-                  <a href="{% url 'lesson_detail' course.slug course.lessons.first.slug %}" class="w-full px-6 py-3 bg-cyan-electric text-[#0a0e27] rounded-full font-bold text-center hover:bg-cyan-electric/90 hover:shadow-lg hover:shadow-cyan-electric/50 transition-all duration-300">
-                    Start Course
-                  </a>
-                  {% endif %}
-                {% endif %}
-              {% else %}
-                <a href="{% url 'course_detail' course.slug %}" class="w-full px-6 py-3 bg-cyan-electric text-[#0a0e27] rounded-full font-bold text-center hover:bg-cyan-electric/90 hover:shadow-lg hover:shadow-cyan-electric/50 transition-all duration-300">
-                  View Course
-                </a>
-              {% endif %}
-            {% else %}
-              <button disabled class="w-full px-6 py-3 bg-gray-700/50 text-gray-500 rounded-full font-bold text-center cursor-not-allowed">
-                Locked
-              </button>
-            {% endif %}
-          </div>
-
-        </div>
+          </article>
+          {% endwith %}
+        {% endfor %}
       </div>
-      {% endwith %}
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
-
-<!-- Learn More Section (Courses Not Started) -->
-<div class="mb-12">
-  <div class="flex items-center gap-3 mb-6">
-    <div class="h-px flex-1 bg-gradient-to-r from-transparent via-purple-accent/50 to-transparent"></div>
-    <h2 class="text-2xl sm:text-3xl font-bold flex items-center gap-3">
-      <i class="fas fa-book-open text-purple-accent"></i>
-      Learn More
-    </h2>
-    <div class="h-px flex-1 bg-gradient-to-r from-transparent via-purple-accent/50 to-transparent"></div>
-  </div>
-
-  <div class="space-y-6">
-    {% if request.user.is_authenticated %}
-      {% for data in not_started_courses %}
-        {% with course=data.course %}
-        <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-2xl p-5 sm:p-6 shadow-2xl hover:shadow-cyan-electric/10 hover:border-cyan-electric/30 transition-all duration-300 hover:-translate-y-1 {% if data.is_favorited %}ring-2 ring-yellow-500/30{% endif %}">
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-            <!-- Thumbnail Block -->
-            <div class="lg:col-span-4 xl:col-span-3">
-              <div class="relative rounded-xl overflow-hidden mb-4">
-                {% if course.thumbnail %}
-                  <img src="{{ course.thumbnail.url }}" alt="{{ course.name }}" class="w-full h-44 sm:h-48 lg:h-40 object-cover">
-                {% else %}
-                  <div class="w-full h-44 sm:h-48 lg:h-40 bg-gradient-to-br from-cyan-electric/20 to-purple-accent/20 flex items-center justify-center">
-                    <i class="fas fa-video text-4xl text-cyan-electric/50"></i>
-                  </div>
-                {% endif %}
-
-                <!-- Overlay Labels -->
-                <div class="absolute top-2 left-2">
-                  <span class="bg-cyan-electric/90 text-[#0a0e27] text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold">VIDEO PROGRAM</span>
-                </div>
-
-                {% if course.special_tag %}
-                <div class="absolute bottom-2 right-2">
-                  <span class="bg-purple-accent/90 text-white text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold">{{ course.special_tag }}</span>
-                </div>
-                {% endif %}
-              </div>
-
-              <div class="space-y-2 text-sm">
-                {% if course.is_subscribers_only %}
-                <div class="flex items-center gap-2 text-gray-400">
-                  <i class="fas fa-lock text-cyan-electric/70"></i>
-                  <span>Subscribers only</span>
-                </div>
-                {% endif %}
-                <div class="flex items-center gap-2 text-gray-400">
-                  <i class="fas fa-video text-cyan-electric/70"></i>
-                  <span>{{ course.get_lesson_count }} lessons</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Content Block -->
-            <div class="lg:col-span-6 xl:col-span-7 min-w-0">
-              <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
-                <div class="flex items-center gap-2 min-w-0">
-                  <h2 class="text-xl sm:text-2xl font-bold truncate">{{ course.name }}</h2>
-
-                  {% if request.user.is_authenticated %}
-                  <!-- Favorite Button -->
-                  <button onclick="toggleFavorite({{ course.id }}, this)"
-                          class="favorite-btn p-2 rounded-lg transition-all hover:scale-110 {% if data.is_favorited %}text-yellow-400{% else %}text-gray-400 hover:text-yellow-400{% endif %}"
-                          data-course-id="{{ course.id }}"
-                          data-is-favorited="{{ data.is_favorited|yesno:'true,false' }}">
-                    <i class="fas fa-heart {% if data.is_favorited %}fas{% else %}far{% endif %}"></i>
-                  </button>
-                  {% endif %}
-                </div>
-
-                <span class="self-start px-3 py-1 rounded-full text-xs font-semibold
-                  {% if course.status == 'active' %}bg-green-500/20 text-green-400 border border-green-500/30
-                  {% elif course.status == 'locked' %}bg-red-500/20 text-red-400 border border-red-500/30
-                  {% else %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30{% endif %}">
-                  {{ course.get_status_display }}
-                </span>
-              </div>
-
-              <p class="text-gray-300 mb-3 leading-relaxed">{{ course.short_description }}</p>
-              <p class="text-sm text-gray-400 mb-4">{{ course.description|truncatewords:30 }}</p>
-
-              <!-- Feature Pills -->
-              <div class="flex flex-wrap gap-2">
-                {% if course.coach_name %}
-                <span class="px-3 py-1 bg-cyan-electric/10 border border-cyan-electric/20 rounded-full text-xs flex items-center gap-2">
-                  <i class="fas fa-brain text-cyan-electric"></i>
-                  AI Lesson Coach
-                </span>
-                {% endif %}
-                {% if course.is_accredible_certified %}
-                <span class="px-3 py-1 bg-cyan-electric/10 border border-cyan-electric/20 rounded-full text-xs flex items-center gap-2">
-                  <i class="fas fa-certificate text-cyan-electric"></i>
-                  Accredible Certified
-                </span>
-                {% endif %}
-                {% if course.has_asset_templates %}
-                <span class="px-3 py-1 bg-cyan-electric/10 border border-cyan-electric/20 rounded-full text-xs flex items-center gap-2">
-                  <i class="fas fa-layer-group text-cyan-electric"></i>
-                  Asset Templates Included
-                </span>
-                {% endif %}
-              </div>
-            </div>
-
-            <!-- Action Block -->
-            <div class="lg:col-span-2 flex flex-col gap-3">
-              {% if course.status == 'active' %}
-                {% if request.user.is_authenticated %}
-                  {% if data.has_any_progress %}
-                    {% if course.lessons.first %}
-                    <a href="{% url 'lesson_detail' course.slug course.lessons.first.slug %}" class="w-full px-6 py-3 bg-gradient-to-r from-cyan-electric to-purple-accent hover:from-cyan-electric/90 hover:to-purple-accent/90 text-[#0a0e27] font-semibold rounded-full text-center transition-all duration-300">
-                      Continue Learning
-                    </a>
-                    {% endif %}
-                    <a href="{% url 'student_course_progress' course.slug %}" class="w-full px-6 py-3 border border-cyan-electric/30 rounded-full font-medium text-center hover:bg-cyan-electric/10 hover:border-cyan-electric/50 transition-all duration-300">
-                      View Progress
-                    </a>
-                  {% else %}
-                    {% if course.lessons.first %}
-                    <a href="{% url 'lesson_detail' course.slug course.lessons.first.slug %}" class="w-full px-6 py-3 bg-cyan-electric text-[#0a0e27] rounded-full font-bold text-center hover:bg-cyan-electric/90 hover:shadow-lg hover:shadow-cyan-electric/50 transition-all duration-300">
-                      Start Course
-                    </a>
-                    {% endif %}
-                  {% endif %}
-                {% else %}
-                  <a href="{% url 'course_detail' course.slug %}" class="w-full px-6 py-3 bg-cyan-electric text-[#0a0e27] rounded-full font-bold text-center hover:bg-cyan-electric/90 hover:shadow-lg hover:shadow-cyan-electric/50 transition-all duration-300">
-                    View Course
-                  </a>
-                {% endif %}
-              {% else %}
-                <button disabled class="w-full px-6 py-3 bg-gray-700/50 text-gray-500 rounded-full font-bold text-center cursor-not-allowed">
-                  Locked
-                </button>
-              {% endif %}
-            </div>
-
-          </div>
-        </div>
-        {% endwith %}
-      {% endfor %}
     {% else %}
-      {% for data in courses_data %}
-        {% with course=data.course %}
-        <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-2xl p-5 sm:p-6 shadow-2xl hover:shadow-cyan-electric/10 hover:border-cyan-electric/30 transition-all duration-300 hover:-translate-y-1 {% if data.is_favorited %}ring-2 ring-yellow-500/30{% endif %}">
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-            <!-- Thumbnail Block -->
-            <div class="lg:col-span-4 xl:col-span-3">
-              <div class="relative rounded-xl overflow-hidden mb-4">
-                {% if course.thumbnail %}
-                  <img src="{{ course.thumbnail.url }}" alt="{{ course.name }}" class="w-full h-44 sm:h-48 lg:h-40 object-cover">
-                {% else %}
-                  <div class="w-full h-44 sm:h-48 lg:h-40 bg-gradient-to-br from-cyan-electric/20 to-purple-accent/20 flex items-center justify-center">
-                    <i class="fas fa-video text-4xl text-cyan-electric/50"></i>
-                  </div>
-                {% endif %}
-
-                <!-- Overlay Labels -->
-                <div class="absolute top-2 left-2">
-                  <span class="bg-cyan-electric/90 text-[#0a0e27] text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold">VIDEO PROGRAM</span>
-                </div>
-
-                {% if course.special_tag %}
-                <div class="absolute bottom-2 right-2">
-                  <span class="bg-purple-accent/90 text-white text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold">{{ course.special_tag }}</span>
-                </div>
-                {% endif %}
-              </div>
-
-              <div class="space-y-2 text-sm">
-                {% if course.is_subscribers_only %}
-                <div class="flex items-center gap-2 text-gray-400">
-                  <i class="fas fa-lock text-cyan-electric/70"></i>
-                  <span>Subscribers only</span>
-                </div>
-                {% endif %}
-                <div class="flex items-center gap-2 text-gray-400">
-                  <i class="fas fa-video text-cyan-electric/70"></i>
-                  <span>{{ course.get_lesson_count }} lessons</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Content Block -->
-            <div class="lg:col-span-6 xl:col-span-7 min-w-0">
-              <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
-                <div class="flex items-center gap-2 min-w-0">
-                  <h2 class="text-xl sm:text-2xl font-bold truncate">{{ course.name }}</h2>
-                </div>
-
-                <span class="self-start px-3 py-1 rounded-full text-xs font-semibold
-                  {% if course.status == 'active' %}bg-green-500/20 text-green-400 border border-green-500/30
-                  {% elif course.status == 'locked' %}bg-red-500/20 text-red-400 border border-red-500/30
-                  {% else %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30{% endif %}">
-                  {{ course.get_status_display }}
-                </span>
-              </div>
-
-              <p class="text-gray-300 mb-3 leading-relaxed">{{ course.short_description }}</p>
-              <p class="text-sm text-gray-400 mb-4">{{ course.description|truncatewords:30 }}</p>
-
-              <!-- Feature Pills -->
-              <div class="flex flex-wrap gap-2">
-                {% if course.coach_name %}
-                <span class="px-3 py-1 bg-cyan-electric/10 border border-cyan-electric/20 rounded-full text-xs flex items-center gap-2">
-                  <i class="fas fa-brain text-cyan-electric"></i>
-                  AI Lesson Coach
-                </span>
-                {% endif %}
-                {% if course.is_accredible_certified %}
-                <span class="px-3 py-1 bg-cyan-electric/10 border border-cyan-electric/20 rounded-full text-xs flex items-center gap-2">
-                  <i class="fas fa-certificate text-cyan-electric"></i>
-                  Accredible Certified
-                </span>
-                {% endif %}
-                {% if course.has_asset_templates %}
-                <span class="px-3 py-1 bg-cyan-electric/10 border border-cyan-electric/20 rounded-full text-xs flex items-center gap-2">
-                  <i class="fas fa-layer-group text-cyan-electric"></i>
-                  Asset Templates Included
-                </span>
-                {% endif %}
-              </div>
-            </div>
-
-            <!-- Action Block -->
-            <div class="lg:col-span-2 flex flex-col gap-3">
-              {% if course.status == 'active' %}
-                <a href="{% url 'course_detail' course.slug %}" class="w-full px-6 py-3 bg-cyan-electric text-[#0a0e27] rounded-full font-bold text-center hover:bg-cyan-electric/90 hover:shadow-lg hover:shadow-cyan-electric/50 transition-all duration-300">
-                  View Course
-                </a>
-              {% else %}
-                <button disabled class="w-full px-6 py-3 bg-gray-700/50 text-gray-500 rounded-full font-bold text-center cursor-not-allowed">
-                  Locked
-                </button>
-              {% endif %}
-            </div>
-
-          </div>
+      <div class="rounded-3xl border border-slate-200/70 bg-white/80 p-12 text-center shadow-sm shadow-slate-900/5 backdrop-blur">
+        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-blue-soft/10">
+          <i class="fas fa-book-open text-2xl text-blue-soft"></i>
         </div>
-        {% endwith %}
-      {% endfor %}
+        <h3 class="mt-5 text-xl font-extrabold text-ink-deep">No courses available yet</h3>
+        <p class="mt-2 text-sm text-slate-600">Please check back soon.</p>
+      </div>
     {% endif %}
-
-    {% if request.user.is_authenticated and not_started_courses|length == 0 %}
-    <div class="text-center py-16">
-      <i class="fas fa-check-circle text-6xl text-green-500/50 mb-4"></i>
-      <p class="text-gray-400 text-lg">All available courses are in progress. Great work!</p>
-    </div>
-    {% elif not request.user.is_authenticated and courses_data|length == 0 %}
-    <div class="text-center py-16">
-      <i class="fas fa-book-open text-6xl text-gray-600 mb-4"></i>
-      <p class="text-gray-400 text-lg">No courses available yet.</p>
-    </div>
-    {% endif %}
-  </div>
-</div>
+  {% endif %}
+</section>
 
 {% if request.user.is_authenticated %}
 <script>
 function toggleFavorite(courseId, buttonElement) {
   const icon = buttonElement.querySelector('i');
   const isCurrentlyFavorited = buttonElement.dataset.isFavorited === 'true';
+  const card = buttonElement.closest('article');
 
-  // Get the card element (parent container)
-  const cardElement =
-    buttonElement.closest('.bg-\\[\\#0a0e27\\]\\/60') ||
-    buttonElement.closest('[class*="bg-"]');
+  const originalClass = icon.className;
+  icon.className = 'fas fa-spinner fa-spin text-amber-600';
 
-  // Show loading indicator
-  const originalIconHTML = icon.outerHTML;
-  icon.className = 'fas fa-spinner fa-spin text-yellow-400';
-
-  // Make API call
   fetch(`/api/courses/${courseId}/favorite/`, {
     method: 'POST',
     headers: {
@@ -464,42 +341,34 @@ function toggleFavorite(courseId, buttonElement) {
       'Content-Type': 'application/json',
     },
   })
-  .then(response => response.json())
+  .then(r => r.json())
   .then(data => {
     if (data.success) {
-      // Update button state based on response
-      icon.classList.remove('fa-spinner', 'fa-spin');
-      if (data.is_favorited) {
-        icon.classList.remove('far');
-        icon.classList.add('fas');
-        buttonElement.classList.remove('text-gray-400');
-        buttonElement.classList.add('text-yellow-400');
-        if (cardElement) cardElement.classList.add('ring-2', 'ring-yellow-500/30');
-      } else {
-        icon.classList.remove('fas');
-        icon.classList.add('far');
-        buttonElement.classList.remove('text-yellow-400');
-        buttonElement.classList.add('text-gray-400');
-        if (cardElement) cardElement.classList.remove('ring-2', 'ring-yellow-500/30');
-      }
+      icon.className = data.is_favorited ? 'fas fa-heart' : 'far fa-heart';
       buttonElement.dataset.isFavorited = data.is_favorited.toString();
+
+      if (data.is_favorited) {
+        buttonElement.classList.remove('text-slate-400');
+        buttonElement.classList.add('text-amber-600');
+        if (card) card.classList.add('ring-2','ring-amber-200');
+      } else {
+        buttonElement.classList.remove('text-amber-600');
+        buttonElement.classList.add('text-slate-400');
+        if (card) card.classList.remove('ring-2','ring-amber-200');
+      }
     } else {
-      // Revert on error
-      icon.outerHTML = originalIconHTML;
+      icon.className = originalClass;
       buttonElement.dataset.isFavorited = isCurrentlyFavorited.toString();
       alert('Error: ' + (data.message || 'Failed to update favorite'));
     }
   })
-  .catch(error => {
-    console.error('Error:', error);
-    // Revert on error
-    icon.outerHTML = originalIconHTML;
+  .catch(() => {
+    icon.className = originalClass;
     buttonElement.dataset.isFavorited = isCurrentlyFavorited.toString();
     alert('Error updating favorite. Please try again.');
   });
 }
 
-// Helper function to get CSRF token
 function getCookie(name) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
@@ -516,4 +385,5 @@ function getCookie(name) {
 }
 </script>
 {% endif %}
+
 {% endblock %}

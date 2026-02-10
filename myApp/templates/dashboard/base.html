@@ -26,10 +26,10 @@
                         sans: ['Inter', 'sans-serif'],
                     },
                     colors: {
-                        'navy-dark': '#0a0e27',
-                        'navy-mid': '#1a1f3a',
-                        'cyan-electric': '#00f0ff',
-                        'purple-accent': '#a855f7',
+                        'ink-deep': '#ffffff',
+                        'slate-50': '#f8fafc',
+                        'teal-soft': '#00f0ff',
+                        'blue-soft': '#a855f7',
                     },
                 }
             }
@@ -42,60 +42,60 @@
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-[#0a0e27] via-[#1a1f3a] to-[#000000] min-h-screen text-white">
+<body class="bg-gradient-to-br from-[#ffffff] via-[#f8fafc] to-[#f1f5f9] min-h-screen text-white">
     <!-- Mobile Menu Overlay -->
     <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-black/60 z-40 hidden md:hidden"></div>
     
     <!-- Sidebar Navigation -->
-    <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-[#0a0e27]/95 backdrop-blur-sm border-r border-cyan-electric/20 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300">
+    <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-[#ffffff]/95 backdrop-blur-sm border-r border-teal-soft/20 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300">
         <div class="p-4 sm:p-6">
             <!-- Logo and Close Button -->
             <div class="flex items-center justify-between mb-8">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-electric to-purple-accent flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-soft to-blue-soft flex items-center justify-center">
                         <i class="fas fa-bolt text-white"></i>
                     </div>
                     <div>
-                        <div class="text-[10px] uppercase tracking-widest text-cyan-electric/70 font-semibold">Dashboard</div>
-                        <div class="text-sm font-bold">AI Academy</div>
+                        <div class="text-[10px] uppercase tracking-widest text-teal-soft/70 font-semibold text-gray-700">Dashboard</div>
+                        <div class="text-sm font-bold text-gray-700">AI Academy</div>
                     </div>
                 </div>
-                <button id="close-sidebar" class="md:hidden p-2 text-gray-400 hover:text-white">
+                <button id="close-sidebar" class="md:hidden p-2 text-gray-700 hover:text-white">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             
             <!-- Navigation Links -->
             <nav class="space-y-2">
-                <a href="{% url 'dashboard_home' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if request.resolver_match.url_name == 'dashboard_home' %}bg-cyan-electric/20 text-cyan-electric border-l-2 border-cyan-electric{% else %}text-gray-300 hover:bg-cyan-electric/10 hover:text-cyan-electric{% endif %}">
+                <a href="{% url 'dashboard_home' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if request.resolver_match.url_name == 'dashboard_home' %}bg-teal-soft/20 text-teal-soft border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-teal-soft{% endif %}">
                     <i class="fas fa-home w-5"></i>
                     <span>Overview</span>
                 </a>
-                <a href="{% url 'dashboard_analytics' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if request.resolver_match.url_name == 'dashboard_analytics' %}bg-cyan-electric/20 text-cyan-electric border-l-2 border-cyan-electric{% else %}text-gray-300 hover:bg-cyan-electric/10 hover:text-cyan-electric{% endif %}">
+                <a href="{% url 'dashboard_analytics' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if request.resolver_match.url_name == 'dashboard_analytics' %}bg-teal-soft/20 text-teal-soft border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-teal-soft{% endif %}">
                     <i class="fas fa-chart-line w-5"></i>
                     <span>Analytics</span>
                 </a>
-                <a href="{% url 'dashboard_courses' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'course' in request.resolver_match.url_name %}bg-cyan-electric/20 text-cyan-electric border-l-2 border-cyan-electric{% else %}text-gray-300 hover:bg-cyan-electric/10 hover:text-cyan-electric{% endif %}">
+                <a href="{% url 'dashboard_courses' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'course' in request.resolver_match.url_name %}bg-teal-soft/20 text-teal-soft border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-teal-soft{% endif %}">
                     <i class="fas fa-book w-5"></i>
                     <span>Courses</span>
                 </a>
-                <a href="{% url 'dashboard_lessons' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'lesson' in request.resolver_match.url_name and 'dashboard' in request.resolver_match.url_name and 'quiz' not in request.resolver_match.url_name %}bg-cyan-electric/20 text-cyan-electric border-l-2 border-cyan-electric{% else %}text-gray-300 hover:bg-cyan-electric/10 hover:text-cyan-electric{% endif %}">
+                <a href="{% url 'dashboard_lessons' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'lesson' in request.resolver_match.url_name and 'dashboard' in request.resolver_match.url_name and 'quiz' not in request.resolver_match.url_name %}bg-teal-soft/20 text-teal-soft border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-teal-soft{% endif %}">
                     <i class="fas fa-video w-5"></i>
                     <span>Lessons</span>
                 </a>
-                <a href="{% url 'dashboard_quizzes' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'quiz' in request.resolver_match.url_name and 'dashboard' in request.resolver_match.url_name %}bg-cyan-electric/20 text-cyan-electric border-l-2 border-cyan-electric{% else %}text-gray-300 hover:bg-cyan-electric/10 hover:text-cyan-electric{% endif %}">
+                <a href="{% url 'dashboard_quizzes' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'quiz' in request.resolver_match.url_name and 'dashboard' in request.resolver_match.url_name %}bg-teal-soft/20 text-teal-soft border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-teal-soft{% endif %}">
                     <i class="fas fa-clipboard-question w-5"></i>
                     <span>Quizzes</span>
                 </a>
-                <a href="{% url 'dashboard_students' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'student' in request.resolver_match.url_name %}bg-cyan-electric/20 text-cyan-electric border-l-2 border-cyan-electric{% else %}text-gray-300 hover:bg-cyan-electric/10 hover:text-cyan-electric{% endif %}">
+                <a href="{% url 'dashboard_students' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'student' in request.resolver_match.url_name %}bg-teal-soft/20 text-teal-soft border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-teal-soft{% endif %}">
                     <i class="fas fa-users w-5"></i>
                     <span>Students</span>
                 </a>
-                <a href="{% url 'dashboard_bundles' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'bundle' in request.resolver_match.url_name %}bg-purple-accent/20 text-purple-accent border-l-2 border-purple-accent{% else %}text-gray-300 hover:bg-purple-accent/10 hover:text-purple-accent{% endif %}">
+                <a href="{% url 'dashboard_bundles' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'bundle' in request.resolver_match.url_name %}bg-blue-soft/20 text-blue-soft border-l-2 border-blue-soft{% else %}text-gray-700 hover:bg-blue-soft/10 hover:text-blue-soft{% endif %}">
                     <i class="fas fa-gift w-5"></i>
                     <span>Bundles</span>
                 </a>
-                <a href="{% url 'home' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-gray-300 hover:bg-cyan-electric/10 hover:text-cyan-electric">
+                <a href="{% url 'home' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-gray-700 hover:bg-teal-soft/10 hover:text-teal-soft">
                     <i class="fas fa-external-link-alt w-5"></i>
                     <span>View Site</span>
                 </a>
@@ -106,21 +106,21 @@
     <!-- Main Content Area -->
     <div class="md:ml-64">
         <!-- Top Bar -->
-        <div class="bg-[#0a0e27]/80 backdrop-blur-sm border-b border-cyan-electric/20 sticky top-0 z-30">
+        <div class="bg-[#ffffff]/80 backdrop-blur-sm border-b border-teal-soft/20 sticky top-0 z-30">
             <div class="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <button id="open-sidebar" class="md:hidden p-2 text-white hover:text-cyan-electric transition-colors">
+                    <button id="open-sidebar" class="md:hidden p-2 text-white hover:text-teal-soft transition-colors">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                     <h1 class="text-xl sm:text-2xl font-bold">{% block page_title %}Dashboard{% endblock %}</h1>
                 </div>
                 <div class="flex items-center gap-2 sm:gap-4">
-                    <div class="text-xs sm:text-sm text-gray-400 hidden sm:block">
+                    <div class="text-xs sm:text-sm text-gray-700 hidden sm:block">
                         <i class="fas fa-user-circle mr-2"></i>
                         {{ user.get_full_name|default:user.username }}
                     </div>
-                    <a href="{% url 'home' %}" class="px-3 sm:px-4 py-2 rounded-full border border-cyan-electric/30 text-xs sm:text-sm font-medium hover:bg-cyan-electric/10 hover:border-cyan-electric/50 transition-all">
-                        <span class="hidden sm:inline">Log Out</span>
+                    <a href="{% url 'home' %}" class="px-3 sm:px-4 py-2 rounded-full border border-teal-soft/30 text-xs sm:text-sm font-medium hover:bg-teal-soft/10 hover:border-teal-soft/50 transition-all">
+                        <span class="hidden sm:inline text-gray-700">Log Out</span>
                         <i class="fas fa-sign-out-alt sm:hidden"></i>
                     </a>
                 </div>
@@ -133,7 +133,7 @@
             {% if messages %}
             <div class="mb-6 space-y-2">
                 {% for message in messages %}
-                <div class="px-4 py-3 rounded-lg border {% if message.tags == 'error' %}bg-red-500/20 border-red-500/30 text-red-400{% elif message.tags == 'success' %}bg-green-500/20 border-green-500/30 text-green-400{% else %}bg-cyan-electric/20 border-cyan-electric/30 text-cyan-electric{% endif %}">
+                <div class="px-4 py-3 rounded-lg border {% if message.tags == 'error' %}bg-red-500/20 border-red-500/30 text-red-400{% elif message.tags == 'success' %}bg-green-500/20 border-green-500/30 text-green-400{% else %}bg-teal-soft/20 border-teal-soft/30 text-teal-soft{% endif %}">
                     <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %} mr-2"></i>
                     {{ message }}
                 </div>
@@ -145,28 +145,28 @@
     </div>
     
     <!-- Universal Preloader -->
-    <div id="universal-preloader" class="fixed inset-0 z-50 hidden items-center justify-center bg-[#0a0e27]/95 backdrop-blur-md">
+    <div id="universal-preloader" class="fixed inset-0 z-50 hidden items-center justify-center bg-[#ffffff]/95 backdrop-blur-md">
         <div class="text-center">
             <!-- Animated Spinner -->
             <div class="relative mb-8">
                 <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="w-32 h-32 border-4 border-cyan-electric/30 rounded-full animate-spin" style="border-top-color: cyan-electric;"></div>
+                    <div class="w-32 h-32 border-4 border-teal-soft/30 rounded-full animate-spin" style="border-top-color: teal-soft;"></div>
                 </div>
                 <div class="absolute inset-0 flex items-center justify-center">
-                    <div class="w-24 h-24 border-4 border-purple-accent/30 rounded-full animate-spin" style="border-top-color: purple-accent; animation-direction: reverse; animation-duration: 1.5s;"></div>
+                    <div class="w-24 h-24 border-4 border-blue-soft/30 rounded-full animate-spin" style="border-top-color: blue-soft; animation-direction: reverse; animation-duration: 1.5s;"></div>
                 </div>
                 <div class="relative flex items-center justify-center">
-                    <div class="w-16 h-16 bg-gradient-to-br from-cyan-electric to-purple-accent rounded-full flex items-center justify-center shadow-2xl shadow-cyan-electric/50">
-                        <i class="fas fa-spinner text-2xl text-[#0a0e27] animate-spin"></i>
+                    <div class="w-16 h-16 bg-gradient-to-br from-teal-soft to-blue-soft rounded-full flex items-center justify-center shadow-2xl shadow-teal-soft/50">
+                        <i class="fas fa-spinner text-2xl text-[#ffffff] animate-spin"></i>
                     </div>
                 </div>
             </div>
             
             <!-- Loading Text -->
-            <h3 class="text-2xl font-bold mb-4 bg-gradient-to-r from-cyan-electric to-purple-accent bg-clip-text text-transparent" id="preloader-text">
+            <h3 class="text-2xl font-bold mb-4 bg-gradient-to-r from-teal-soft to-blue-soft bg-clip-text text-transparent" id="preloader-text">
                 Saving...
             </h3>
-            <p class="text-gray-400">Please wait while we process your request</p>
+            <p class="text-gray-700">Please wait while we process your request</p>
         </div>
     </div>
 

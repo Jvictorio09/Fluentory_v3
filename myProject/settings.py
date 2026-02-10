@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 # Load environment variables from .env file
 load_dotenv()
@@ -74,29 +75,27 @@ WSGI_APPLICATION = 'myProject.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-# Uses DATABASE_URL environment variable for both local and deployed environments
-# Format: postgresql://user:password@host:port/dbname
-# or: sqlite:///path/to/db.sqlite3
+# Always use DATABASE_URL from environment (no sqlite fallback),
+# so local/dev and production share the same style of configuration.
+# Example formats:
+# - PostgreSQL: postgresql://user:password@host:port/dbname
+# - SQLite (if you really want it): sqlite:///path/to/db.sqlite3
 
 DATABASE_URL = os.getenv('DATABASE_URL')
 
-if DATABASE_URL:
-    # Parse DATABASE_URL (works for PostgreSQL, MySQL, etc.)
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
-    }
-else:
-    # Fallback to SQLite for local development if DATABASE_URL not set
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+if not DATABASE_URL:
+    raise ImproperlyConfigured(
+        "DATABASE_URL environment variable is required. "
+        "Set it in your .env or environment (e.g. Railway connection URL)."
+    )
+
+DATABASES = {
+    'default': dj_database_url.config(
+        default=DATABASE_URL,
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
 
 
 # Password validation

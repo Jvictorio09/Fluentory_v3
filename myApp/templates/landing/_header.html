@@ -1,0 +1,85 @@
+<header id="landing-nav" class="sticky top-0 z-30 bg-white/90 backdrop-blur-md">
+    <div class="border-b border-transparent">
+        <!-- Announcement strip -->
+        <div class="hidden md:flex items-center justify-center gap-4 px-4 py-2 text-xs text-slate-600 bg-slate-50/90">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-badge-check text-teal-soft"></i>
+                <span>Accredited certifications</span>
+            </div>
+            <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+            <div class="flex items-center gap-2">
+                <i class="fas fa-infinity text-blue-soft"></i>
+                <span>Lifetime access</span>
+            </div>
+            <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+            <div class="flex items-center gap-2">
+                <i class="fas fa-shield-alt text-coral-cta"></i>
+                <span>30-day money-back guarantee</span>
+            </div>
+        </div>
+
+        <!-- Main nav -->
+        <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+            <!-- Logo -->
+            <a href="{% url 'home' %}" class="flex items-center gap-2 hover:opacity-90 transition-opacity">
+                <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-teal-soft to-blue-soft flex items-center justify-center shadow-sm shadow-teal-soft/40">
+                    <span class="text-xs font-extrabold tracking-tight text-white">PL</span>
+                </div>
+                <div class="hidden sm:flex flex-col">
+                    <span class="text-sm font-semibold text-gray-700 tracking-tight text-ink-deep">PrimoLearn</span>
+                    <span class="text-[11px] text-slate-500">Online Wellness & Development Academy</span>
+                </div>
+            </a>
+
+            <!-- Center nav -->
+            <nav class="hidden md:flex items-center gap-8 text-sm text-slate-600">
+                <a href="{% url 'courses' %}" class="hover:text-ink-deep transition-colors">Courses</a>
+                <a href="#what-you-get" class="hover:text-ink-deep transition-colors">About</a>
+                <a href="#faq" class="hover:text-ink-deep transition-colors">FAQ</a>
+                <a href="#final-cta" class="hover:text-ink-deep transition-colors">Contact</a>
+            </nav>
+
+            <!-- Actions -->
+            <div class="hidden sm:flex items-center gap-3">
+                <a href="{% url 'login' %}" class="text-sm font-medium text-success-soft hover:text-success-soft/80 transition-colors">
+                    Log in
+                </a>
+                <a href="#featured-courses" class="inline-flex items-center justify-center px-4 py-2.5 rounded-full text-sm font-semibold text-gray-700 text-white bg-coral-cta hover:bg-coral-cta/90 shadow-md shadow-coral-cta/40 transition-all hover:-translate-y-0.5">
+                    Browse courses
+                </a>
+            </div>
+
+            <!-- Mobile menu icon -->
+            <button id="landing-mobile-menu-btn" class="sm:hidden inline-flex items-center justify-center h-9 w-9 rounded-full border border-slate-200 text-slate-700 bg-white/80">
+                <i id="landing-mobile-menu-icon" class="fas fa-bars text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Mobile menu -->
+        <div id="landing-mobile-menu" class="md:hidden border-t border-slate-200/70 bg-white/95 hidden">
+            <div class="max-w-6xl mx-auto px-4 py-4 space-y-2 text-sm">
+                <a href="{% url 'courses' %}" class="block rounded-lg px-3 py-2 text-slate-700 hover:bg-teal-soft">
+                    Courses
+                </a>
+                <a href="#what-you-get" class="block rounded-lg px-3 py-2 text-slate-700 hover:bg-teal-soft">
+                    About
+                </a>
+                <a href="#faq" class="block rounded-lg px-3 py-2 text-slate-700 hover:bg-teal-soft">
+                    FAQ
+                </a>
+                <a href="#final-cta" class="block rounded-lg px-3 py-2 text-slate-700 hover:bg-teal-soft">
+                    Contact
+                </a>
+                <div class="h-px bg-slate-200 my-2"></div>
+                <a href="{% url 'login' %}" class="block rounded-lg px-3 py-2 text-success-soft font-medium hover:bg-teal-soft">
+                    Log in
+                </a>
+                <a href="#featured-courses" class="block mt-1 rounded-full px-3 py-2.5 text-center font-semibold text-gray-700 text-white bg-coral-cta hover:bg-coral-cta/90">
+                    Browse courses
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+
+

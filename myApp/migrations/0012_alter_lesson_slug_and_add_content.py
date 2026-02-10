@@ -5,6 +5,16 @@ from django.db import migrations, models
 
 def alter_slug_field(apps, schema_editor):
     """Alter the slug field to allow 200 characters"""
+    # This migration was originally written for PostgreSQL using raw SQL.
+    # On SQLite (local dev) it fails with syntax errors (no ALTER COLUMN / DO $$ support)
+    # and is also redundant because 0011 already altered the field safely via Django.
+    #
+    # To keep migrations green on SQLite while still supporting Postgres,
+    # we only run the raw SQL when the database backend is PostgreSQL.
+    if schema_editor.connection.vendor != "postgresql":
+        # No-op for non-Postgres backends (SQLite, etc.)
+        return
+
     db_alias = schema_editor.connection.alias
     with schema_editor.connection.cursor() as cursor:
         # Get the actual table name from Django's model
@@ -33,6 +43,10 @@ def alter_slug_field(apps, schema_editor):
 
 def reverse_alter_slug_field(apps, schema_editor):
     """Reverse: change slug back to 50 characters"""
+    # Same logic as above: only attempt to run the raw SQL on PostgreSQL.
+    if schema_editor.connection.vendor != "postgresql":
+        return
+
     db_alias = schema_editor.connection.alias
     with schema_editor.connection.cursor() as cursor:
         Lesson = apps.get_model('myApp', 'Lesson')

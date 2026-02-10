@@ -280,9 +280,9 @@ recent_progress = UserProgress.objects.filter(
     
     <!-- Activity details -->
     <div>
-        <span class="font-semibold">Student Name</span>
-        completed <span class="text-cyan-electric">Lesson Title</span>
-        <div class="text-xs text-gray-400">
+        <span class="font-semibold text-gray-700">Student Name</span>
+        completed <span class="text-teal-soft">Lesson Title</span>
+        <div class="text-xs text-gray-700">
             <i class="fas fa-clock"></i> 5 minutes ago
         </div>
     </div>

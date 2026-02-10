@@ -7,85 +7,85 @@
 {% block content %}
 <div class="space-y-6">
     <!-- Header -->
-    <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <h2 class="text-2xl font-bold mb-2">Bulk Access Management</h2>
-        <p class="text-gray-400">Grant or revoke course access for multiple students at once</p>
+        <p class="text-gray-700">Grant or revoke course access for multiple students at once</p>
     </div>
 
     <!-- Bulk Grant Course Access -->
-    <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <h3 class="text-xl font-bold mb-4">Grant Course Access (Bulk)</h3>
         <form id="bulk-grant-form" class="space-y-4">
             {% csrf_token %}
             
             <div>
                 <label class="block text-sm font-medium mb-2">Select Students</label>
-                <div class="bg-[#1a1f3a] border border-cyan-electric/20 rounded-lg p-4 max-h-64 overflow-y-auto">
+                <div class="bg-[#f8fafc] border border-teal-soft/20 rounded-lg p-4 max-h-64 overflow-y-auto">
                     <div class="space-y-2">
                         {% for user in users %}
-                        <label class="flex items-center gap-2 cursor-pointer hover:bg-cyan-electric/5 p-2 rounded">
-                            <input type="checkbox" name="user_ids[]" value="{{ user.id }}" class="rounded border-cyan-electric/30 text-cyan-electric focus:ring-cyan-electric">
+                        <label class="flex items-center gap-2 cursor-pointer hover:bg-teal-soft/5 p-2 rounded">
+                            <input type="checkbox" name="user_ids[]" value="{{ user.id }}" class="rounded border-teal-soft/30 text-teal-soft focus:ring-teal-soft">
                             <span class="text-sm">{{ user.get_full_name|default:user.username }} ({{ user.email }})</span>
                         </label>
                         {% endfor %}
                     </div>
                 </div>
-                <p class="text-xs text-gray-400 mt-2">Select one or more students</p>
+                <p class="text-xs text-gray-700 mt-2">Select one or more students</p>
             </div>
             
             <div>
                 <label class="block text-sm font-medium mb-2">Select Courses</label>
-                <div class="bg-[#1a1f3a] border border-cyan-electric/20 rounded-lg p-4 max-h-64 overflow-y-auto">
+                <div class="bg-[#f8fafc] border border-teal-soft/20 rounded-lg p-4 max-h-64 overflow-y-auto">
                     <div class="space-y-2">
                         {% for course in courses %}
-                        <label class="flex items-center gap-2 cursor-pointer hover:bg-cyan-electric/5 p-2 rounded">
-                            <input type="checkbox" name="course_ids[]" value="{{ course.id }}" class="rounded border-cyan-electric/30 text-cyan-electric focus:ring-cyan-electric">
+                        <label class="flex items-center gap-2 cursor-pointer hover:bg-teal-soft/5 p-2 rounded">
+                            <input type="checkbox" name="course_ids[]" value="{{ course.id }}" class="rounded border-teal-soft/30 text-teal-soft focus:ring-teal-soft">
                             <span class="text-sm">{{ course.name }}</span>
                         </label>
                         {% endfor %}
                     </div>
                 </div>
-                <p class="text-xs text-gray-400 mt-2">Select one or more courses</p>
+                <p class="text-xs text-gray-700 mt-2">Select one or more courses</p>
             </div>
             
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium mb-2">Access Type</label>
-                    <select name="access_type" class="w-full bg-[#1a1f3a] border border-cyan-electric/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-electric/50">
+                    <select name="access_type" class="w-full bg-[#f8fafc] border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
                         <option value="manual">Manual (Admin-granted)</option>
                         <option value="purchase">Purchase</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-2">Expires In (days, optional)</label>
-                    <input type="number" name="expires_in_days" placeholder="Leave empty for lifetime" class="w-full bg-[#1a1f3a] border border-cyan-electric/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-electric/50">
+                    <input type="number" name="expires_in_days" placeholder="Leave empty for lifetime" class="w-full bg-[#f8fafc] border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
                 </div>
             </div>
             
             <div>
                 <label class="block text-sm font-medium mb-2">Notes (optional)</label>
-                <textarea name="notes" rows="3" placeholder="e.g., Black Friday promo, VIP group" class="w-full bg-[#1a1f3a] border border-cyan-electric/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-electric/50"></textarea>
+                <textarea name="notes" rows="3" placeholder="e.g., Black Friday promo, VIP group" class="w-full bg-[#f8fafc] border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50"></textarea>
             </div>
             
-            <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-cyan-electric to-purple-accent hover:from-cyan-electric/90 hover:to-purple-accent/90 text-[#0a0e27] font-semibold rounded-lg transition-all">
+            <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-teal-soft to-blue-soft hover:from-teal-soft/90 hover:to-blue-soft/90 text-[#ffffff] font-semibold text-gray-700 rounded-lg transition-all">
                 <i class="fas fa-check-circle mr-2"></i>Grant Access to Selected
             </button>
         </form>
     </div>
 
     <!-- Bulk Grant Bundle Access -->
-    <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-purple-accent/10 rounded-xl p-6">
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-blue-soft/10 rounded-xl p-6">
         <h3 class="text-xl font-bold mb-4">Grant Bundle Access (Bulk)</h3>
         <form id="bulk-bundle-form" class="space-y-4">
             {% csrf_token %}
             
             <div>
                 <label class="block text-sm font-medium mb-2">Select Students</label>
-                <div class="bg-[#1a1f3a] border border-purple-accent/20 rounded-lg p-4 max-h-64 overflow-y-auto">
+                <div class="bg-[#f8fafc] border border-blue-soft/20 rounded-lg p-4 max-h-64 overflow-y-auto">
                     <div class="space-y-2">
                         {% for user in users %}
-                        <label class="flex items-center gap-2 cursor-pointer hover:bg-purple-accent/5 p-2 rounded">
-                            <input type="checkbox" name="user_ids[]" value="{{ user.id }}" class="rounded border-purple-accent/30 text-purple-accent focus:ring-purple-accent">
+                        <label class="flex items-center gap-2 cursor-pointer hover:bg-blue-soft/5 p-2 rounded">
+                            <input type="checkbox" name="user_ids[]" value="{{ user.id }}" class="rounded border-blue-soft/30 text-blue-soft focus:ring-blue-soft">
                             <span class="text-sm">{{ user.get_full_name|default:user.username }} ({{ user.email }})</span>
                         </label>
                         {% endfor %}
@@ -95,7 +95,7 @@
             
             <div>
                 <label class="block text-sm font-medium mb-2">Select Bundle</label>
-                <select name="bundle_id" required class="w-full bg-[#1a1f3a] border border-purple-accent/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-purple-accent/50">
+                <select name="bundle_id" required class="w-full bg-[#f8fafc] border border-blue-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-soft/50">
                     <option value="">-- Select Bundle --</option>
                     {% for bundle in bundles %}
                     <option value="{{ bundle.id }}">{{ bundle.name }} ({{ bundle.courses.count }} courses)</option>
@@ -105,33 +105,33 @@
             
             <div>
                 <label class="block text-sm font-medium mb-2">Purchase ID (optional)</label>
-                <input type="text" name="purchase_id" placeholder="External order ID" class="w-full bg-[#1a1f3a] border border-purple-accent/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-purple-accent/50">
+                <input type="text" name="purchase_id" placeholder="External order ID" class="w-full bg-[#f8fafc] border border-blue-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-soft/50">
             </div>
             
             <div>
                 <label class="block text-sm font-medium mb-2">Notes (optional)</label>
-                <textarea name="notes" rows="2" class="w-full bg-[#1a1f3a] border border-purple-accent/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-purple-accent/50"></textarea>
+                <textarea name="notes" rows="2" class="w-full bg-[#f8fafc] border border-blue-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-soft/50"></textarea>
             </div>
             
-            <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-purple-accent to-cyan-electric hover:from-purple-accent/90 hover:to-cyan-electric/90 text-white font-semibold rounded-lg transition-all">
+            <button type="submit" class="w-full px-6 py-3 bg-gradient-to-r from-blue-soft to-teal-soft hover:from-blue-soft/90 hover:to-teal-soft/90 text-white font-semibold text-gray-700 rounded-lg transition-all">
                 <i class="fas fa-gift mr-2"></i>Grant Bundle Access to Selected
             </button>
         </form>
     </div>
 
     <!-- Bulk Add to Cohort -->
-    <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <h3 class="text-xl font-bold mb-4">Add to Cohort (Bulk)</h3>
         <form id="bulk-cohort-form" class="space-y-4">
             {% csrf_token %}
             
             <div>
                 <label class="block text-sm font-medium mb-2">Select Students</label>
-                <div class="bg-[#1a1f3a] border border-cyan-electric/20 rounded-lg p-4 max-h-64 overflow-y-auto">
+                <div class="bg-[#f8fafc] border border-teal-soft/20 rounded-lg p-4 max-h-64 overflow-y-auto">
                     <div class="space-y-2">
                         {% for user in users %}
-                        <label class="flex items-center gap-2 cursor-pointer hover:bg-cyan-electric/5 p-2 rounded">
-                            <input type="checkbox" name="user_ids[]" value="{{ user.id }}" class="rounded border-cyan-electric/30 text-cyan-electric focus:ring-cyan-electric">
+                        <label class="flex items-center gap-2 cursor-pointer hover:bg-teal-soft/5 p-2 rounded">
+                            <input type="checkbox" name="user_ids[]" value="{{ user.id }}" class="rounded border-teal-soft/30 text-teal-soft focus:ring-teal-soft">
                             <span class="text-sm">{{ user.get_full_name|default:user.username }} ({{ user.email }})</span>
                         </label>
                         {% endfor %}
@@ -141,7 +141,7 @@
             
             <div>
                 <label class="block text-sm font-medium mb-2">Select Cohort</label>
-                <select name="cohort_id" required class="w-full bg-[#1a1f3a] border border-cyan-electric/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-electric/50">
+                <select name="cohort_id" required class="w-full bg-[#f8fafc] border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
                     <option value="">-- Select Cohort --</option>
                     {% for cohort in cohorts %}
                     <option value="{{ cohort.id }}">{{ cohort.name }}</option>
@@ -149,7 +149,7 @@
                 </select>
             </div>
             
-            <button type="submit" class="w-full px-6 py-3 bg-cyan-electric/10 hover:bg-cyan-electric/20 border border-cyan-electric/30 text-cyan-electric font-semibold rounded-lg transition-all">
+            <button type="submit" class="w-full px-6 py-3 bg-teal-soft/10 hover:bg-teal-soft/20 border border-teal-soft/30 text-teal-soft font-semibold text-gray-700 rounded-lg transition-all">
                 <i class="fas fa-users mr-2"></i>Add Selected to Cohort
             </button>
         </form>

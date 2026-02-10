@@ -7,28 +7,28 @@
 <div class="flex items-center justify-between mb-6">
     <div>
         <h2 class="text-2xl font-bold mb-2">Course Bundles</h2>
-        <p class="text-gray-400">Create promotional bundles to grant access to multiple courses</p>
+        <p class="text-gray-700">Create promotional bundles to grant access to multiple courses</p>
     </div>
-    <a href="{% url 'dashboard_add_bundle' %}" class="px-6 py-3 bg-gradient-to-r from-purple-accent to-cyan-electric text-white rounded-full font-bold hover:from-purple-accent/90 hover:to-cyan-electric/90 transition-all">
+    <a href="{% url 'dashboard_add_bundle' %}" class="px-6 py-3 bg-gradient-to-r from-blue-soft to-teal-soft text-white rounded-full font-bold hover:from-blue-soft/90 hover:to-teal-soft/90 transition-all">
         <i class="fas fa-gift mr-2"></i> New Bundle
     </a>
 </div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for bundle in bundles %}
-    <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-purple-accent/10 rounded-xl p-6 hover:border-purple-accent/30 transition-all">
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-blue-soft/10 rounded-xl p-6 hover:border-blue-soft/30 transition-all">
         <div class="flex items-start justify-between mb-4">
             <h3 class="text-xl font-bold flex-1">{{ bundle.name }}</h3>
-            <span class="px-3 py-1 rounded-full text-xs font-semibold
+            <span class="px-3 py-1 rounded-full text-xs font-semibold text-gray-700
                 {% if bundle.is_active %}bg-green-500/20 text-green-400 border border-green-500/30
-                {% else %}bg-gray-500/20 text-gray-400 border border-gray-500/30{% endif %}">
+                {% else %}bg-gray-500/20 text-gray-700 border border-gray-500/30{% endif %}">
                 {% if bundle.is_active %}Active{% else %}Inactive{% endif %}
             </span>
         </div>
         
-        <p class="text-sm text-gray-400 mb-4 line-clamp-2">{{ bundle.description|default:"No description" }}</p>
+        <p class="text-sm text-gray-700 mb-4 line-clamp-2">{{ bundle.description|default:"No description" }}</p>
         
-        <div class="flex items-center gap-4 text-sm text-gray-400 mb-4">
+        <div class="flex items-center gap-4 text-sm text-gray-700 mb-4">
             <span><i class="fas fa-book mr-1"></i> {{ bundle.course_count }} courses</span>
             <span><i class="fas fa-shopping-cart mr-1"></i> {{ bundle.purchase_count }} purchases</span>
             {% if bundle.price %}
@@ -37,13 +37,13 @@
         </div>
         
         <div class="mb-4">
-            <span class="px-2 py-1 bg-purple-accent/10 border border-purple-accent/30 rounded text-xs font-medium text-purple-accent">
+            <span class="px-2 py-1 bg-blue-soft/10 border border-blue-soft/30 rounded text-xs font-medium text-blue-soft">
                 {{ bundle.get_bundle_type_display }}
             </span>
         </div>
         
         <div class="flex gap-2">
-            <a href="{% url 'dashboard_edit_bundle' bundle.id %}" class="flex-1 px-4 py-2 bg-purple-accent/10 border border-purple-accent/30 rounded-lg text-center font-medium hover:bg-purple-accent/20 transition-all">
+            <a href="{% url 'dashboard_edit_bundle' bundle.id %}" class="flex-1 px-4 py-2 bg-blue-soft/10 border border-blue-soft/30 rounded-lg text-center font-medium hover:bg-blue-soft/20 transition-all">
                 Edit
             </a>
             <form method="POST" action="{% url 'dashboard_delete_bundle' bundle.id %}" class="inline" onsubmit="return confirm('Are you sure you want to delete \"{{ bundle.name }}\"? This action cannot be undone.');">
@@ -57,8 +57,8 @@
     {% empty %}
     <div class="col-span-full text-center py-16">
         <i class="fas fa-gift text-6xl text-gray-600 mb-4"></i>
-        <p class="text-gray-400 text-lg mb-6">No bundles yet. Create your first bundle for promotions!</p>
-        <a href="{% url 'dashboard_add_bundle' %}" class="inline-block px-6 py-3 bg-gradient-to-r from-purple-accent to-cyan-electric text-white rounded-full font-bold hover:from-purple-accent/90 hover:to-cyan-electric/90 transition-all">
+        <p class="text-gray-700 text-lg mb-6">No bundles yet. Create your first bundle for promotions!</p>
+        <a href="{% url 'dashboard_add_bundle' %}" class="inline-block px-6 py-3 bg-gradient-to-r from-blue-soft to-teal-soft text-white rounded-full font-bold hover:from-blue-soft/90 hover:to-teal-soft/90 transition-all">
             <i class="fas fa-gift mr-2"></i> Create Bundle
         </a>
     </div>

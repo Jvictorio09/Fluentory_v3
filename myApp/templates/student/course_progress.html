@@ -8,22 +8,22 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
-            <a href="{% url 'student_dashboard' %}" class="text-cyan-electric hover:text-cyan-electric/80 mb-2 inline-flex items-center gap-2 text-sm">
+            <a href="{% url 'student_dashboard' %}" class="text-teal-soft hover:text-teal-soft/80 mb-2 inline-flex items-center gap-2 text-sm">
                 <i class="fas fa-arrow-left"></i> Back to Dashboard
             </a>
             <h1 class="text-4xl font-bold mb-2">{{ course.name }}</h1>
-            <p class="text-gray-400">{{ course.short_description }}</p>
+            <p class="text-gray-700">{{ course.short_description }}</p>
         </div>
     </div>
 
     <!-- Course Progress Overview -->
-    <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <div class="flex items-center justify-between mb-4">
-            <span class="font-semibold text-lg">Course Progress</span>
-            <span class="text-cyan-electric font-bold text-2xl">{{ progress_percentage }}%</span>
+            <span class="font-semibold text-gray-700 text-lg">Course Progress</span>
+            <span class="text-teal-soft font-bold text-2xl">{{ progress_percentage }}%</span>
         </div>
-        <div class="w-full bg-[#1a1f3a] rounded-full h-4 overflow-hidden mb-4">
-            <div class="h-full bg-gradient-to-r from-cyan-electric to-purple-accent transition-all duration-500" style="width: {{ progress_percentage }}%"></div>
+        <div class="w-full bg-[#f8fafc] rounded-full h-4 overflow-hidden mb-4">
+            <div class="h-full bg-gradient-to-r from-teal-soft to-blue-soft transition-all duration-500" style="width: {{ progress_percentage }}%"></div>
         </div>
         <div class="flex items-center gap-6 text-sm">
             <div class="flex items-center gap-2">
@@ -31,7 +31,7 @@
                 <span>{{ completed_lessons }}/{{ total_lessons }} Lessons Completed</span>
             </div>
             <div class="flex items-center gap-2">
-                <i class="fas fa-calendar text-cyan-electric"></i>
+                <i class="fas fa-calendar text-teal-soft"></i>
                 <span>Enrolled: {{ enrollment.enrolled_at|date:"M d, Y" }}</span>
             </div>
         </div>
@@ -41,35 +41,35 @@
     {% if exam or certification %}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {% if exam %}
-        <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
+        <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
             <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
-                <i class="fas fa-clipboard-check text-cyan-electric"></i>
+                <i class="fas fa-clipboard-check text-teal-soft"></i>
                 Final Exam
             </h3>
             {% if is_exam_available %}
             <div class="space-y-3">
                 <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-400">Attempts</span>
-                    <span class="font-semibold">{{ exam_attempts|length }}/{{ exam.max_attempts|default:"∞" }}</span>
+                    <span class="text-sm text-gray-700">Attempts</span>
+                    <span class="font-semibold text-gray-700">{{ exam_attempts|length }}/{{ exam.max_attempts|default:"∞" }}</span>
                 </div>
                 {% if exam_attempts %}
                 <div class="space-y-2">
                     {% for attempt in exam_attempts %}
-                    <div class="bg-[#1a1f3a]/50 rounded-lg p-3 flex items-center justify-between">
+                    <div class="bg-[#f8fafc]/50 rounded-lg p-3 flex items-center justify-between">
                         <div>
                             <div class="text-sm font-medium">Attempt #{{ attempt.attempt_number }}</div>
-                            <div class="text-xs text-gray-400">{{ attempt.started_at|date:"M d, Y H:i" }}</div>
+                            <div class="text-xs text-gray-700">{{ attempt.started_at|date:"M d, Y H:i" }}</div>
                         </div>
                         <div class="text-right">
                             {% if attempt.score is not None %}
-                            <div class="text-sm font-bold {% if attempt.passed %}text-green-400{% else %}text-red-400{% endif %}">
+                            <div class="text-sm font-bold text-gray-700 {% if attempt.passed %}text-green-400{% else %}text-red-400{% endif %}">
                                 {{ attempt.score|floatformat:1 }}%
                             </div>
                             <div class="text-xs {% if attempt.passed %}text-green-400{% else %}text-red-400{% endif %}">
                                 {% if attempt.passed %}Passed{% else %}Failed{% endif %}
                             </div>
                             {% else %}
-                            <div class="text-xs text-gray-400">In Progress</div>
+                            <div class="text-xs text-gray-700">In Progress</div>
                             {% endif %}
                         </div>
                     </div>
@@ -78,7 +78,7 @@
                 {% endif %}
                 {% with exam_attempts|last as last_attempt %}
                 {% if not exam_attempts or not last_attempt.passed %}
-                <button class="w-full mt-4 px-4 py-2 bg-gradient-to-r from-cyan-electric to-purple-accent hover:from-cyan-electric/90 hover:to-purple-accent/90 text-[#0a0e27] font-semibold rounded-lg transition-all">
+                <button class="w-full mt-4 px-4 py-2 bg-gradient-to-r from-teal-soft to-blue-soft hover:from-teal-soft/90 hover:to-blue-soft/90 text-[#ffffff] font-semibold text-gray-700 rounded-lg transition-all">
                     {% if exam_attempts %}Retake Exam{% else %}Start Exam{% endif %}
                 </button>
                 {% endif %}
@@ -87,7 +87,7 @@
             {% else %}
             <div class="text-center py-4">
                 <i class="fas fa-lock text-4xl text-gray-600 mb-2"></i>
-                <p class="text-sm text-gray-400">
+                <p class="text-sm text-gray-700">
                     {% if enrollment.payment_type == 'installment' %}
                     Exam unlocks {{ enrollment.days_until_exam }} days after enrollment
                     {% else %}
@@ -100,30 +100,30 @@
         {% endif %}
         
         {% if certification %}
-        <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
+        <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
             <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
                 <i class="fas fa-certificate text-yellow-400"></i>
                 Certification
             </h3>
             <div class="space-y-3">
                 <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-400">Status</span>
-                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                    <span class="text-sm text-gray-700">Status</span>
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold text-gray-700
                         {% if certification.status == 'passed' %}bg-yellow-500/20 text-yellow-300 border border-yellow-500/30
                         {% elif certification.status == 'failed' %}bg-red-500/20 text-red-400 border border-red-500/30
-                        {% elif certification.status == 'eligible' %}bg-cyan-electric/20 text-cyan-electric border border-cyan-electric/30
-                        {% else %}bg-gray-500/20 text-gray-400 border border-gray-500/30{% endif %}">
+                        {% elif certification.status == 'eligible' %}bg-teal-soft/20 text-teal-soft border border-teal-soft/30
+                        {% else %}bg-gray-500/20 text-gray-700 border border-gray-500/30{% endif %}">
                         {{ certification.get_status_display }}
                     </span>
                 </div>
                 {% if certification.issued_at %}
                 <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-400">Issued</span>
+                    <span class="text-sm text-gray-700">Issued</span>
                     <span class="text-sm font-medium">{{ certification.issued_at|date:"M d, Y" }}</span>
                 </div>
                 {% endif %}
                 {% if certification.accredible_certificate_url %}
-                <a href="{{ certification.accredible_certificate_url }}" target="_blank" class="block w-full mt-4 px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-500/90 hover:to-yellow-600/90 text-white font-semibold rounded-lg transition-all text-center">
+                <a href="{{ certification.accredible_certificate_url }}" target="_blank" class="block w-full mt-4 px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-500/90 hover:to-yellow-600/90 text-white font-semibold text-gray-700 rounded-lg transition-all text-center">
                     <i class="fas fa-external-link-alt mr-2"></i>View Certificate
                 </a>
                 {% endif %}
@@ -139,13 +139,13 @@
         
         <div class="space-y-3">
             {% for lp in lesson_progress %}
-            <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-4 hover:border-cyan-electric/30 transition-all">
+            <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-4 hover:border-teal-soft/30 transition-all">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-4 flex-1">
                         <div class="w-10 h-10 rounded-lg flex items-center justify-center
                             {% if lp.completed %}bg-green-500/20 text-green-400
-                            {% elif lp.status == 'in_progress' %}bg-cyan-electric/20 text-cyan-electric
-                            {% else %}bg-gray-500/20 text-gray-400{% endif %}">
+                            {% elif lp.status == 'in_progress' %}bg-teal-soft/20 text-teal-soft
+                            {% else %}bg-gray-500/20 text-gray-700{% endif %}">
                             {% if lp.completed %}
                             <i class="fas fa-check"></i>
                             {% elif lp.status == 'in_progress' %}
@@ -155,8 +155,8 @@
                             {% endif %}
                         </div>
                         <div class="flex-1">
-                            <h3 class="font-semibold mb-1">{{ lp.lesson.title }}</h3>
-                            <div class="flex items-center gap-4 text-sm text-gray-400">
+                            <h3 class="font-semibold text-gray-700 mb-1">{{ lp.lesson.title }}</h3>
+                            <div class="flex items-center gap-4 text-sm text-gray-700">
                                 <span><i class="fas fa-clock mr-1"></i>{{ lp.lesson.get_formatted_duration }}</span>
                                 {% if lp.watch_percentage > 0 %}
                                 <span><i class="fas fa-eye mr-1"></i>{{ lp.watch_percentage|floatformat:0 }}% Watched</span>
@@ -169,11 +169,11 @@
                     </div>
                     <div class="flex items-center gap-3">
                         {% if lp.watch_percentage > 0 and lp.watch_percentage < 100 %}
-                        <div class="w-24 bg-[#1a1f3a] rounded-full h-2 overflow-hidden">
-                            <div class="h-full bg-cyan-electric transition-all" style="width: {{ lp.watch_percentage }}%"></div>
+                        <div class="w-24 bg-[#f8fafc] rounded-full h-2 overflow-hidden">
+                            <div class="h-full bg-teal-soft transition-all" style="width: {{ lp.watch_percentage }}%"></div>
                         </div>
                         {% endif %}
-                        <a href="{% url 'lesson_detail' course.slug lp.lesson.slug %}" class="px-4 py-2 bg-cyan-electric/10 hover:bg-cyan-electric/20 border border-cyan-electric/20 rounded-lg text-sm font-medium transition-all">
+                        <a href="{% url 'lesson_detail' course.slug lp.lesson.slug %}" class="px-4 py-2 bg-teal-soft/10 hover:bg-teal-soft/20 border border-teal-soft/20 rounded-lg text-sm font-medium transition-all">
                             {% if lp.completed %}Review{% elif lp.status == 'in_progress' %}Continue{% else %}Start{% endif %}
                         </a>
                     </div>

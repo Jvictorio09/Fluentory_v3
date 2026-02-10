@@ -56,14 +56,14 @@ Add a new section after the video preview section:
 
 ```html
 <!-- AI Chatbot Transcript Section -->
-<div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6 mb-6">
+<div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6 mb-6">
     <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-bold">AI Chatbot Setup</h3>
-        <span class="px-3 py-1 rounded-full text-xs font-semibold
+        <span class="px-3 py-1 rounded-full text-xs font-semibold text-gray-700
             {% if lesson.ai_chatbot_training_status == 'trained' %}bg-green-500/20 text-green-400 border border-green-500/30
             {% elif lesson.ai_chatbot_training_status == 'training' %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30
             {% elif lesson.ai_chatbot_training_status == 'failed' %}bg-red-500/20 text-red-400 border border-red-500/30
-            {% else %}bg-gray-500/20 text-gray-400 border border-gray-500/30{% endif %}">
+            {% else %}bg-gray-500/20 text-gray-700 border border-gray-500/30{% endif %}">
             {{ lesson.get_ai_chatbot_training_status_display|default:"Not Trained" }}
         </span>
     </div>
@@ -73,10 +73,10 @@ Add a new section after the video preview section:
         <div>
             <label class="block text-sm font-medium mb-2">Lesson Transcript</label>
             <div class="flex gap-2 mb-2">
-                <button type="button" id="use-existing-transcript" class="px-4 py-2 bg-cyan-electric/10 border border-cyan-electric/30 rounded-lg text-sm hover:bg-cyan-electric/20">
+                <button type="button" id="use-existing-transcript" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm hover:bg-teal-soft/20">
                     Use Existing Transcription
                 </button>
-                <button type="button" id="upload-transcript" class="px-4 py-2 bg-cyan-electric/10 border border-cyan-electric/30 rounded-lg text-sm hover:bg-cyan-electric/20">
+                <button type="button" id="upload-transcript" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm hover:bg-teal-soft/20">
                     Upload File
                 </button>
             </div>
@@ -87,7 +87,7 @@ Add a new section after the video preview section:
                 name="transcript"
                 rows="10"
                 placeholder="Paste transcript here or use existing transcription..."
-                class="w-full bg-[#0a0e27]/40 border border-cyan-electric/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-electric/50 resize-none"
+                class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50 resize-none"
             >{{ lesson.transcription }}</textarea>
             
             <!-- File upload input (hidden) -->
@@ -122,7 +122,7 @@ Add a new section after the video preview section:
         <button 
             type="button" 
             id="train-chatbot-btn"
-            class="w-full px-6 py-3 bg-purple-accent text-white rounded-full font-bold hover:bg-purple-accent/90 transition-all"
+            class="w-full px-6 py-3 bg-blue-soft text-white rounded-full font-bold hover:bg-blue-soft/90 transition-all"
             {% if not lesson.transcription and not lesson.ai_chatbot_training_status == 'trained' %}disabled{% endif %}
         >
             <i class="fas fa-robot mr-2"></i> Train AI Chatbot
@@ -319,25 +319,25 @@ Add chatbot section to the lesson page (in the right sidebar or as a floating wi
 ```html
 <!-- AI Chatbot Widget -->
 {% if lesson.ai_chatbot_enabled and lesson.ai_chatbot_training_status == 'trained' %}
-<div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-purple-accent/20 rounded-xl p-4 mb-6">
+<div class="bg-[#ffffff]/60 backdrop-blur-sm border border-blue-soft/20 rounded-xl p-4 mb-6">
     <div class="flex items-center justify-between mb-3">
         <h4 class="font-bold text-sm flex items-center gap-2">
-            <i class="fas fa-robot text-purple-accent"></i>
+            <i class="fas fa-robot text-blue-soft"></i>
             Lesson AI Assistant
         </h4>
-        <button id="toggle-chatbot" class="text-gray-400 hover:text-white">
+        <button id="toggle-chatbot" class="text-gray-700 hover:text-white">
             <i class="fas fa-chevron-down" id="chatbot-icon"></i>
         </button>
     </div>
     
     <div id="chatbot-container" class="hidden">
         <div id="chatbot-messages" class="space-y-3 mb-4 max-h-96 overflow-y-auto">
-            <div class="bg-purple-accent/10 border border-purple-accent/20 rounded-lg p-3 text-sm">
+            <div class="bg-blue-soft/10 border border-blue-soft/20 rounded-lg p-3 text-sm">
                 <div class="flex items-start gap-2">
-                    <i class="fas fa-robot text-purple-accent mt-1"></i>
+                    <i class="fas fa-robot text-blue-soft mt-1"></i>
                     <div>
-                        <p class="font-semibold mb-1">AI Assistant</p>
-                        <p class="text-gray-300">Hi! I'm your AI assistant for this lesson. Ask me anything about the content!</p>
+                        <p class="font-semibold text-gray-700 mb-1">AI Assistant</p>
+                        <p class="text-gray-700">Hi! I'm your AI assistant for this lesson. Ask me anything about the content!</p>
                     </div>
                 </div>
             </div>
@@ -348,11 +348,11 @@ Add chatbot section to the lesson page (in the right sidebar or as a floating wi
                 type="text" 
                 id="chatbot-input" 
                 placeholder="Ask a question..."
-                class="flex-1 bg-[#0a0e27]/40 border border-purple-accent/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-purple-accent/50"
+                class="flex-1 bg-[#ffffff]/40 border border-blue-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-soft/50"
             >
             <button 
                 id="chatbot-send-btn"
-                class="px-4 py-2 bg-purple-accent text-white rounded-lg hover:bg-purple-accent/90 transition-all"
+                class="px-4 py-2 bg-blue-soft text-white rounded-lg hover:bg-blue-soft/90 transition-all"
             >
                 <i class="fas fa-paper-plane"></i>
             </button>
@@ -390,17 +390,17 @@ toggleChatbot?.addEventListener('click', function() {
 
 function addMessage(content, isUser = false) {
     const messageDiv = document.createElement('div');
-    messageDiv.className = `bg-${isUser ? 'cyan-electric' : 'purple-accent'}/10 border border-${isUser ? 'cyan-electric' : 'purple-accent'}/20 rounded-lg p-3 text-sm`;
+    messageDiv.className = `bg-${isUser ? 'teal-soft' : 'blue-soft'}/10 border border-${isUser ? 'teal-soft' : 'blue-soft'}/20 rounded-lg p-3 text-sm`;
     
     const icon = isUser ? 'fa-user' : 'fa-robot';
-    const color = isUser ? 'cyan-electric' : 'purple-accent';
+    const color = isUser ? 'teal-soft' : 'blue-soft';
     
     messageDiv.innerHTML = `
         <div class="flex items-start gap-2">
             <i class="fas ${icon} text-${color} mt-1"></i>
             <div class="flex-1">
-                <p class="font-semibold mb-1">${isUser ? 'You' : 'AI Assistant'}</p>
-                <p class="text-gray-300">${content}</p>
+                <p class="font-semibold text-gray-700 mb-1">${isUser ? 'You' : 'AI Assistant'}</p>
+                <p class="text-gray-700">${content}</p>
             </div>
         </div>
     `;
@@ -428,13 +428,13 @@ async function sendMessage() {
     // Show loading
     const loadingDiv = document.createElement('div');
     loadingDiv.id = 'chatbot-loading';
-    loadingDiv.className = 'bg-purple-accent/10 border border-purple-accent/20 rounded-lg p-3 text-sm';
+    loadingDiv.className = 'bg-blue-soft/10 border border-blue-soft/20 rounded-lg p-3 text-sm';
     loadingDiv.innerHTML = `
         <div class="flex items-start gap-2">
-            <i class="fas fa-robot text-purple-accent mt-1"></i>
+            <i class="fas fa-robot text-blue-soft mt-1"></i>
             <div class="flex-1">
-                <p class="font-semibold mb-1">AI Assistant</p>
-                <p class="text-gray-300"><i class="fas fa-spinner fa-spin"></i> Thinking...</p>
+                <p class="font-semibold text-gray-700 mb-1">AI Assistant</p>
+                <p class="text-gray-700"><i class="fas fa-spinner fa-spin"></i> Thinking...</p>
             </div>
         </div>
     `;

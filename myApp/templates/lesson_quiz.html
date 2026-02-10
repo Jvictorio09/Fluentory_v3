@@ -16,20 +16,20 @@
                 <!-- Quiz Header -->
                 <div class="mb-8">
                     <div class="flex items-center gap-3 mb-4">
-                        <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-accent to-cyan-electric flex items-center justify-center">
+                        <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-soft to-teal-soft flex items-center justify-center">
                             <i class="fas fa-question-circle text-white text-2xl"></i>
                         </div>
                         <div>
                             <h1 class="text-3xl lg:text-4xl font-bold">
                                 {{ lesson.title }} Quiz
                             </h1>
-                            <p class="text-gray-400 text-sm mt-1">
-                                {{ questions|length }} question{{ questions|length|pluralize }} &middot; Passing score: {{ quiz.passing_score }}% &middot; <span class="text-red-400 font-semibold">Required</span>
+                            <p class="text-gray-700 text-sm mt-1">
+                                {{ questions|length }} question{{ questions|length|pluralize }} &middot; Passing score: {{ quiz.passing_score }}% &middot; <span class="text-red-400 font-semibold text-gray-700">Required</span>
                             </p>
                         </div>
                     </div>
                     {% if quiz.description %}
-                    <p class="text-gray-300 text-lg">
+                    <p class="text-gray-700 text-lg">
                         {{ quiz.description }}
                     </p>
                     {% endif %}
@@ -54,11 +54,11 @@
                                 <div class="text-lg text-white">
                                     Score: <span class="font-bold {% if result.passed %}text-green-400{% else %}text-yellow-400{% endif %}">{{ result.score }}%</span>
                                 </div>
-                                <div class="text-gray-300">
+                                <div class="text-gray-700">
                                     {{ result.correct }} out of {{ result.total }} questions correct
                                 </div>
                                 {% if not result.passed %}
-                                <div class="text-sm text-gray-400 mt-3">
+                                <div class="text-sm text-gray-700 mt-3">
                                     Passing score is {{ quiz.passing_score }}%. Review the lesson and try again!
                                 </div>
                                 {% endif %}
@@ -71,7 +71,7 @@
                         <a 
                             href="{% url 'lesson_detail' course.slug next_lesson.slug %}" 
                             id="next-lesson-btn"
-                            class="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-cyan-electric to-purple-accent hover:from-cyan-electric/90 hover:to-purple-accent/90 text-[#0a0e27] font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg"
+                            class="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-teal-soft to-blue-soft hover:from-teal-soft/90 hover:to-blue-soft/90 text-[#ffffff] font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg"
                         >
                             <span>Continue to Next Lesson</span>
                             <i class="fas fa-arrow-right"></i>
@@ -86,45 +86,45 @@
                 <form method="post" class="space-y-6" id="quiz-form">
                     {% csrf_token %}
                     {% for question in questions %}
-                    <div class="bg-gradient-to-br from-[#0a0e27]/80 to-[#1a1f3a]/80 backdrop-blur-sm border border-cyan-electric/20 rounded-xl p-6 hover:border-cyan-electric/40 transition-all">
+                    <div class="bg-gradient-to-br from-[#ffffff]/80 to-[#f8fafc]/80 backdrop-blur-sm border border-teal-soft/20 rounded-xl p-6 hover:border-teal-soft/40 transition-all">
                         <div class="flex items-start gap-4 mb-4">
-                            <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-electric to-purple-accent flex items-center justify-center text-[#0a0e27] font-bold">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-teal-soft to-blue-soft flex items-center justify-center text-[#ffffff] font-bold">
                                 {{ forloop.counter }}
                             </div>
                             <div class="flex-1">
-                                <div class="font-semibold text-lg text-white mb-4">
+                                <div class="font-semibold text-gray-700 text-lg text-white mb-4">
                                     {{ question.text }}
                                 </div>
                                 <div class="space-y-3">
-                                    <label class="flex items-start gap-3 p-3 rounded-lg border border-cyan-electric/20 hover:border-cyan-electric/40 hover:bg-cyan-electric/5 cursor-pointer transition-all group">
-                                        <input type="radio" name="q_{{ question.id }}" value="A" class="mt-1 text-cyan-electric focus:ring-cyan-electric" required>
+                                    <label class="flex items-start gap-3 p-3 rounded-lg border border-teal-soft/20 hover:border-teal-soft/40 hover:bg-teal-soft/5 cursor-pointer transition-all group">
+                                        <input type="radio" name="q_{{ question.id }}" value="A" class="mt-1 text-teal-soft focus:ring-teal-soft" required>
                                         <div class="flex-1">
-                                            <span class="font-medium text-cyan-electric/70 group-hover:text-cyan-electric">A.</span>
-                                            <span class="text-gray-300 ml-2">{{ question.option_a }}</span>
+                                            <span class="font-medium text-teal-soft/70 group-hover:text-teal-soft">A.</span>
+                                            <span class="text-gray-700 ml-2">{{ question.option_a }}</span>
                                         </div>
                                     </label>
-                                    <label class="flex items-start gap-3 p-3 rounded-lg border border-cyan-electric/20 hover:border-cyan-electric/40 hover:bg-cyan-electric/5 cursor-pointer transition-all group">
-                                        <input type="radio" name="q_{{ question.id }}" value="B" class="mt-1 text-cyan-electric focus:ring-cyan-electric">
+                                    <label class="flex items-start gap-3 p-3 rounded-lg border border-teal-soft/20 hover:border-teal-soft/40 hover:bg-teal-soft/5 cursor-pointer transition-all group">
+                                        <input type="radio" name="q_{{ question.id }}" value="B" class="mt-1 text-teal-soft focus:ring-teal-soft">
                                         <div class="flex-1">
-                                            <span class="font-medium text-cyan-electric/70 group-hover:text-cyan-electric">B.</span>
-                                            <span class="text-gray-300 ml-2">{{ question.option_b }}</span>
+                                            <span class="font-medium text-teal-soft/70 group-hover:text-teal-soft">B.</span>
+                                            <span class="text-gray-700 ml-2">{{ question.option_b }}</span>
                                         </div>
                                     </label>
                                     {% if question.option_c %}
-                                    <label class="flex items-start gap-3 p-3 rounded-lg border border-cyan-electric/20 hover:border-cyan-electric/40 hover:bg-cyan-electric/5 cursor-pointer transition-all group">
-                                        <input type="radio" name="q_{{ question.id }}" value="C" class="mt-1 text-cyan-electric focus:ring-cyan-electric">
+                                    <label class="flex items-start gap-3 p-3 rounded-lg border border-teal-soft/20 hover:border-teal-soft/40 hover:bg-teal-soft/5 cursor-pointer transition-all group">
+                                        <input type="radio" name="q_{{ question.id }}" value="C" class="mt-1 text-teal-soft focus:ring-teal-soft">
                                         <div class="flex-1">
-                                            <span class="font-medium text-cyan-electric/70 group-hover:text-cyan-electric">C.</span>
-                                            <span class="text-gray-300 ml-2">{{ question.option_c }}</span>
+                                            <span class="font-medium text-teal-soft/70 group-hover:text-teal-soft">C.</span>
+                                            <span class="text-gray-700 ml-2">{{ question.option_c }}</span>
                                         </div>
                                     </label>
                                     {% endif %}
                                     {% if question.option_d %}
-                                    <label class="flex items-start gap-3 p-3 rounded-lg border border-cyan-electric/20 hover:border-cyan-electric/40 hover:bg-cyan-electric/5 cursor-pointer transition-all group">
-                                        <input type="radio" name="q_{{ question.id }}" value="D" class="mt-1 text-cyan-electric focus:ring-cyan-electric">
+                                    <label class="flex items-start gap-3 p-3 rounded-lg border border-teal-soft/20 hover:border-teal-soft/40 hover:bg-teal-soft/5 cursor-pointer transition-all group">
+                                        <input type="radio" name="q_{{ question.id }}" value="D" class="mt-1 text-teal-soft focus:ring-teal-soft">
                                         <div class="flex-1">
-                                            <span class="font-medium text-cyan-electric/70 group-hover:text-cyan-electric">D.</span>
-                                            <span class="text-gray-300 ml-2">{{ question.option_d }}</span>
+                                            <span class="font-medium text-teal-soft/70 group-hover:text-teal-soft">D.</span>
+                                            <span class="text-gray-700 ml-2">{{ question.option_d }}</span>
                                         </div>
                                     </label>
                                     {% endif %}
@@ -134,12 +134,12 @@
                     </div>
                     {% endfor %}
 
-                    <div class="flex items-center justify-between mt-8 pt-6 border-t border-cyan-electric/10">
-                        <a href="{% url 'lesson_detail' course.slug lesson.slug %}" class="px-5 py-3 rounded-xl border border-cyan-electric/30 text-cyan-electric font-semibold hover:bg-cyan-electric/10 transition-all flex items-center gap-2">
+                    <div class="flex items-center justify-between mt-8 pt-6 border-t border-teal-soft/10">
+                        <a href="{% url 'lesson_detail' course.slug lesson.slug %}" class="px-5 py-3 rounded-xl border border-teal-soft/30 text-teal-soft font-semibold text-gray-700 hover:bg-teal-soft/10 transition-all flex items-center gap-2">
                             <i class="fas fa-arrow-left"></i>
                             <span>Back to Lesson</span>
                         </a>
-                        <button type="submit" class="px-8 py-3 rounded-xl bg-gradient-to-r from-cyan-electric to-purple-accent hover:from-cyan-electric/90 hover:to-purple-accent/90 text-[#0a0e27] font-bold text-lg transition-all transform hover:scale-105 shadow-lg shadow-cyan-electric/20 flex items-center gap-2" id="quiz-submit-btn">
+                        <button type="submit" class="px-8 py-3 rounded-xl bg-gradient-to-r from-teal-soft to-blue-soft hover:from-teal-soft/90 hover:to-blue-soft/90 text-[#ffffff] font-bold text-lg transition-all transform hover:scale-105 shadow-lg shadow-teal-soft/20 flex items-center gap-2" id="quiz-submit-btn">
                             <span id="quiz-submit-text">Submit Quiz</span>
                             <i class="fas fa-paper-plane" id="quiz-submit-icon"></i>
                         </button>

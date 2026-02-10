@@ -33,8 +33,57 @@ from .utils.access import has_course_access
 
 
 def home(request):
-    """Home page view - shows landing page"""
-    return render(request, 'landing.html')
+    """Home page view - shows courses hub (premium landing)"""
+    # Get all active courses for the homepage
+    courses = Course.objects.filter(status='active', visibility='public')
+    
+    # Get progress and favorite status for each course if user is authenticated
+    courses_data = []
+    user = request.user if request.user.is_authenticated else None
+    
+    for course in courses:
+        course_info = {
+            'course': course,
+            'has_any_progress': False,
+            'progress_percentage': 0,
+            'is_favorited': False,
+        }
+        
+        if user:
+            # Check if course has any progress
+            has_any_progress = UserProgress.objects.filter(
+                user=user,
+                lesson__course=course
+            ).filter(
+                Q(completed=True) | Q(video_watch_percentage__gt=0) | Q(status__in=['in_progress', 'completed'])
+            ).exists()
+            
+            # Calculate progress percentage
+            total_lessons = course.lessons.count()
+            completed_lessons = UserProgress.objects.filter(
+                user=user,
+                lesson__course=course,
+                completed=True
+            ).count()
+            progress_percentage = int((completed_lessons / total_lessons * 100)) if total_lessons > 0 else 0
+            
+            # Check if favorited
+            from .models import FavoriteCourse
+            is_favorited = FavoriteCourse.objects.filter(user=user, course=course).exists()
+            
+            course_info.update({
+                'has_any_progress': has_any_progress,
+                'progress_percentage': progress_percentage,
+                'is_favorited': is_favorited,
+            })
+        
+        courses_data.append(course_info)
+    
+    # Render the new premium landing page instead of the old partialsv2 hub
+    return render(request, 'landing.html', {
+        'courses': courses,
+        'courses_data': courses_data,
+    })
 
 
 def login_view(request):
@@ -142,16 +191,20 @@ def courses(request):
     })
 
 
-@login_required
 def course_detail(request, course_slug):
-    """Course detail page - redirects to first lesson or course overview"""
+    """Course detail page - premium sales page"""
     course = get_object_or_404(Course, slug=course_slug)
-    first_lesson = course.lessons.first()
     
-    if first_lesson:
-        return lesson_detail(request, course_slug, first_lesson.slug)
+    # For authenticated users with access, redirect to first lesson
+    if request.user.is_authenticated:
+        from .utils.access import has_course_access
+        if has_course_access(request.user, course):
+            first_lesson = course.lessons.first()
+            if first_lesson:
+                return lesson_detail(request, course_slug, first_lesson.slug)
     
-    return render(request, 'course_detail.html', {
+    # Show premium sales page for non-authenticated or users without access
+    return render(request, 'landing/partialsv2/course_detail.html', {
         'course': course,
     })
 

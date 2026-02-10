@@ -8,30 +8,30 @@
 <div class="space-y-6">
     <!-- Back Button -->
     <div>
-        <a href="{% url 'dashboard_students' %}" class="text-cyan-electric hover:text-cyan-electric/80 text-sm mb-4 inline-flex items-center gap-2">
+        <a href="{% url 'dashboard_students' %}" class="text-teal-soft hover:text-teal-soft/80 text-sm mb-4 inline-flex items-center gap-2">
             <i class="fas fa-arrow-left"></i> Back to Students
         </a>
     </div>
 
     <!-- Student Info Header -->
-    <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <div class="flex items-center gap-6">
-            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-cyan-electric to-purple-accent flex items-center justify-center text-[#0a0e27] font-bold text-2xl">
+            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-teal-soft to-blue-soft flex items-center justify-center text-[#ffffff] font-bold text-2xl">
                 {{ student.username|first|upper }}
             </div>
             <div class="flex-1">
                 <h2 class="text-2xl font-bold mb-2">{{ student.get_full_name|default:student.username }}</h2>
-                <p class="text-gray-400 mb-1"><i class="fas fa-envelope mr-2"></i>{{ student.email }}</p>
+                <p class="text-gray-700 mb-1"><i class="fas fa-envelope mr-2"></i>{{ student.email }}</p>
                 <p class="text-sm text-gray-500">Joined: {{ student.date_joined|date:"M d, Y" }}</p>
             </div>
             <div class="flex gap-3">
                 <button 
                     onclick="document.getElementById('access-management-modal').classList.remove('hidden')"
-                    class="px-4 py-2 bg-gradient-to-r from-cyan-electric to-purple-accent hover:from-cyan-electric/90 hover:to-purple-accent/90 text-[#0a0e27] font-semibold rounded-lg transition-all"
+                    class="px-4 py-2 bg-gradient-to-r from-teal-soft to-blue-soft hover:from-teal-soft/90 hover:to-blue-soft/90 text-[#ffffff] font-semibold text-gray-700 rounded-lg transition-all"
                 >
                     <i class="fas fa-key mr-2"></i>Manage Access
                 </button>
-                <a href="mailto:{{ student.email }}" class="px-4 py-2 bg-cyan-electric/10 hover:bg-cyan-electric/20 border border-cyan-electric/20 rounded-lg text-sm font-medium transition-all">
+                <a href="mailto:{{ student.email }}" class="px-4 py-2 bg-teal-soft/10 hover:bg-teal-soft/20 border border-teal-soft/20 rounded-lg text-sm font-medium transition-all">
                     <i class="fas fa-envelope mr-2"></i>Send Email
                 </a>
             </div>
@@ -40,24 +40,24 @@
 
     <!-- Course Access Records -->
     {% if course_accesses %}
-    <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <h3 class="text-xl font-bold mb-4">Course Access Records</h3>
         <div class="space-y-3">
             {% for access in course_accesses %}
-            <div class="bg-[#1a1f3a]/50 rounded-lg p-4 border border-cyan-electric/10">
+            <div class="bg-[#f8fafc]/50 rounded-lg p-4 border border-teal-soft/10">
                 <div class="flex items-start justify-between">
                     <div class="flex-1">
                         <div class="flex items-center gap-3 mb-2">
-                            <h4 class="font-semibold">{{ access.course.name }}</h4>
-                            <span class="px-2 py-1 rounded text-xs font-semibold
+                            <h4 class="font-semibold text-gray-700">{{ access.course.name }}</h4>
+                            <span class="px-2 py-1 rounded text-xs font-semibold text-gray-700
                                 {% if access.status == 'unlocked' %}bg-green-500/20 text-green-400 border border-green-500/30
                                 {% elif access.status == 'revoked' %}bg-red-500/20 text-red-400 border border-red-500/30
                                 {% elif access.status == 'expired' %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30
-                                {% else %}bg-gray-500/20 text-gray-400 border border-gray-500/30{% endif %}">
+                                {% else %}bg-gray-500/20 text-gray-700 border border-gray-500/30{% endif %}">
                                 {{ access.get_status_display }}
                             </span>
                         </div>
-                        <div class="text-sm text-gray-400 space-y-1">
+                        <div class="text-sm text-gray-700 space-y-1">
                             <div><strong>Source:</strong> {{ access.get_source_display }}</div>
                             <div><strong>Granted:</strong> {{ access.granted_at|date:"M d, Y H:i" }}</div>
                             {% if access.expires_at %}
@@ -88,25 +88,25 @@
 
     <!-- Course Progress -->
     {% for data in course_data %}
-    <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-xl font-bold">{{ data.course.name }}</h3>
             {% if data.enrollment %}
-            <span class="text-sm text-gray-400">Enrolled: {{ data.enrollment.enrolled_at|date:"M d, Y" }}</span>
+            <span class="text-sm text-gray-700">Enrolled: {{ data.enrollment.enrolled_at|date:"M d, Y" }}</span>
             {% endif %}
         </div>
 
         <!-- Lesson Progress -->
         <div class="mb-6">
-            <h4 class="text-sm font-semibold mb-3 text-gray-300">Lessons Progress</h4>
+            <h4 class="text-sm font-semibold text-gray-700 mb-3 text-gray-700">Lessons Progress</h4>
             <div class="space-y-2">
                 {% for lp in data.lesson_progress %}
-                <div class="bg-[#1a1f3a]/50 rounded-lg p-3 flex items-center justify-between">
+                <div class="bg-[#f8fafc]/50 rounded-lg p-3 flex items-center justify-between">
                     <div class="flex items-center gap-3 flex-1">
                         <div class="w-8 h-8 rounded-lg flex items-center justify-center
                             {% if lp.completed %}bg-green-500/20 text-green-400
-                            {% elif lp.status == 'in_progress' %}bg-cyan-electric/20 text-cyan-electric
-                            {% else %}bg-gray-500/20 text-gray-400{% endif %}">
+                            {% elif lp.status == 'in_progress' %}bg-teal-soft/20 text-teal-soft
+                            {% else %}bg-gray-500/20 text-gray-700{% endif %}">
                             {% if lp.completed %}
                             <i class="fas fa-check text-xs"></i>
                             {% elif lp.status == 'in_progress' %}
@@ -118,14 +118,14 @@
                         <div class="flex-1">
                             <div class="text-sm font-medium">{{ lp.lesson.title }}</div>
                             {% if lp.watch_percentage > 0 %}
-                            <div class="text-xs text-gray-400">{{ lp.watch_percentage|floatformat:0 }}% watched</div>
+                            <div class="text-xs text-gray-700">{{ lp.watch_percentage|floatformat:0 }}% watched</div>
                             {% endif %}
                         </div>
                     </div>
                     <div class="text-xs px-2 py-1 rounded
                         {% if lp.completed %}bg-green-500/20 text-green-400
-                        {% elif lp.status == 'in_progress' %}bg-cyan-electric/20 text-cyan-electric
-                        {% else %}bg-gray-500/20 text-gray-400{% endif %}">
+                        {% elif lp.status == 'in_progress' %}bg-teal-soft/20 text-teal-soft
+                        {% else %}bg-gray-500/20 text-gray-700{% endif %}">
                         {% if lp.completed %}Completed{% elif lp.status == 'in_progress' %}In Progress{% else %}Not Started{% endif %}
                     </div>
                 </div>
@@ -136,24 +136,24 @@
         <!-- Exam Attempts -->
         {% if data.exam_attempts %}
         <div class="mb-6">
-            <h4 class="text-sm font-semibold mb-3 text-gray-300">Exam Attempts</h4>
+            <h4 class="text-sm font-semibold text-gray-700 mb-3 text-gray-700">Exam Attempts</h4>
             <div class="space-y-2">
                 {% for attempt in data.exam_attempts %}
-                <div class="bg-[#1a1f3a]/50 rounded-lg p-3 flex items-center justify-between">
+                <div class="bg-[#f8fafc]/50 rounded-lg p-3 flex items-center justify-between">
                     <div>
                         <div class="text-sm font-medium">Attempt #{{ forloop.counter }}</div>
-                        <div class="text-xs text-gray-400">{{ attempt.started_at|date:"M d, Y H:i" }}</div>
+                        <div class="text-xs text-gray-700">{{ attempt.started_at|date:"M d, Y H:i" }}</div>
                     </div>
                     <div class="text-right">
                         {% if attempt.score is not None %}
-                        <div class="text-sm font-bold {% if attempt.passed %}text-green-400{% else %}text-red-400{% endif %}">
+                        <div class="text-sm font-bold text-gray-700 {% if attempt.passed %}text-green-400{% else %}text-red-400{% endif %}">
                             {{ attempt.score|floatformat:1 }}%
                         </div>
                         <div class="text-xs {% if attempt.passed %}text-green-400{% else %}text-red-400{% endif %}">
                             {% if attempt.passed %}Passed{% else %}Failed{% endif %}
                         </div>
                         {% else %}
-                        <div class="text-xs text-gray-400">In Progress</div>
+                        <div class="text-xs text-gray-700">In Progress</div>
                         {% endif %}
                     </div>
                 </div>
@@ -164,22 +164,22 @@
 
         <!-- Certification -->
         {% if data.certification %}
-        <div class="bg-[#1a1f3a]/50 rounded-lg p-4">
-            <h4 class="text-sm font-semibold mb-2 text-gray-300">Certification</h4>
+        <div class="bg-[#f8fafc]/50 rounded-lg p-4">
+            <h4 class="text-sm font-semibold text-gray-700 mb-2 text-gray-700">Certification</h4>
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold text-gray-700
                         {% if data.certification.status == 'passed' %}bg-yellow-500/20 text-yellow-300 border border-yellow-500/30
                         {% elif data.certification.status == 'failed' %}bg-red-500/20 text-red-400 border border-red-500/30
-                        {% else %}bg-gray-500/20 text-gray-400 border border-gray-500/30{% endif %}">
+                        {% else %}bg-gray-500/20 text-gray-700 border border-gray-500/30{% endif %}">
                         {{ data.certification.get_status_display }}
                     </span>
                     {% if data.certification.issued_at %}
-                    <span class="text-xs text-gray-400 ml-3">Issued: {{ data.certification.issued_at|date:"M d, Y" }}</span>
+                    <span class="text-xs text-gray-700 ml-3">Issued: {{ data.certification.issued_at|date:"M d, Y" }}</span>
                     {% endif %}
                 </div>
                 {% if data.certification.accredible_certificate_url %}
-                <a href="{{ data.certification.accredible_certificate_url }}" target="_blank" class="text-xs text-cyan-electric hover:text-cyan-electric/80">
+                <a href="{{ data.certification.accredible_certificate_url }}" target="_blank" class="text-xs text-teal-soft hover:text-teal-soft/80">
                     <i class="fas fa-external-link-alt mr-1"></i>View Certificate
                 </a>
                 {% endif %}
@@ -188,21 +188,21 @@
         {% endif %}
     </div>
     {% empty %}
-    <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-12 text-center">
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-12 text-center">
         <i class="fas fa-book text-6xl text-gray-600 mb-4"></i>
-        <h3 class="text-xl font-semibold mb-2">No Course Enrollments</h3>
-        <p class="text-gray-400">This student is not enrolled in any courses.</p>
+        <h3 class="text-xl font-semibold text-gray-700 mb-2">No Course Enrollments</h3>
+        <p class="text-gray-700">This student is not enrolled in any courses.</p>
     </div>
     {% endfor %}
 </div>
 
 <!-- Access Management Modal -->
 <div id="access-management-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div class="bg-[#0a0e27] border border-cyan-electric/30 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="p-6 border-b border-cyan-electric/10">
+    <div class="bg-[#ffffff] border border-teal-soft/30 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-teal-soft/10">
             <div class="flex items-center justify-between">
                 <h3 class="text-2xl font-bold">Manage Access Rights</h3>
-                <button onclick="document.getElementById('access-management-modal').classList.add('hidden')" class="text-gray-400 hover:text-white">
+                <button onclick="document.getElementById('access-management-modal').classList.add('hidden')" class="text-gray-700 hover:text-white">
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
@@ -211,11 +211,11 @@
         <div class="p-6 space-y-6">
             <!-- Grant Course Access -->
             <div>
-                <h4 class="text-lg font-semibold mb-4">Grant Course Access</h4>
+                <h4 class="text-lg font-semibold text-gray-700 mb-4">Grant Course Access</h4>
                 <form id="grant-access-form" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium mb-2">Select Course</label>
-                        <select name="course_id" required class="w-full bg-[#1a1f3a] border border-cyan-electric/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-electric/50">
+                        <select name="course_id" required class="w-full bg-[#f8fafc] border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
                             <option value="">-- Select Course --</option>
                             {% for course in courses %}
                             <option value="{{ course.id }}">{{ course.name }}</option>
@@ -224,7 +224,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-2">Access Type</label>
-                        <select name="access_type" class="w-full bg-[#1a1f3a] border border-cyan-electric/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-electric/50">
+                        <select name="access_type" class="w-full bg-[#f8fafc] border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
                             <option value="manual">Manual (Admin-granted)</option>
                             <option value="purchase">Purchase</option>
                         </select>
@@ -232,25 +232,25 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium mb-2">Expires In (days, optional)</label>
-                            <input type="number" name="expires_in_days" placeholder="Leave empty for lifetime" class="w-full bg-[#1a1f3a] border border-cyan-electric/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-electric/50">
+                            <input type="number" name="expires_in_days" placeholder="Leave empty for lifetime" class="w-full bg-[#f8fafc] border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
                         </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-2">Notes (optional)</label>
-                        <textarea name="notes" rows="2" placeholder="e.g., VIP comp, influencer partnership" class="w-full bg-[#1a1f3a] border border-cyan-electric/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-electric/50"></textarea>
+                        <textarea name="notes" rows="2" placeholder="e.g., VIP comp, influencer partnership" class="w-full bg-[#f8fafc] border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50"></textarea>
                     </div>
-                    <button type="submit" class="w-full px-4 py-2 bg-gradient-to-r from-cyan-electric to-purple-accent hover:from-cyan-electric/90 hover:to-purple-accent/90 text-[#0a0e27] font-semibold rounded-lg transition-all">
+                    <button type="submit" class="w-full px-4 py-2 bg-gradient-to-r from-teal-soft to-blue-soft hover:from-teal-soft/90 hover:to-blue-soft/90 text-[#ffffff] font-semibold text-gray-700 rounded-lg transition-all">
                         <i class="fas fa-plus mr-2"></i>Grant Access
                     </button>
                 </form>
             </div>
             
-            <div class="border-t border-cyan-electric/10 pt-6">
-                <h4 class="text-lg font-semibold mb-4">Grant Bundle Access</h4>
+            <div class="border-t border-teal-soft/10 pt-6">
+                <h4 class="text-lg font-semibold text-gray-700 mb-4">Grant Bundle Access</h4>
                 <form id="grant-bundle-form" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium mb-2">Select Bundle</label>
-                        <select name="bundle_id" required class="w-full bg-[#1a1f3a] border border-cyan-electric/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-electric/50">
+                        <select name="bundle_id" required class="w-full bg-[#f8fafc] border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
                             <option value="">-- Select Bundle --</option>
                             {% for bundle in bundles %}
                             <option value="{{ bundle.id }}">{{ bundle.name }} ({{ bundle.courses.count }} courses)</option>
@@ -259,31 +259,31 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-2">Purchase ID (optional)</label>
-                        <input type="text" name="purchase_id" placeholder="External order ID" class="w-full bg-[#1a1f3a] border border-cyan-electric/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-electric/50">
+                        <input type="text" name="purchase_id" placeholder="External order ID" class="w-full bg-[#f8fafc] border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-2">Notes (optional)</label>
-                        <textarea name="notes" rows="2" class="w-full bg-[#1a1f3a] border border-cyan-electric/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-electric/50"></textarea>
+                        <textarea name="notes" rows="2" class="w-full bg-[#f8fafc] border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50"></textarea>
                     </div>
-                    <button type="submit" class="w-full px-4 py-2 bg-gradient-to-r from-purple-accent to-cyan-electric hover:from-purple-accent/90 hover:to-cyan-electric/90 text-white font-semibold rounded-lg transition-all">
+                    <button type="submit" class="w-full px-4 py-2 bg-gradient-to-r from-blue-soft to-teal-soft hover:from-blue-soft/90 hover:to-teal-soft/90 text-white font-semibold text-gray-700 rounded-lg transition-all">
                         <i class="fas fa-gift mr-2"></i>Grant Bundle Access
                     </button>
                 </form>
             </div>
             
-            <div class="border-t border-cyan-electric/10 pt-6">
-                <h4 class="text-lg font-semibold mb-4">Add to Cohort</h4>
+            <div class="border-t border-teal-soft/10 pt-6">
+                <h4 class="text-lg font-semibold text-gray-700 mb-4">Add to Cohort</h4>
                 <form id="add-cohort-form" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium mb-2">Select Cohort</label>
-                        <select name="cohort_id" required class="w-full bg-[#1a1f3a] border border-cyan-electric/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-electric/50">
+                        <select name="cohort_id" required class="w-full bg-[#f8fafc] border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
                             <option value="">-- Select Cohort --</option>
                             {% for cohort in cohorts %}
                             <option value="{{ cohort.id }}">{{ cohort.name }} ({{ cohort.get_member_count }} members)</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <button type="submit" class="w-full px-4 py-2 bg-cyan-electric/10 hover:bg-cyan-electric/20 border border-cyan-electric/30 text-cyan-electric font-semibold rounded-lg transition-all">
+                    <button type="submit" class="w-full px-4 py-2 bg-teal-soft/10 hover:bg-teal-soft/20 border border-teal-soft/30 text-teal-soft font-semibold text-gray-700 rounded-lg transition-all">
                         <i class="fas fa-users mr-2"></i>Add to Cohort
                     </button>
                 </form>

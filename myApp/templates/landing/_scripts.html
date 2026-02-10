@@ -1,443 +1,50 @@
-<script>
-    // Character counter
-    const textarea = document.querySelector('textarea[maxlength="350"]');
-    const charCount = document.getElementById('char-count');
-    if (textarea && charCount) {
-        textarea.addEventListener('input', function() {
-            charCount.textContent = this.value.length;
-        });
-    }
-    
-    // Smooth scroll
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
+    <!-- Global scripts for landing page -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Sticky nav shadow
+            const nav = document.getElementById('landing-nav');
+            if (nav) {
+                const toggleShadow = () => {
+                    if (window.scrollY > 8) {
+                        nav.classList.add('shadow-md', 'shadow-slate-900/5', 'border-b', 'border-slate-200/70');
+                    } else {
+                        nav.classList.remove('shadow-md', 'shadow-slate-900/5', 'border-b', 'border-slate-200/70');
+                    }
+                };
+                toggleShadow();
+                window.addEventListener('scroll', toggleShadow);
+            }
+
+            // Mobile menu toggle
+            const menuBtn = document.getElementById('landing-mobile-menu-btn');
+            const menu = document.getElementById('landing-mobile-menu');
+            const icon = document.getElementById('landing-mobile-menu-icon');
+            if (menuBtn && menu && icon) {
+                menuBtn.addEventListener('click', function () {
+                    const isHidden = menu.classList.contains('hidden');
+                    if (isHidden) {
+                        menu.classList.remove('hidden');
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    } else {
+                        menu.classList.add('hidden');
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+
+                // Close menu when clicking a link inside
+                menu.querySelectorAll('a[href]').forEach(function (link) {
+                    link.addEventListener('click', function () {
+                        menu.classList.add('hidden');
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    });
                 });
             }
         });
-    });
-
-    // Hero Section Awesome Effects
-    (function() {
-        const heroSection = document.querySelector('section.relative.pt-32');
-        if (!heroSection) return;
-
-        const video = heroSection.querySelector('video');
-        const heroContent = heroSection.querySelector('.hero-content');
-        
-        // 1. Staggered Fade-in Animation for Hero Content
-        function animateHeroContent() {
-            const elements = [
-                heroSection.querySelector('.hero-fade-in'),
-                heroSection.querySelector('.hero-title'),
-                heroSection.querySelector('.hero-subtitle'),
-                heroSection.querySelector('.hero-buttons'),
-                heroSection.querySelector('.hero-stats')
-            ];
-
-            elements.forEach((el, index) => {
-                if (el) {
-                    setTimeout(() => {
-                        el.style.transition = 'opacity 1s ease-out, transform 1s ease-out';
-                        el.style.opacity = '1';
-                        el.style.transform = 'translateY(0)';
-                    }, index * 200);
-                }
-            });
-        }
-
-        // Set initial transform for slide-up effect
-        const animatedElements = heroSection.querySelectorAll('.hero-fade-in, .hero-title, .hero-subtitle, .hero-buttons, .hero-stats');
-        animatedElements.forEach(el => {
-            el.style.transform = 'translateY(30px)';
-        });
-
-        // 2. Parallax Effect for Video Background
-        let lastScrollY = window.scrollY;
-        function handleParallax() {
-            const scrollY = window.scrollY;
-            const heroHeight = heroSection.offsetHeight;
-            
-            if (scrollY < heroHeight && video) {
-                const parallaxValue = scrollY * 0.5;
-                video.style.transform = `translateY(${parallaxValue}px) scale(1.1)`;
-                video.style.transition = 'transform 0.1s ease-out';
-            }
-            lastScrollY = scrollY;
-        }
-
-        // 3. Mouse Cursor Glow Effect
-        let mouseX = 0, mouseY = 0;
-        let cursorX = 0, cursorY = 0;
-        
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-        });
-
-        function animateCursor() {
-            cursorX += (mouseX - cursorX) * 0.1;
-            cursorY += (mouseY - cursorY) * 0.1;
-            
-            const gradientOrbs = heroSection.querySelectorAll('.absolute.rounded-full.blur-3xl, .absolute.rounded-full.blur-2xl');
-            gradientOrbs.forEach((orb, index) => {
-                const speed = (index + 1) * 0.0001;
-                const x = (cursorX - window.innerWidth / 2) * speed;
-                const y = (cursorY - window.innerHeight / 2) * speed;
-                orb.style.transform = `translate(${x}px, ${y}px)`;
-            });
-            
-            requestAnimationFrame(animateCursor);
-        }
-
-        // 4. Floating Particles Effect
-        function createParticles() {
-            const particleContainer = document.createElement('div');
-            particleContainer.className = 'particle-container';
-            particleContainer.style.cssText = 'position: absolute; inset: 0; pointer-events: none; z-index: 5; overflow: hidden;';
-            heroSection.appendChild(particleContainer);
-
-            for (let i = 0; i < 20; i++) {
-                const particle = document.createElement('div');
-                const size = Math.random() * 4 + 2;
-                const x = Math.random() * 100;
-                const y = Math.random() * 100;
-                const duration = Math.random() * 10 + 10;
-                const delay = Math.random() * 5;
-                
-                particle.style.cssText = `
-                    position: absolute;
-                    width: ${size}px;
-                    height: ${size}px;
-                    background: radial-gradient(circle, rgba(147,51,234,0.6) 0%, rgba(192,132,252,0.3) 50%, transparent 100%);
-                    border-radius: 50%;
-                    left: ${x}%;
-                    top: ${y}%;
-                    animation: float ${duration}s ease-in-out infinite;
-                    animation-delay: ${delay}s;
-                    box-shadow: 0 0 10px rgba(147,51,234,0.5);
-                `;
-                particleContainer.appendChild(particle);
-            }
-        }
-
-        // 5. Text Reveal Animation with Gradient (Purple pulse)
-        function animateGradientText() {
-            const gradientText = heroSection.querySelector('.bg-gradient-to-r');
-            if (gradientText) {
-                let opacity = 0.8;
-                let direction = 1;
-                setInterval(() => {
-                    opacity += direction * 0.01;
-                    if (opacity >= 1) direction = -1;
-                    if (opacity <= 0.7) direction = 1;
-                    gradientText.style.opacity = opacity;
-                }, 50);
-            }
-        }
-
-        // 6. Button Magnetic Effect
-        const buttons = heroSection.querySelectorAll('.hero-btn');
-        buttons.forEach(button => {
-            button.addEventListener('mousemove', (e) => {
-                const rect = button.getBoundingClientRect();
-                const x = e.clientX - rect.left - rect.width / 2;
-                const y = e.clientY - rect.top - rect.height / 2;
-                
-                button.style.transform = `translate(${x * 0.1}px, ${y * 0.1}px) scale(1.05)`;
-            });
-            
-            button.addEventListener('mouseleave', () => {
-                button.style.transform = 'translate(0, 0) scale(1)';
-            });
-        });
-
-        // 7. Video Playback Speed Control on Scroll
-        function controlVideoSpeed() {
-            const scrollY = window.scrollY;
-            const heroHeight = heroSection.offsetHeight;
-            
-            if (scrollY < heroHeight && video) {
-                // Slow down video slightly when scrolling
-                const speed = 1 - (scrollY / heroHeight) * 0.3;
-                video.playbackRate = Math.max(0.7, speed);
-            }
-        }
-
-        // Initialize all effects
-        window.addEventListener('load', () => {
-            animateHeroContent();
-            createParticles();
-            animateGradientText();
-            animateCursor();
-        });
-
-        // Add scroll listeners
-        window.addEventListener('scroll', () => {
-            handleParallax();
-            controlVideoSpeed();
-        }, { passive: true });
-
-        // Add CSS animation for particles
-        if (!document.getElementById('hero-animations')) {
-            const style = document.createElement('style');
-            style.id = 'hero-animations';
-            style.textContent = `
-                @keyframes float {
-                    0%, 100% {
-                        transform: translateY(0) translateX(0) scale(1);
-                        opacity: 0.7;
-                    }
-                    25% {
-                        transform: translateY(-20px) translateX(10px) scale(1.1);
-                        opacity: 1;
-                    }
-                    50% {
-                        transform: translateY(-40px) translateX(-10px) scale(0.9);
-                        opacity: 0.8;
-                    }
-                    75% {
-                        transform: translateY(-20px) translateX(5px) scale(1.05);
-                        opacity: 0.9;
-                    }
-                }
-                
-                .hero-content * {
-                    text-shadow: 0 0 20px rgba(147, 51, 234, 0.4), 0 0 40px rgba(192, 132, 252, 0.3);
-                }
-            `;
-            document.head.appendChild(style);
-        }
-    })();
-
-    // Modern Landing Page Transitions
-    (function() {
-        // Page Load Transition
-        document.body.style.opacity = '0';
-        window.addEventListener('load', () => {
-            document.body.style.transition = 'opacity 0.6s ease-in';
-            document.body.style.opacity = '1';
-        });
-
-        // Intersection Observer for Scroll Animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -100px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('section-visible');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, observerOptions);
-
-        // Observe all sections
-        const sections = document.querySelectorAll('section');
-        sections.forEach((section, index) => {
-            section.classList.add('section-hidden');
-            section.style.transitionDelay = `${index * 0.1}s`;
-            observer.observe(section);
-        });
-
-        // Enhanced Smooth Scroll with Easing
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - 80;
-                    const startPosition = window.pageYOffset;
-                    const distance = targetPosition - startPosition;
-                    const duration = 1000;
-                    let start = null;
-
-                    function easeInOutCubic(t) {
-                        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-                    }
-
-                    function animation(currentTime) {
-                        if (start === null) start = currentTime;
-                        const timeElapsed = currentTime - start;
-                        const progress = Math.min(timeElapsed / duration, 1);
-                        const ease = easeInOutCubic(progress);
-                        window.scrollTo(0, startPosition + distance * ease);
-                        if (timeElapsed < duration) {
-                            requestAnimationFrame(animation);
-                        }
-                    }
-                    requestAnimationFrame(animation);
-                }
-            });
-        });
-
-        // Parallax Scroll Effect for Sections
-        let ticking = false;
-        function updateParallax() {
-            const scrolled = window.pageYOffset;
-            const parallaxElements = document.querySelectorAll('[data-parallax]');
-            
-            parallaxElements.forEach(element => {
-                const speed = element.dataset.parallax || 0.5;
-                const yPos = -(scrolled * speed);
-                element.style.transform = `translateY(${yPos}px)`;
-            });
-            ticking = false;
-        }
-
-        window.addEventListener('scroll', () => {
-            if (!ticking) {
-                window.requestAnimationFrame(updateParallax);
-                ticking = true;
-            }
-        }, { passive: true });
-
-        // Stagger Animation for Cards
-        const cardObserver = new IntersectionObserver((entries) => {
-            entries.forEach((entry, index) => {
-                if (entry.isIntersecting) {
-                    setTimeout(() => {
-                        entry.target.classList.add('card-visible');
-                    }, index * 100);
-                    cardObserver.unobserve(entry.target);
-                }
-            });
-        }, { threshold: 0.1 });
-
-        document.querySelectorAll('.glass-card, [class*="rounded-3xl"], [class*="rounded-xl"]').forEach(card => {
-            card.classList.add('card-hidden');
-            cardObserver.observe(card);
-        });
-
-        // Add CSS for transitions
-        if (!document.getElementById('landing-transitions')) {
-            const style = document.createElement('style');
-            style.id = 'landing-transitions';
-            style.textContent = `
-                /* Section Transitions */
-                .section-hidden {
-                    opacity: 0;
-                    transform: translateY(50px);
-                    transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
-                                transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-                }
-                
-                .section-visible {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-                
-                /* Card Transitions */
-                .card-hidden {
-                    opacity: 0;
-                    transform: translateY(30px) scale(0.95);
-                    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                                transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-                }
-                
-                .card-visible {
-                    opacity: 1;
-                    transform: translateY(0) scale(1);
-                }
-                
-                /* Smooth Scroll Behavior */
-                html {
-                    scroll-behavior: smooth;
-                }
-                
-                /* Fade In Animation for Text */
-                @keyframes fadeInUp {
-                    from {
-                        opacity: 0;
-                        transform: translateY(30px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-                
-                /* Scale In Animation */
-                @keyframes scaleIn {
-                    from {
-                        opacity: 0;
-                        transform: scale(0.9);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: scale(1);
-                    }
-                }
-                
-                /* Slide In from Left */
-                @keyframes slideInLeft {
-                    from {
-                        opacity: 0;
-                        transform: translateX(-50px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateX(0);
-                    }
-                }
-                
-                /* Slide In from Right */
-                @keyframes slideInRight {
-                    from {
-                        opacity: 0;
-                        transform: translateX(50px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateX(0);
-                    }
-                }
-                
-                /* Blur Fade In */
-                @keyframes blurFadeIn {
-                    from {
-                        opacity: 0;
-                        filter: blur(10px);
-                    }
-                    to {
-                        opacity: 1;
-                        filter: blur(0);
-                    }
-                }
-                
-                /* Apply animations to specific elements */
-                h1, h2, h3 {
-                    animation: fadeInUp 0.8s ease-out;
-                }
-                
-                /* Smooth transitions for all interactive elements */
-                a, button {
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                }
-                
-                /* Hover effects with smooth transitions */
-                a:hover, button:hover {
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                }
-                
-                /* Content layer fade in */
-                .content-layer {
-                    animation: fadeInUp 0.6s ease-out;
-                }
-            `;
-            document.head.appendChild(style);
-        }
-    })();
-</script>
+    </script>
 </body>
 </html>
-
 
 

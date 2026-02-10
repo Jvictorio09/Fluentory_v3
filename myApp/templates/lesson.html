@@ -46,12 +46,12 @@
                 {% elif lesson.video_url %}
                     <iframe src="{{ lesson.video_url }}" class="w-full aspect-video" frameborder="0" allowfullscreen></iframe>
                 {% else %}
-                    <div class="w-full aspect-video bg-gradient-to-br from-cyan-electric/20 to-purple-accent/20 flex items-center justify-center">
-                        <i class="fas fa-video text-6xl text-cyan-electric/50"></i>
+                    <div class="w-full aspect-video bg-gradient-to-br from-teal-soft/20 to-blue-soft/20 flex items-center justify-center">
+                        <i class="fas fa-video text-6xl text-teal-soft/50"></i>
                     </div>
                 {% endif %}
                 <div class="absolute top-3 left-3">
-                    <span class="bg-cyan-electric/90 text-[#0a0e27] text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold">
+                    <span class="bg-teal-soft/90 text-[#ffffff] text-[10px] uppercase tracking-wider px-2 py-1 rounded font-bold">
                         {{ lesson.get_lesson_type_display }}
                     </span>
                 </div>
@@ -59,25 +59,25 @@
             
             <!-- Video Info Chips -->
             <div class="flex flex-wrap gap-3 mb-6">
-                <span class="px-3 py-1 bg-cyan-electric/10 border border-cyan-electric/20 rounded-full text-xs flex items-center gap-2">
-                    <i class="fas fa-clock text-cyan-electric"></i>
+                <span class="px-3 py-1 bg-teal-soft/10 border border-teal-soft/20 rounded-full text-xs flex items-center gap-2">
+                    <i class="fas fa-clock text-teal-soft"></i>
                     {{ lesson.get_formatted_duration }}
                 </span>
                 {% if current_lesson_progress and video_watch_percentage > 0 %}
-                <span class="px-3 py-1 bg-cyan-electric/10 border border-cyan-electric/20 rounded-full text-xs flex items-center gap-2">
-                    <i class="fas fa-eye text-cyan-electric"></i>
+                <span class="px-3 py-1 bg-teal-soft/10 border border-teal-soft/20 rounded-full text-xs flex items-center gap-2">
+                    <i class="fas fa-eye text-teal-soft"></i>
                     {{ video_watch_percentage|floatformat:0 }}% Watched
                 </span>
                 {% endif %}
                 {% if lesson.workbook_url %}
-                <a href="{{ lesson.workbook_url }}" class="px-3 py-1 bg-cyan-electric/10 border border-cyan-electric/20 rounded-full text-xs flex items-center gap-2 hover:bg-cyan-electric/20 transition-colors">
-                    <i class="fas fa-file text-cyan-electric"></i>
+                <a href="{{ lesson.workbook_url }}" class="px-3 py-1 bg-teal-soft/10 border border-teal-soft/20 rounded-full text-xs flex items-center gap-2 hover:bg-teal-soft/20 transition-colors">
+                    <i class="fas fa-file text-teal-soft"></i>
                     Download Workbook
                 </a>
                 {% endif %}
                 {% if lesson.resources_url %}
-                <a href="{{ lesson.resources_url }}" class="px-3 py-1 bg-cyan-electric/10 border border-cyan-electric/20 rounded-full text-xs flex items-center gap-2 hover:bg-cyan-electric/20 transition-colors">
-                    <i class="fas fa-folder text-cyan-electric"></i>
+                <a href="{{ lesson.resources_url }}" class="px-3 py-1 bg-teal-soft/10 border border-teal-soft/20 rounded-full text-xs flex items-center gap-2 hover:bg-teal-soft/20 transition-colors">
+                    <i class="fas fa-folder text-teal-soft"></i>
                     View Resources
                 </a>
                 {% endif %}
@@ -86,37 +86,37 @@
             <!-- Lesson Content Sections -->
             <div class="space-y-6">
                 <!-- What You'll Learn Today -->
-                <section class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
+                <section class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
                     <h3 class="text-xl font-bold text-white mb-4">What You'll Learn Today</h3>
-                    <p class="text-gray-300 leading-relaxed">
+                    <p class="text-gray-700 leading-relaxed">
                         {{ lesson.description|default:"Learn the fundamentals of live streaming and how to engage your audience in real-time." }}
                     </p>
                 </section>
                 
                 <!-- Lesson Notes / Content Blocks -->
                 {% if lesson.content and lesson.content.blocks %}
-                <section class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
+                <section class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
                     <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                        <i class="fas fa-sticky-note text-cyan-electric"></i>
+                        <i class="fas fa-sticky-note text-teal-soft"></i>
                         Lesson Notes
                     </h2>
                     <div class="prose prose-invert max-w-none">
                         {% for block in lesson.content.blocks %}
                             {% if block.type == 'paragraph' %}
-                                <p class="text-gray-300 leading-relaxed mb-4">{{ block.data.text|linebreaks }}</p>
+                                <p class="text-gray-700 leading-relaxed mb-4">{{ block.data.text|linebreaks }}</p>
                             {% elif block.type == 'header' %}
                                 <h{{ block.data.level }} class="text-white font-bold mb-4 mt-6 {% if block.data.level == 2 %}text-2xl{% elif block.data.level == 3 %}text-xl{% else %}text-lg{% endif %}">{{ block.data.text }}</h{{ block.data.level }}>
                             {% elif block.type == 'list' %}
                                 <ul class="list-disc list-outside pl-6 space-y-1 mb-4 {% if block.data.style == 'ordered' %}list-decimal{% endif %}">
                                     {% for item in block.data.items %}
-                                        <li class="text-gray-300 leading-normal">{{ item }}</li>
+                                        <li class="text-gray-700 leading-normal">{{ item }}</li>
                                     {% endfor %}
                                 </ul>
                             {% elif block.type == 'quote' %}
-                                <blockquote class="border-l-4 border-cyan-electric/50 pl-4 py-2 my-4 italic text-gray-300">
+                                <blockquote class="border-l-4 border-teal-soft/50 pl-4 py-2 my-4 italic text-gray-700">
                                     <p class="mb-2">{{ block.data.text }}</p>
                                     {% if block.data.caption %}
-                                        <cite class="text-sm text-gray-400 not-italic">— {{ block.data.caption }}</cite>
+                                        <cite class="text-sm text-gray-700 not-italic">— {{ block.data.caption }}</cite>
                                     {% endif %}
                                 </blockquote>
                             {% endif %}
@@ -127,15 +127,15 @@
                 
                 <!-- This Lesson Will Produce -->
                 {% if lesson.get_outcomes_list %}
-                <section class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
+                <section class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
                     <h3 class="text-xl font-bold text-white mb-6">This Lesson Will Produce</h3>
                     <ul class="space-y-4">
                         {% for outcome in lesson.get_outcomes_list %}
                         <li class="flex items-start gap-4">
-                            <div class="flex-shrink-0 w-6 h-6 rounded-full bg-cyan-electric/20 border border-cyan-electric/40 flex items-center justify-center mt-0.5">
-                                <i class="fas fa-check text-cyan-electric text-xs"></i>
+                            <div class="flex-shrink-0 w-6 h-6 rounded-full bg-teal-soft/20 border border-teal-soft/40 flex items-center justify-center mt-0.5">
+                                <i class="fas fa-check text-teal-soft text-xs"></i>
                             </div>
-                            <span class="text-gray-300 leading-relaxed flex-1">{{ outcome }}</span>
+                            <span class="text-gray-700 leading-relaxed flex-1">{{ outcome }}</span>
                         </li>
                         {% endfor %}
                     </ul>
@@ -144,20 +144,20 @@
                 
                 <!-- Lesson Quiz Section -->
                 {% if lesson_quiz %}
-                <section class="bg-gradient-to-br from-purple-accent/10 to-cyan-electric/10 backdrop-blur-sm border border-purple-accent/20 rounded-xl p-6">
+                <section class="bg-gradient-to-br from-blue-soft/10 to-teal-soft/10 backdrop-blur-sm border border-blue-soft/20 rounded-xl p-6">
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex-1">
                             <div class="flex items-center gap-3 mb-2">
-                                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-accent to-cyan-electric flex items-center justify-center">
+                                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-soft to-teal-soft flex items-center justify-center">
                                     <i class="fas fa-question-circle text-white text-lg"></i>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <h3 class="text-xl font-bold text-white">Lesson Quiz</h3>
-                                    <span class="px-2 py-1 bg-red-500/20 border border-red-500/40 rounded-full text-xs font-semibold text-red-400">Required</span>
+                                    <span class="px-2 py-1 bg-red-500/20 border border-red-500/40 rounded-full text-xs font-semibold text-gray-700 text-red-400">Required</span>
                                 </div>
                             </div>
                             {% if lesson_quiz.description %}
-                            <p class="text-gray-300 text-sm mb-4">{{ lesson_quiz.description }}</p>
+                            <p class="text-gray-700 text-sm mb-4">{{ lesson_quiz.description }}</p>
                             {% endif %}
                             <p class="text-yellow-400 text-sm mb-4">
                                 <i class="fas fa-exclamation-circle mr-1"></i>
@@ -173,14 +173,14 @@
                             <div class="flex items-center gap-3">
                                 <i class="fas {% if latest_quiz_attempt.passed %}fa-check-circle text-green-400{% else %}fa-exclamation-circle text-yellow-400{% endif %} text-xl"></i>
                                 <div>
-                                    <div class="font-semibold text-white">
+                                    <div class="font-semibold text-gray-700 text-white">
                                         {% if latest_quiz_attempt.passed %}
                                             Quiz Passed! 🎉
                                         {% else %}
                                             Quiz Score: {{ latest_quiz_attempt.score|floatformat:0 }}%
                                         {% endif %}
                                     </div>
-                                    <div class="text-sm text-gray-300">
+                                    <div class="text-sm text-gray-700">
                                         {% if latest_quiz_attempt.passed %}
                                             Score: {{ latest_quiz_attempt.score|floatformat:0 }}% (Passing: {{ lesson_quiz.passing_score }}%)
                                         {% else %}
@@ -196,14 +196,14 @@
                     <!-- Quiz Action Button -->
                     <a 
                         href="{% url 'lesson_quiz' course.slug lesson.slug %}"
-                        class="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-gradient-to-r from-purple-accent to-cyan-electric hover:from-purple-accent/90 hover:to-cyan-electric/90 text-white font-semibold rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                        class="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-gradient-to-r from-blue-soft to-teal-soft hover:from-blue-soft/90 hover:to-teal-soft/90 text-white font-semibold text-gray-700 rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
                     >
                         <i class="fas {% if latest_quiz_attempt and latest_quiz_attempt.passed %}fa-check{% elif latest_quiz_attempt %}fa-redo{% else %}fa-play{% endif %}"></i>
                         <span>{% if latest_quiz_attempt and latest_quiz_attempt.passed %}Quiz Completed{% elif latest_quiz_attempt %}Retake Quiz{% else %}Take Required Quiz{% endif %}</span>
                     </a>
                     
                     {% if quiz_attempts %}
-                    <div class="mt-4 text-sm text-gray-400">
+                    <div class="mt-4 text-sm text-gray-700">
                         <i class="fas fa-history mr-2"></i>
                         {{ quiz_attempts|length }} attempt{{ quiz_attempts|length|pluralize }} total
                     </div>
@@ -213,11 +213,11 @@
             </div>
             
             <!-- Finish Lesson Button -->
-            <div class="mt-8 pt-6 border-t border-cyan-electric/10">
+            <div class="mt-8 pt-6 border-t border-teal-soft/10">
                 {% if lesson.id in completed_lessons %}
                 <div class="flex items-center justify-center gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
                     <i class="fas fa-check-circle text-green-400 text-xl"></i>
-                    <span class="text-green-400 font-semibold">Lesson Completed</span>
+                    <span class="text-green-400 font-semibold text-gray-700">Lesson Completed</span>
                 </div>
                 {% else %}
                     {% if lesson_quiz and not quiz_passed %}
@@ -226,15 +226,15 @@
                         <div class="flex items-center gap-3">
                             <i class="fas fa-lock text-yellow-400 text-xl"></i>
                             <div>
-                                <div class="font-semibold text-yellow-400 mb-1">Quiz Required</div>
-                                <div class="text-sm text-gray-300">You must pass the lesson quiz before you can complete this lesson.</div>
+                                <div class="font-semibold text-gray-700 text-yellow-400 mb-1">Quiz Required</div>
+                                <div class="text-sm text-gray-700">You must pass the lesson quiz before you can complete this lesson.</div>
                             </div>
                         </div>
                     </div>
                     <button 
                         id="finish-lesson-btn" 
                         disabled
-                        class="w-full py-4 px-6 bg-gray-600/50 text-gray-400 font-bold text-lg rounded-xl cursor-not-allowed flex items-center justify-center gap-3 opacity-50"
+                        class="w-full py-4 px-6 bg-gray-600/50 text-gray-700 font-bold text-lg rounded-xl cursor-not-allowed flex items-center justify-center gap-3 opacity-50"
                     >
                         <i class="fas fa-lock"></i>
                         <span>Complete Quiz to Finish Lesson</span>
@@ -242,7 +242,7 @@
                     {% else %}
                     <button 
                         id="finish-lesson-btn" 
-                        class="w-full py-4 px-6 bg-gradient-to-r from-cyan-electric to-purple-accent hover:from-cyan-electric/90 hover:to-purple-accent/90 text-[#0a0e27] font-bold text-lg rounded-xl shadow-lg shadow-cyan-electric/20 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
+                        class="w-full py-4 px-6 bg-gradient-to-r from-teal-soft to-blue-soft hover:from-teal-soft/90 hover:to-blue-soft/90 text-[#ffffff] font-bold text-lg rounded-xl shadow-lg shadow-teal-soft/20 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
                     >
                         <i class="fas fa-check-circle"></i>
                         <span>Finish Lesson</span>
@@ -256,21 +256,21 @@
                 id="lesson-error-modal" 
                 class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm"
             >
-                <div class="bg-[#0a0e27] border border-cyan-electric/30 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
+                <div class="bg-[#ffffff] border border-teal-soft/30 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6">
                     <div class="flex items-start gap-3 mb-4">
                         <div class="w-9 h-9 rounded-full bg-red-500/10 border border-red-500/40 flex items-center justify-center flex-shrink-0">
                             <i class="fas fa-exclamation-triangle text-red-400"></i>
                         </div>
                         <div>
-                            <h3 class="text-lg font-semibold text-white mb-1">Almost there!</h3>
-                            <p id="lesson-error-message" class="text-sm text-gray-300 leading-relaxed"></p>
+                            <h3 class="text-lg font-semibold text-gray-700 text-white mb-1">Almost there!</h3>
+                            <p id="lesson-error-message" class="text-sm text-gray-700 leading-relaxed"></p>
                         </div>
                     </div>
                     <div class="flex justify-end">
                         <button 
                             type="button"
                             id="lesson-error-close"
-                            class="px-5 py-2 rounded-full bg-gradient-to-r from-cyan-electric to-purple-accent text-[#0a0e27] font-semibold text-sm hover:from-cyan-electric/90 hover:to-purple-accent/90 focus:outline-none focus:ring-2 focus:ring-cyan-electric/60"
+                            class="px-5 py-2 rounded-full bg-gradient-to-r from-teal-soft to-blue-soft text-[#ffffff] font-semibold text-gray-700 text-sm hover:from-teal-soft/90 hover:to-blue-soft/90 focus:outline-none focus:ring-2 focus:ring-teal-soft/60"
                         >
                             Got it
                         </button>
@@ -374,7 +374,7 @@
         box-shadow: 0 4px 12px rgba(0, 240, 255, 0.15);
     }
     
-    .ai-message .bg-\[#0a0e27\]\/60 {
+    .ai-message .bg-\[#ffffff\]\/60 {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
     
@@ -573,8 +573,8 @@
             <div class="flex items-start gap-3 justify-end">
                 <div class="flex-1 min-w-0 flex justify-end">
                     <div class="max-w-[85%]">
-                        <div class="bg-gradient-to-br from-cyan-electric to-purple-accent rounded-2xl rounded-tr-sm px-4 py-3">
-                            <p class="text-sm text-[#0a0e27] font-medium leading-relaxed">${escapeHtml(message)}</p>
+                        <div class="bg-gradient-to-br from-teal-soft to-blue-soft rounded-2xl rounded-tr-sm px-4 py-3">
+                            <p class="text-sm text-[#ffffff] font-medium leading-relaxed">${escapeHtml(message)}</p>
                         </div>
                         <div class="text-xs text-gray-500 mt-1.5 mr-1 text-right">Just now</div>
                     </div>
@@ -602,16 +602,16 @@
         const messageDiv = document.createElement('div');
         messageDiv.className = 'chat-message ai-message';
         const content = isThinking 
-            ? '<div class="flex items-center gap-2"><div class="animate-spin rounded-full h-4 w-4 border-b-2 border-cyan-electric"></div><span class="text-gray-400">Thinking...</span></div>'
+            ? '<div class="flex items-center gap-2"><div class="animate-spin rounded-full h-4 w-4 border-b-2 border-teal-soft"></div><span class="text-gray-700">Thinking...</span></div>'
             : `<p class="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">${escapeHtml(message)}</p>`;
         
         messageDiv.innerHTML = `
             <div class="flex items-start gap-3">
-                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-electric to-purple-accent flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-teal-soft to-blue-soft flex items-center justify-center flex-shrink-0 mt-0.5">
                     <i class="fas fa-sparkles text-white text-xs"></i>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/20 rounded-2xl rounded-tl-sm px-4 py-3">
+                    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/20 rounded-2xl rounded-tl-sm px-4 py-3">
                         ${content}
                     </div>
                     ${!isThinking ? '<div class="text-xs text-gray-500 mt-1.5 ml-1">Just now</div>' : ''}
@@ -625,12 +625,12 @@
     
     // Function to update AI message (replace thinking with actual response)
     function updateAIMessage(messageDiv, message) {
-        const contentDiv = messageDiv.querySelector('.bg-\\[\\#0a0e27\\]\\/60');
+        const contentDiv = messageDiv.querySelector('.bg-\\[\\#ffffff\\]\\/60');
         if (contentDiv) {
             contentDiv.innerHTML = `
                 <div class="flex items-start justify-between gap-2">
                     <p class="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap flex-1">${escapeHtml(message)}</p>
-                    <button class="copy-message-btn flex-shrink-0 text-cyan-electric/50 hover:text-cyan-electric transition-colors" title="Copy message">
+                    <button class="copy-message-btn flex-shrink-0 text-teal-soft/50 hover:text-teal-soft transition-colors" title="Copy message">
                         <i class="fas fa-copy text-xs"></i>
                     </button>
                 </div>
@@ -911,7 +911,7 @@
             function completeLessonRequest() {
                 // Disable button and show loading state
                 btn.disabled = true;
-                btn.innerHTML = '<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-[#0a0e27]"></div><span>Marking as complete...</span>';
+                btn.innerHTML = '<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-[#ffffff]"></div><span>Marking as complete...</span>';
                 
                 fetch(`/api/lessons/${lessonId}/complete/`, {
                     method: 'POST',
@@ -935,7 +935,7 @@
                             btn.outerHTML = `
                                 <div class="flex items-center justify-center gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
                                     <i class="fas fa-check-circle text-green-400 text-xl"></i>
-                                    <span class="text-green-400 font-semibold">Lesson Completed!</span>
+                                    <span class="text-green-400 font-semibold text-gray-700">Lesson Completed!</span>
                                 </div>
                             `;
                         }

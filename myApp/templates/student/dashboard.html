@@ -1,390 +1,475 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}My Dashboard - Swedish Wealth Institute{% endblock %}
+{% block title %}My Dashboard - PrimoLearn{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
-    <!-- Header -->
+<div class="space-y-10">
+
+  <!-- HERO HEADER (modern, airy, brand-aligned) -->
+  <section class="relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white/70 shadow-soft backdrop-blur-xl">
+    <!-- subtle atmosphere -->
+    <div class="pointer-events-none absolute inset-0">
+      <div class="absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-gradient-to-br from-teal-soft/20 to-blue-soft/20 blur-3xl"></div>
+      <div class="absolute -bottom-44 right-[-140px] h-[560px] w-[560px] rounded-full bg-gradient-to-tr from-blue-soft/14 to-teal-soft/14 blur-3xl"></div>
+      <div class="absolute inset-0 opacity-[0.08]"
+           style="background-image: linear-gradient(rgba(15,23,42,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.06) 1px, transparent 1px);
+                  background-size: 56px 56px;">
+      </div>
+    </div>
+
+    <div class="relative p-6 sm:p-8 md:p-10">
+      <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+
+        <div class="max-w-2xl">
+          <p class="text-[11px] font-semibold text-gray-700 tracking-[0.34em] uppercase text-slate-500">
+            Dashboard
+          </p>
+          <h1 class="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight text-ink-deep">
+            Your learning — at a glance
+          </h1>
+          <p class="mt-3 text-sm md:text-base text-slate-600">
+            Track progress, continue where you left off, and access your certificates.
+          </p>
+
+          <!-- micro trust line -->
+          <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-slate-500">
+            <span class="inline-flex items-center gap-2">
+              <i class="fas fa-infinity text-blue-soft"></i> Lifetime access
+            </span>
+            <span class="inline-flex items-center gap-2">
+              <i class="fas fa-download text-teal-soft"></i> PDFs + audio
+            </span>
+            <span class="inline-flex items-center gap-2">
+              <i class="fas fa-shield-check text-teal-soft"></i> 30-day guarantee
+            </span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <a href="{% url 'student_certifications' %}"
+             class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/25 transition hover:-translate-y-0.5">
+            <i class="fas fa-certificate mr-2"></i>
+            View certifications
+          </a>
+
+          <a href="{% url 'courses' %}"
+             class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/80 px-5 py-3 text-sm font-semibold text-gray-700 text-ink-deep backdrop-blur transition hover:bg-white">
+            <i class="fas fa-compass mr-2 text-blue-soft"></i>
+            Browse courses
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS (clean, product-like cards) -->
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm shadow-slate-900/5 backdrop-blur">
+      <div class="flex items-center justify-between">
+        <div class="h-11 w-11 rounded-2xl bg-teal-soft/10 flex items-center justify-center">
+          <i class="fas fa-book text-teal-soft"></i>
+        </div>
+        <span class="text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-400">Enrolled</span>
+      </div>
+      <div class="mt-4 text-3xl font-extrabold text-ink-deep">{{ total_courses }}</div>
+      <p class="mt-1 text-sm text-slate-600">Courses</p>
+    </div>
+
+    <div class="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm shadow-slate-900/5 backdrop-blur">
+      <div class="flex items-center justify-between">
+        <div class="h-11 w-11 rounded-2xl bg-success-soft/10 flex items-center justify-center">
+          <i class="fas fa-check-circle text-success-soft"></i>
+        </div>
+        <span class="text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-400">Completed</span>
+      </div>
+      <div class="mt-4 text-3xl font-extrabold text-ink-deep">{{ completed_courses }}</div>
+      <p class="mt-1 text-sm text-slate-600">Courses</p>
+    </div>
+
+    <div class="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm shadow-slate-900/5 backdrop-blur">
+      <div class="flex items-center justify-between">
+        <div class="h-11 w-11 rounded-2xl bg-blue-soft/10 flex items-center justify-center">
+          <i class="fas fa-layer-group text-blue-soft"></i>
+        </div>
+        <span class="text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-400">Lessons</span>
+      </div>
+      <div class="mt-4 text-3xl font-extrabold text-ink-deep">{{ completed_lessons_all }}<span class="text-slate-400">/</span>{{ total_lessons_all }}</div>
+      <p class="mt-1 text-sm text-slate-600">Completed</p>
+    </div>
+
+    <div class="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm shadow-slate-900/5 backdrop-blur">
+      <div class="flex items-center justify-between">
+        <div class="h-11 w-11 rounded-2xl bg-coral-cta/10 flex items-center justify-center">
+          <i class="fas fa-chart-line text-coral-cta"></i>
+        </div>
+        <span class="text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-400">Overall</span>
+      </div>
+      <div class="mt-4 text-3xl font-extrabold text-ink-deep">{{ overall_progress }}%</div>
+      <p class="mt-1 text-sm text-slate-600">Progress</p>
+    </div>
+  </section>
+
+  <!-- OVERALL PROGRESS (modern bar + number) -->
+  <section class="rounded-3xl border border-slate-200/70 bg-white/80 p-6 md:p-7 shadow-sm shadow-slate-900/5 backdrop-blur">
     <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-4xl font-bold mb-2">My Dashboard</h1>
-            <p class="text-gray-400">Track your learning progress and achievements</p>
-        </div>
-        <a href="{% url 'student_certifications' %}" class="px-6 py-3 bg-gradient-to-r from-cyan-electric to-purple-accent hover:from-cyan-electric/90 hover:to-purple-accent/90 text-[#0a0e27] font-semibold rounded-xl transition-all flex items-center gap-2">
-            <i class="fas fa-certificate"></i>
-            View Certifications
+      <div>
+        <p class="text-sm font-semibold text-gray-700 text-ink-deep">Overall learning progress</p>
+        <p class="mt-1 text-[12px] text-slate-500">A roll-up of your course completion.</p>
+      </div>
+      <div class="inline-flex items-center gap-2 rounded-full bg-blue-soft/10 px-4 py-1.5 text-sm font-extrabold text-blue-soft">
+        <i class="fas fa-sparkles text-[12px]"></i>
+        {{ overall_progress }}%
+      </div>
+    </div>
+
+    <div class="mt-5 h-3 w-full overflow-hidden rounded-full bg-slate-200">
+      <div class="h-full rounded-full bg-gradient-to-r from-teal-soft to-blue-soft transition-all duration-500"
+           style="width: {{ overall_progress }}%"></div>
+    </div>
+  </section>
+
+  <!-- MY COURSES -->
+  <section class="space-y-5">
+    <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div>
+        <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-ink-deep">My courses</h2>
+        <p class="mt-1 text-sm text-slate-600">Pick up right where you left off.</p>
+      </div>
+
+      <!-- Controls (chips + select, modern style) -->
+      <div class="flex flex-wrap items-center gap-3">
+        <a href="?favorites=true&sort={{ sort_by }}"
+           class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold text-gray-700 transition
+           {% if filter_favorites == 'true' %}
+             border-amber-200 bg-amber-50 text-amber-700
+           {% else %}
+             border-slate-200 bg-white/80 text-slate-700 hover:bg-white
+           {% endif %}">
+          <i class="fas fa-heart"></i> Favorites
         </a>
+
+        <a href="?sort={{ sort_by }}"
+           class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold text-gray-700 transition
+           {% if filter_favorites != 'true' %}
+             border-blue-soft/30 bg-blue-soft/10 text-blue-soft
+           {% else %}
+             border-slate-200 bg-white/80 text-slate-700 hover:bg-white
+           {% endif %}">
+          <i class="fas fa-layer-group"></i> All
+        </a>
+
+        <div class="relative">
+          <i class="fas fa-sort-amount-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+          <select id="sortSelect"
+                  onchange="window.location.href='?sort=' + this.value + '&favorites={{ filter_favorites }}'"
+                  class="appearance-none rounded-full border border-slate-200 bg-white/80 py-2 pl-9 pr-9 text-sm font-semibold text-gray-700 text-slate-700 backdrop-blur transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-teal-soft/20">
+            <option value="progress" {% if sort_by == 'progress' %}selected{% endif %}>Sort: Progress</option>
+            <option value="favorites" {% if sort_by == 'favorites' %}selected{% endif %}>Sort: Favorites</option>
+            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Sort: Name</option>
+          </select>
+          <i class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+        </div>
+      </div>
     </div>
 
-    <!-- Overall Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 rounded-lg bg-cyan-electric/10 flex items-center justify-center">
-                    <i class="fas fa-book text-cyan-electric text-xl"></i>
-                </div>
-            </div>
-            <div class="text-3xl font-bold mb-1">{{ total_courses }}</div>
-            <div class="text-sm text-gray-400">Enrolled Courses</div>
-        </div>
-        
-        <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 rounded-lg bg-green-500/10 flex items-center justify-center">
-                    <i class="fas fa-check-circle text-green-400 text-xl"></i>
-                </div>
-            </div>
-            <div class="text-3xl font-bold mb-1">{{ completed_courses }}</div>
-            <div class="text-sm text-gray-400">Completed Courses</div>
-        </div>
-        
-        <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 rounded-lg bg-purple-accent/10 flex items-center justify-center">
-                    <i class="fas fa-video text-purple-accent text-xl"></i>
-                </div>
-            </div>
-            <div class="text-3xl font-bold mb-1">{{ completed_lessons_all }}/{{ total_lessons_all }}</div>
-            <div class="text-sm text-gray-400">Lessons Completed</div>
-        </div>
-        
-        <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 rounded-lg bg-cyan-electric/10 flex items-center justify-center">
-                    <i class="fas fa-chart-line text-cyan-electric text-xl"></i>
-                </div>
-            </div>
-            <div class="text-3xl font-bold mb-1">{{ overall_progress }}%</div>
-            <div class="text-sm text-gray-400">Overall Progress</div>
-        </div>
-    </div>
+    {% if my_courses %}
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {% for data in my_courses %}
+          <article class="group relative rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm shadow-slate-900/5 backdrop-blur transition hover:-translate-y-0.5 hover:border-slate-300
+                          {% if data.is_favorited %} ring-2 ring-amber-200 {% endif %}">
 
-    <!-- Overall Progress Bar -->
-    <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6">
-        <div class="flex items-center justify-between mb-3">
-            <span class="font-semibold">Overall Learning Progress</span>
-            <span class="text-cyan-electric font-bold">{{ overall_progress }}%</span>
-        </div>
-        <div class="w-full bg-[#1a1f3a] rounded-full h-4 overflow-hidden">
-            <div class="h-full bg-gradient-to-r from-cyan-electric to-purple-accent transition-all duration-500" style="width: {{ overall_progress }}%"></div>
-        </div>
-    </div>
-
-    <!-- My Courses Section -->
-    <div class="space-y-6">
-        <div class="flex items-center justify-between">
-            <h2 class="text-2xl font-bold">My Courses</h2>
-            
-            <!-- Filter and Sort Controls -->
-            <div class="flex items-center gap-3">
-                <!-- Filter by Favorites -->
-                <a href="?favorites=true&sort={{ sort_by }}" 
-                   class="px-4 py-2 rounded-lg text-sm font-medium transition-all {% if filter_favorites == 'true' %}bg-yellow-500/20 border border-yellow-500/30 text-yellow-400{% else %}bg-[#0a0e27]/60 border border-cyan-electric/10 text-gray-300 hover:border-cyan-electric/30{% endif %}">
-                    <i class="fas fa-heart"></i> Favorites
-                </a>
-                <a href="?sort={{ sort_by }}" 
-                   class="px-4 py-2 rounded-lg text-sm font-medium transition-all {% if filter_favorites != 'true' %}bg-cyan-electric/20 border border-cyan-electric/30 text-cyan-electric{% else %}bg-[#0a0e27]/60 border border-cyan-electric/10 text-gray-300 hover:border-cyan-electric/30{% endif %}">
-                    All Courses
-                </a>
-                
-                <!-- Sort Options -->
-                <select id="sortSelect" onchange="window.location.href='?sort=' + this.value + '&favorites={{ filter_favorites }}'" 
-                        class="px-4 py-2 bg-[#0a0e27]/60 border border-cyan-electric/10 rounded-lg text-sm text-gray-300 focus:border-cyan-electric/30 focus:outline-none">
-                    <option value="progress" {% if sort_by == 'progress' %}selected{% endif %}>Sort by Progress</option>
-                    <option value="favorites" {% if sort_by == 'favorites' %}selected{% endif %}>Sort by Favorites</option>
-                    <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Sort by Name</option>
-                </select>
-            </div>
-        </div>
-        
-        {% if my_courses %}
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {% for data in my_courses %}
-            <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-6 hover:border-cyan-electric/30 transition-all {% if data.is_favorited %}ring-2 ring-yellow-500/30{% endif %}">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-2">
-                            <h3 class="text-xl font-bold">{{ data.course.name }}</h3>
-                            <!-- Favorite Button -->
-                            <button onclick="toggleFavorite({{ data.course.id }}, this)" 
-                                    class="favorite-btn p-2 rounded-lg transition-all hover:scale-110 {% if data.is_favorited %}text-yellow-400{% else %}text-gray-400 hover:text-yellow-400{% endif %}"
-                                    data-course-id="{{ data.course.id }}"
-                                    data-is-favorited="{{ data.is_favorited|yesno:'true,false' }}">
-                                <i class="fas fa-heart {% if data.is_favorited %}fas{% else %}far{% endif %}"></i>
-                            </button>
-                        </div>
-                        <p class="text-sm text-gray-400 mb-4">{{ data.course.short_description|truncatewords:20 }}</p>
-                        
-                        <!-- Progress Info -->
-                        <div class="space-y-3 mb-4">
-                            <div>
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-sm text-gray-400">Course Progress</span>
-                                    <span class="text-sm font-semibold text-cyan-electric">{{ data.progress_percentage }}%</span>
-                                </div>
-                                <div class="w-full bg-[#1a1f3a] rounded-full h-2 overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-cyan-electric to-purple-accent transition-all duration-500" style="width: {{ data.progress_percentage }}%"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-center gap-4 text-sm">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-check-circle text-green-400"></i>
-                                    <span>{{ data.completed_lessons }}/{{ data.total_lessons }} Lessons</span>
-                                </div>
-                                {% if data.avg_watch_percentage > 0 %}
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-eye text-cyan-electric"></i>
-                                    <span>{{ data.avg_watch_percentage }}% Avg Watch</span>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <!-- Access Expiration (only show if expiring soon) -->
-                        {% if data.access_record and data.access_record.expires_at %}
-                        <div class="mb-4">
-                            <span class="text-xs text-yellow-400">
-                                <i class="fas fa-clock"></i> Expires: {{ data.access_record.expires_at|date:"M d, Y" }}
-                            </span>
-                        </div>
-                        {% endif %}
-                        
-                        <!-- Exam & Certification Status (only show positive statuses) -->
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            {% if data.exam_info.exists %}
-                            {% if data.exam_info.passed %}
-                            <span class="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-xs text-green-400">
-                                <i class="fas fa-check"></i> Exam Passed
-                            </span>
-                            {% elif data.exam_info.is_available %}
-                            <span class="px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-full text-xs text-yellow-400">
-                                <i class="fas fa-clock"></i> Exam Available
-                            </span>
-                            {% endif %}
-                            {% endif %}
-                            
-                            {% if data.certification %}
-                            {% if data.cert_status == 'passed' %}
-                            <span class="px-3 py-1 bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 border border-yellow-500/30 rounded-full text-xs text-yellow-300">
-                                <i class="fas fa-certificate"></i> Certified
-                            </span>
-                            {% elif data.cert_status == 'eligible' %}
-                            <span class="px-3 py-1 bg-cyan-electric/10 border border-cyan-electric/20 rounded-full text-xs text-cyan-electric">
-                                <i class="fas fa-certificate"></i> Eligible for Certification
-                            </span>
-                            {% endif %}
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                
+            <!-- top row -->
+            <div class="flex items-start justify-between gap-4">
+              <div class="min-w-0">
                 <div class="flex items-center gap-3">
-                    {% if data.has_any_progress %}
-                        <!-- Course in progress - show Continue Learning and View Progress -->
-                        <a href="{% url 'student_course_progress' data.course.slug %}" class="flex-1 px-4 py-2 bg-cyan-electric/10 hover:bg-cyan-electric/20 border border-cyan-electric/20 rounded-lg text-sm font-medium text-center transition-all">
-                            View Progress
-                        </a>
-                        {% if data.course.lessons.first %}
-                        <a href="{% url 'lesson_detail' data.course.slug data.course.lessons.first.slug %}" class="px-4 py-2 bg-gradient-to-r from-cyan-electric to-purple-accent hover:from-cyan-electric/90 hover:to-purple-accent/90 text-[#0a0e27] font-semibold rounded-lg transition-all">
-                            Continue Learning
-                        </a>
-                        {% endif %}
-                    {% else %}
-                        <!-- Course not started - show Start Course -->
-                        {% if data.course.lessons.first %}
-                        <a href="{% url 'lesson_detail' data.course.slug data.course.lessons.first.slug %}" class="flex-1 px-4 py-2 bg-gradient-to-r from-cyan-electric to-purple-accent hover:from-cyan-electric/90 hover:to-purple-accent/90 text-[#0a0e27] font-semibold rounded-lg text-center transition-all">
-                            Start Course
-                        </a>
-                        {% else %}
-                        <a href="{% url 'student_course_progress' data.course.slug %}" class="flex-1 px-4 py-2 bg-cyan-electric/10 hover:bg-cyan-electric/20 border border-cyan-electric/20 rounded-lg text-sm font-medium text-center transition-all">
-                            View Details
-                        </a>
-                        {% endif %}
-                    {% endif %}
+                  <h3 class="text-lg md:text-xl font-extrabold text-ink-deep truncate">
+                    {{ data.course.name }}
+                  </h3>
+
+                  <!-- Favorite -->
+                  <button onclick="toggleFavorite({{ data.course.id }}, this)"
+                          class="favorite-btn inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/70 transition hover:bg-white hover:scale-[1.02]
+                                {% if data.is_favorited %} text-amber-600 {% else %} text-slate-400 hover:text-amber-600 {% endif %}"
+                          data-course-id="{{ data.course.id }}"
+                          data-is-favorited="{{ data.is_favorited|yesno:'true,false' }}"
+                          aria-label="Toggle favorite">
+                    <i class="fa-heart {% if data.is_favorited %}fas{% else %}far{% endif %}"></i>
+                  </button>
                 </div>
+
+                <p class="mt-2 text-sm text-slate-600">
+                  {{ data.course.short_description|truncatewords:20 }}
+                </p>
+              </div>
+
+              <!-- progress badge -->
+              <div class="shrink-0 inline-flex items-center gap-2 rounded-full bg-teal-soft/10 px-4 py-1.5 text-sm font-extrabold text-teal-soft">
+                <i class="fas fa-chart-line text-[12px]"></i>
+                {{ data.progress_percentage }}%
+              </div>
             </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-cyan-electric/10 rounded-xl p-12 text-center">
-            <i class="fas fa-book-open text-6xl text-gray-600 mb-4"></i>
-            <h3 class="text-xl font-semibold mb-2">No Courses Yet</h3>
-            <p class="text-gray-400 mb-6">You don't have access to any courses yet. Check out available courses below or contact support.</p>
-        </div>
-        {% endif %}
-    </div>
-    
-    <!-- Available to Unlock Section -->
-    {% if available_to_unlock %}
-    <div class="space-y-6">
-        <h2 class="text-2xl font-bold">Available to Unlock</h2>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {% for data in available_to_unlock %}
-            <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-yellow-500/20 rounded-xl p-6 hover:border-yellow-500/40 transition-all">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold mb-2">{{ data.course.name }}</h3>
-                        <p class="text-sm text-gray-400 mb-4">{{ data.course.short_description|truncatewords:20 }}</p>
-                    </div>
-                    <span class="px-3 py-1 bg-yellow-500/20 border border-yellow-500/30 rounded-full text-xs text-yellow-400 font-semibold">
-                        Available
-                    </span>
-                </div>
-                
-                {% if data.bundles %}
-                <div class="mb-4">
-                    <div class="text-xs text-gray-400 mb-2">Available in bundles:</div>
-                    {% for bundle in data.bundles %}
-                    <div class="text-sm text-cyan-electric mb-1">
-                        <i class="fas fa-gift mr-1"></i>{{ bundle.name }}
-                        {% if bundle.price %}
-                        <span class="text-gray-400">- ${{ bundle.price }}</span>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
+
+            <!-- progress bar -->
+            <div class="mt-5">
+              <div class="flex items-center justify-between text-[12px] text-slate-500">
+                <span>Course progress</span>
+                <span>{{ data.completed_lessons }}/{{ data.total_lessons }} lessons</span>
+              </div>
+
+              <div class="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
+                <div class="h-full rounded-full bg-gradient-to-r from-teal-soft to-blue-soft transition-all duration-500"
+                     style="width: {{ data.progress_percentage }}%"></div>
+              </div>
+
+              <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600">
+                {% if data.avg_watch_percentage > 0 %}
+                  <span class="inline-flex items-center gap-2">
+                    <i class="fas fa-eye text-blue-soft"></i>
+                    {{ data.avg_watch_percentage }}% avg watch
+                  </span>
                 {% endif %}
-                
-                {% if not data.prereqs_met %}
-                <div class="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                    <div class="text-xs font-semibold text-yellow-400 mb-1">Prerequisites Required:</div>
-                    <ul class="text-xs text-gray-300 space-y-1">
-                        {% for prereq in data.missing_prereqs %}
-                        <li><i class="fas fa-lock mr-1"></i>{{ prereq.name }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
+
+                {% if data.access_record and data.access_record.expires_at %}
+                  <span class="inline-flex items-center gap-2 text-amber-700">
+                    <i class="fas fa-clock"></i>
+                    Expires {{ data.access_record.expires_at|date:"M d, Y" }}
+                  </span>
                 {% endif %}
-                
-                <div class="flex items-center gap-3">
-                    <a href="{% url 'courses' %}" class="flex-1 px-4 py-2 bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/20 rounded-lg text-sm font-medium text-center transition-all text-yellow-400">
-                        View Details
-                    </a>
-                    {% if data.bundles %}
-                    <a href="{% url 'courses' %}" class="px-4 py-2 bg-gradient-to-r from-cyan-electric to-purple-accent hover:from-cyan-electric/90 hover:to-purple-accent/90 text-[#0a0e27] font-semibold rounded-lg transition-all">
-                        View Bundles
-                    </a>
-                    {% endif %}
-                </div>
+              </div>
             </div>
-            {% endfor %}
+
+            <!-- status chips -->
+            <div class="mt-5 flex flex-wrap gap-2">
+              {% if data.exam_info.exists %}
+                {% if data.exam_info.passed %}
+                  <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-gray-700 text-emerald-700">
+                    <i class="fas fa-check"></i> Exam passed
+                  </span>
+                {% elif data.exam_info.is_available %}
+                  <span class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-gray-700 text-amber-700">
+                    <i class="fas fa-clock"></i> Exam available
+                  </span>
+                {% endif %}
+              {% endif %}
+
+              {% if data.certification %}
+                {% if data.cert_status == 'passed' %}
+                  <span class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-gray-700 text-amber-700">
+                    <i class="fas fa-certificate"></i> Certified
+                  </span>
+                {% elif data.cert_status == 'eligible' %}
+                  <span class="inline-flex items-center gap-2 rounded-full border border-blue-soft/25 bg-blue-soft/10 px-3 py-1 text-xs font-semibold text-gray-700 text-blue-soft">
+                    <i class="fas fa-certificate"></i> Eligible
+                  </span>
+                {% endif %}
+              {% endif %}
+            </div>
+
+            <!-- actions -->
+            <div class="mt-6 flex items-center gap-3">
+              {% if data.has_any_progress %}
+                <a href="{% url 'student_course_progress' data.course.slug %}"
+                   class="flex-1 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/70 px-4 py-2.5 text-sm font-semibold text-gray-700 text-ink-deep transition hover:bg-white">
+                  View progress
+                </a>
+
+                {% if data.course.lessons.first %}
+                  <a href="{% url 'lesson_detail' data.course.slug data.course.lessons.first.slug %}"
+                     class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
+                    Continue
+                    <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                  </a>
+                {% endif %}
+              {% else %}
+                {% if data.course.lessons.first %}
+                  <a href="{% url 'lesson_detail' data.course.slug data.course.lessons.first.slug %}"
+                     class="flex-1 inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
+                    Start course
+                    <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                  </a>
+                {% else %}
+                  <a href="{% url 'student_course_progress' data.course.slug %}"
+                     class="flex-1 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/70 px-4 py-2.5 text-sm font-semibold text-gray-700 text-ink-deep transition hover:bg-white">
+                    View details
+                  </a>
+                {% endif %}
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="rounded-3xl border border-slate-200/70 bg-white/80 p-12 text-center shadow-sm shadow-slate-900/5 backdrop-blur">
+        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-blue-soft/10">
+          <i class="fas fa-book-open text-2xl text-blue-soft"></i>
         </div>
-    </div>
+        <h3 class="mt-5 text-xl font-extrabold text-ink-deep">No courses yet</h3>
+        <p class="mt-2 text-sm text-slate-600">
+          You don’t have access to any courses yet. Browse the catalog or contact support.
+        </p>
+        <div class="mt-6">
+          <a href="{% url 'courses' %}"
+             class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
+            Browse courses
+            <i class="fas fa-arrow-right ml-2 text-xs"></i>
+          </a>
+        </div>
+      </div>
     {% endif %}
-    
-    <!-- Not Available Section (Hidden by default, can be shown if needed) -->
-    {% if not_available and False %}
-    <div class="space-y-6">
-        <h2 class="text-2xl font-bold">Not Available</h2>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {% for data in not_available %}
-            <div class="bg-[#0a0e27]/60 backdrop-blur-sm border border-gray-500/20 rounded-xl p-6 opacity-60">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="flex-1">
-                        <h3 class="text-xl font-bold mb-2">{{ data.course.name }}</h3>
-                        <p class="text-sm text-gray-500 mb-4">{{ data.reason }}</p>
+  </section>
+
+  <!-- AVAILABLE TO UNLOCK (same modern card language) -->
+  {% if available_to_unlock %}
+    <section class="space-y-5">
+      <div>
+        <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-ink-deep">Available to unlock</h2>
+        <p class="mt-1 text-sm text-slate-600">Courses you can access via bundles or after prerequisites.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {% for data in available_to_unlock %}
+          <article class="rounded-3xl border border-amber-200/70 bg-amber-50/60 p-6 shadow-sm shadow-slate-900/5 backdrop-blur transition hover:-translate-y-0.5 hover:border-amber-200">
+            <div class="flex items-start justify-between gap-4">
+              <div class="min-w-0">
+                <h3 class="text-lg md:text-xl font-extrabold text-ink-deep truncate">{{ data.course.name }}</h3>
+                <p class="mt-2 text-sm text-slate-700">
+                  {{ data.course.short_description|truncatewords:20 }}
+                </p>
+              </div>
+              <span class="shrink-0 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white/70 px-3 py-1 text-xs font-extrabold text-amber-700">
+                <i class="fas fa-unlock"></i> Available
+              </span>
+            </div>
+
+            {% if data.bundles %}
+              <div class="mt-4 rounded-2xl border border-amber-200/60 bg-white/60 p-4">
+                <p class="text-[11px] font-semibold text-gray-700 tracking-[0.18em] uppercase text-amber-700/80">Available in bundles</p>
+                <div class="mt-3 space-y-2 text-sm">
+                  {% for bundle in data.bundles %}
+                    <div class="flex items-center justify-between gap-3">
+                      <div class="min-w-0 text-slate-800">
+                        <i class="fas fa-gift mr-2 text-amber-700"></i>
+                        <span class="font-semibold text-gray-700">{{ bundle.name }}</span>
+                      </div>
+                      {% if bundle.price %}
+                        <span class="text-slate-600">${{ bundle.price }}</span>
+                      {% endif %}
                     </div>
-                    <span class="px-3 py-1 bg-gray-500/20 border border-gray-500/30 rounded-full text-xs text-gray-400 font-semibold">
-                        Not Available
-                    </span>
+                  {% endfor %}
                 </div>
+              </div>
+            {% endif %}
+
+            {% if not data.prereqs_met %}
+              <div class="mt-4 rounded-2xl border border-amber-200/60 bg-white/60 p-4">
+                <p class="text-xs font-extrabold text-amber-800 mb-2">
+                  <i class="fas fa-lock mr-2"></i>Prerequisites required
+                </p>
+                <ul class="text-sm text-slate-700 space-y-1">
+                  {% for prereq in data.missing_prereqs %}
+                    <li class="flex items-start gap-2">
+                      <i class="fas fa-circle-minus text-amber-700 mt-1 text-xs"></i>
+                      <span>{{ prereq.name }}</span>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endif %}
+
+            <div class="mt-5 flex items-center gap-3">
+              <a href="{% url 'courses' %}"
+                 class="flex-1 inline-flex items-center justify-center rounded-2xl border border-amber-200 bg-white/70 px-4 py-2.5 text-sm font-semibold text-gray-700 text-amber-800 transition hover:bg-white">
+                View details
+              </a>
+              {% if data.bundles %}
+                <a href="{% url 'courses' %}"
+                   class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
+                  View bundles
+                  <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </a>
+              {% endif %}
             </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
 </div>
 
 <script>
 function toggleFavorite(courseId, buttonElement) {
-    const icon = buttonElement.querySelector('i');
-    const isCurrentlyFavorited = buttonElement.dataset.isFavorited === 'true';
-    
-    // Get the card element (parent container)
-    const cardElement = buttonElement.closest('.bg-\\[\\#0a0e27\\]\\/60') || buttonElement.closest('[class*="bg-"]');
-    
-    // Optimistic UI update
-    if (isCurrentlyFavorited) {
-        icon.classList.remove('fas');
-        icon.classList.add('far');
-        buttonElement.classList.remove('text-yellow-400');
-        buttonElement.classList.add('text-gray-400');
-        if (cardElement) cardElement.classList.remove('ring-2', 'ring-yellow-500/30');
+  const icon = buttonElement.querySelector('i');
+  const isCurrentlyFavorited = buttonElement.dataset.isFavorited === 'true';
+
+  // Find card
+  const card = buttonElement.closest('article');
+
+  // Optimistic
+  if (isCurrentlyFavorited) {
+    icon.classList.remove('fas'); icon.classList.add('far');
+    buttonElement.classList.remove('text-amber-600');
+    buttonElement.classList.add('text-slate-400');
+    if (card) card.classList.remove('ring-2','ring-amber-200');
+  } else {
+    icon.classList.remove('far'); icon.classList.add('fas');
+    buttonElement.classList.remove('text-slate-400');
+    buttonElement.classList.add('text-amber-600');
+    if (card) card.classList.add('ring-2','ring-amber-200');
+  }
+  buttonElement.dataset.isFavorited = (!isCurrentlyFavorited).toString();
+
+  // Spinner
+  const originalClass = icon.className;
+  icon.className = 'fas fa-spinner fa-spin text-amber-600';
+
+  fetch(`/api/courses/${courseId}/favorite/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'),
+      'Content-Type': 'application/json',
+    },
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      icon.className = data.is_favorited ? 'fas fa-heart' : 'far fa-heart';
+      buttonElement.dataset.isFavorited = data.is_favorited.toString();
+      if (data.is_favorited) {
+        buttonElement.classList.remove('text-slate-400');
+        buttonElement.classList.add('text-amber-600');
+        if (card) card.classList.add('ring-2','ring-amber-200');
+      } else {
+        buttonElement.classList.remove('text-amber-600');
+        buttonElement.classList.add('text-slate-400');
+        if (card) card.classList.remove('ring-2','ring-amber-200');
+      }
     } else {
-        icon.classList.remove('far');
-        icon.classList.add('fas');
-        buttonElement.classList.remove('text-gray-400');
-        buttonElement.classList.add('text-yellow-400');
-        if (cardElement) cardElement.classList.add('ring-2', 'ring-yellow-500/30');
+      icon.className = originalClass;
+      buttonElement.dataset.isFavorited = isCurrentlyFavorited.toString();
+      alert('Error: ' + (data.message || 'Failed to update favorite'));
     }
-    buttonElement.dataset.isFavorited = (!isCurrentlyFavorited).toString();
-    
-    // Show small loading indicator
-    const originalIconHTML = icon.outerHTML;
-    icon.className = 'fas fa-spinner fa-spin text-yellow-400';
-    
-    // Make API call
-    fetch(`/api/courses/${courseId}/favorite/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken'),
-            'Content-Type': 'application/json',
-        },
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Update button state based on response
-            icon.classList.remove('fa-spinner', 'fa-spin');
-            if (data.is_favorited) {
-                icon.classList.remove('far');
-                icon.classList.add('fas');
-                buttonElement.classList.remove('text-gray-400');
-                buttonElement.classList.add('text-yellow-400');
-                if (cardElement) cardElement.classList.add('ring-2', 'ring-yellow-500/30');
-            } else {
-                icon.classList.remove('fas');
-                icon.classList.add('far');
-                buttonElement.classList.remove('text-yellow-400');
-                buttonElement.classList.add('text-gray-400');
-                if (cardElement) cardElement.classList.remove('ring-2', 'ring-yellow-500/30');
-            }
-            buttonElement.dataset.isFavorited = data.is_favorited.toString();
-        } else {
-            // Revert on error
-            icon.outerHTML = originalIconHTML;
-            buttonElement.dataset.isFavorited = isCurrentlyFavorited.toString();
-            alert('Error: ' + (data.message || 'Failed to update favorite'));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        // Revert on error
-        icon.outerHTML = originalIconHTML;
-        buttonElement.dataset.isFavorited = isCurrentlyFavorited.toString();
-        alert('Error updating favorite. Please try again.');
-    });
+  })
+  .catch(() => {
+    icon.className = originalClass;
+    buttonElement.dataset.isFavorited = isCurrentlyFavorited.toString();
+    alert('Error updating favorite. Please try again.');
+  });
 }
 
-// Helper function to get CSRF token
 function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
     }
-    return cookieValue;
+  }
+  return cookieValue;
 }
 </script>
 {% endblock %}
-
-
-
