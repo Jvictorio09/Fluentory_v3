@@ -4,15 +4,44 @@
 {% block title %}Upload PDF Lessons - {{ course.name }}{% endblock %}
 
 {% block content %}
+<!-- Preloader Overlay -->
+<div id="preloader-overlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+  <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+    <div class="text-center">
+      <div class="inline-block mb-4">
+        <i class="fas fa-spinner fa-spin text-5xl text-teal-600"></i>
+      </div>
+      <h3 class="text-2xl font-bold text-black mb-2">Processing PDFs</h3>
+      <p class="text-black mb-4">Extracting text and images, converting to WebP, and uploading to Cloudinary...</p>
+      <div class="w-full bg-slate-200 rounded-full h-2.5 mb-2">
+        <div id="progress-bar" class="bg-gradient-to-r from-teal-600 to-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+      </div>
+      <p id="progress-text" class="text-sm text-black">Initializing...</p>
+    </div>
+  </div>
+</div>
+
 <div class="w-full min-h-screen bg-slate-50 py-8">
   <div class="max-w-[1600px] mx-auto px-6">
     <!-- Header -->
     <div class="mb-8">
-      <a href="{% url 'course_lessons' course.slug %}" class="text-teal-700 hover:text-teal-800 text-sm mb-4 inline-flex items-center gap-2">
-        <i class="fas fa-arrow-left"></i> Back to {{ course.name }}
-      </a>
-      <h1 class="text-4xl font-bold mb-2 text-slate-900">Upload PDF Lessons</h1>
-      <p class="text-slate-600">Upload PDF files and let AI generate structured lesson content</p>
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex-1">
+          <a href="{% url 'course_lessons' course.slug %}" class="text-black hover:text-gray-700 text-sm mb-4 inline-flex items-center gap-2">
+            <i class="fas fa-arrow-left"></i> Back to {{ course.name }}
+          </a>
+          <h1 class="text-4xl font-bold mb-2 text-black">Upload PDF Lessons</h1>
+          <p class="text-black">Upload PDF files and let AI generate structured lesson content</p>
+        </div>
+        <div class="ml-4">
+          <form method="POST" action="{% url 'clear_course_lessons' course.slug %}" id="clear-lessons-form" onsubmit="return confirm('Are you sure you want to clear all lessons from this course? This action cannot be undone.');">
+            {% csrf_token %}
+            <button type="submit" class="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-sm font-medium hover:bg-red-500/20 transition-all text-red-600">
+              <i class="fas fa-trash mr-2"></i>Clear All Lessons
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
 
     <!-- Two-Column Layout -->
@@ -27,23 +56,33 @@
             <div class="mb-8">
               <div class="flex items-center gap-3 mb-6">
                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-soft to-blue-soft text-white flex items-center justify-center font-bold text-lg">1</div>
-                <h2 class="text-2xl font-bold text-slate-900">Course & Module</h2>
+                <h2 class="text-2xl font-bold text-black">Course & Module</h2>
               </div>
 
               <div class="space-y-4">
                 <div>
-                  <label class="block text-sm font-semibold text-slate-700 mb-2">Course</label>
+                  <label class="block text-sm font-semibold text-black mb-2">Course</label>
                   <input
                     type="text"
                     value="{{ course.name }}"
                     disabled
-                    class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 cursor-not-allowed"
+                    class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-black cursor-not-allowed"
                   >
                   <input type="hidden" name="course_slug" value="{{ course.slug }}">
                 </div>
 
                 <div>
-                  <label class="block text-sm font-semibold text-slate-700 mb-2">Module Name *</label>
+                  <div class="flex items-center justify-between mb-2">
+                    <label class="block text-sm font-semibold text-black">Module Name *</label>
+                    <button 
+                      type="button" 
+                      id="clear-module-btn"
+                      class="text-xs text-red-600 hover:text-red-700 font-medium hidden"
+                      onclick="clearModuleLessons()"
+                    >
+                      <i class="fas fa-trash mr-1"></i>Clear Module Lessons
+                    </button>
+                  </div>
                   <input
                     type="text"
                     name="module_name"
@@ -51,8 +90,9 @@
                     placeholder="e.g., Module 1, Introduction, Fundamentals"
                     required
                     class="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all"
+                    oninput="checkModuleExists()"
                   >
-                  <p class="text-xs text-slate-500 mt-2">Module will be created if it doesn't exist</p>
+                  <p class="text-xs text-black mt-2">Module will be created if it doesn't exist</p>
                 </div>
               </div>
             </div>
@@ -61,14 +101,14 @@
             <div class="mb-8">
               <div class="flex items-center gap-3 mb-6">
                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-soft to-blue-soft text-white flex items-center justify-center font-bold text-lg">2</div>
-                <h2 class="text-2xl font-bold text-slate-900">Upload PDF Files</h2>
+                <h2 class="text-2xl font-bold text-black">Upload PDF Files</h2>
               </div>
 
               <div class="space-y-6">
                 <!-- PDF Upload -->
                 <div>
-                  <label class="block text-xs font-semibold text-slate-600 mb-3 uppercase tracking-wider">
-                    <i class="fas fa-file-pdf mr-2 text-teal-700"></i>Upload PDF File(s)
+                  <label class="block text-xs font-semibold text-black mb-3 uppercase tracking-wider">
+                    <i class="fas fa-file-pdf mr-2 text-black"></i>Upload PDF File(s)
                   </label>
 
                   <div class="relative">
@@ -83,10 +123,10 @@
                     <label for="pdf-files" id="drop-zone" class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 cursor-pointer hover:border-teal-400 hover:bg-slate-100 transition-all group">
                       <div class="flex flex-col items-center justify-center pt-5 pb-6">
                         <i class="fas fa-file-pdf text-5xl text-slate-400 mb-4 group-hover:text-teal-600 transition-colors" id="drop-icon"></i>
-                        <p class="mb-2 text-sm text-slate-700">
-                          <span class="font-semibold text-slate-900">Click to upload</span> or drag and drop
+                        <p class="mb-2 text-sm text-black">
+                          <span class="font-semibold text-black">Click to upload</span> or drag and drop
                         </p>
-                        <p class="text-xs text-slate-500">PDF files only (Multiple files supported)</p>
+                        <p class="text-xs text-black">PDF files only (Multiple files supported)</p>
                       </div>
                     </label>
                   </div>
@@ -96,7 +136,7 @@
 
                 <!-- Processing Options -->
                 <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                  <h3 class="text-sm font-semibold text-slate-900 mb-3">Processing Options</h3>
+                  <h3 class="text-sm font-semibold text-black mb-3">Processing Options</h3>
 
                   <div class="space-y-3">
                     <label class="flex items-start gap-3 cursor-pointer">
@@ -107,22 +147,22 @@
                         checked
                         class="mt-0.5 w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500/20"
                       >
-                      <span class="text-sm text-slate-700">
+                      <span class="text-sm text-black">
                         Use AI to generate lesson titles, descriptions, and content structure
                       </span>
                     </label>
 
                     <div class="ml-8">
-                      <label class="block text-xs text-slate-600 mb-2">Split large PDFs by pages:</label>
+                      <label class="block text-xs text-black mb-2">Split large PDFs by pages:</label>
                       <input
                         type="number"
                         name="split_by_pages"
                         id="split-pages"
                         min="0"
                         placeholder="0"
-                        class="w-32 px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10"
+                        class="w-32 px-3 py-2 rounded-lg bg-white border border-slate-200 text-black placeholder:text-gray-400 text-sm focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10"
                       >
-                      <p class="text-xs text-slate-500 mt-1">Leave empty or 0 to process each PDF as one lesson</p>
+                      <p class="text-xs text-black mt-1">Leave empty or 0 to process each PDF as one lesson</p>
                     </div>
                   </div>
                 </div>
@@ -131,7 +171,7 @@
 
             <!-- Submit Button -->
             <div class="flex items-center justify-between pt-6 border-t border-slate-200">
-              <a href="{% url 'course_lessons' course.slug %}" class="px-6 py-3 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 transition-all">
+              <a href="{% url 'course_lessons' course.slug %}" class="px-6 py-3 rounded-xl border border-slate-300 text-black hover:bg-slate-50 transition-all">
                 Cancel
               </a>
               <button
@@ -150,31 +190,31 @@
       <!-- Right Column: Instructions -->
       <div class="lg:col-span-1">
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl sticky top-6">
-          <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-slate-900">
-            <i class="fas fa-info-circle text-teal-600"></i>
+          <h3 class="text-2xl font-bold mb-2 text-black flex items-center gap-2 text-black">
+            <i class="fas fa-info-circle text-black"></i>
             How It Works
           </h3>
 
-          <div class="space-y-4 text-sm text-slate-600">
+          <div class="space-y-4 text-sm text-black">
             <div>
-              <h4 class="font-semibold mb-2 flex items-center gap-2 text-slate-900">
-                <span class="w-6 h-6 rounded-full bg-teal-50 text-teal-700 border border-teal-100 flex items-center justify-center text-xs">1</span>
+              <h4 class="font-semibold mb-2 flex items-center gap-2 text-black">
+                <span class="w-6 h-6 rounded-full bg-teal-50 text-black border border-teal-100 flex items-center justify-center text-xs">1</span>
                 Upload PDFs
               </h4>
               <p class="ml-8">Select one or multiple PDFs. For best results, keep one PDF per lesson.</p>
             </div>
 
             <div>
-              <h4 class="font-semibold mb-2 flex items-center gap-2 text-slate-900">
-                <span class="w-6 h-6 rounded-full bg-teal-50 text-teal-700 border border-teal-100 flex items-center justify-center text-xs">2</span>
+              <h4 class="font-semibold mb-2 flex items-center gap-2 text-black">
+                <span class="w-6 h-6 rounded-full bg-teal-50 text-black border border-teal-100 flex items-center justify-center text-xs">2</span>
                 AI Processing
               </h4>
               <p class="ml-8">AI extracts text and generates structured lesson content including titles, descriptions, and content blocks.</p>
             </div>
 
             <div>
-              <h4 class="font-semibold mb-2 flex items-center gap-2 text-slate-900">
-                <span class="w-6 h-6 rounded-full bg-teal-50 text-teal-700 border border-teal-100 flex items-center justify-center text-xs">3</span>
+              <h4 class="font-semibold mb-2 flex items-center gap-2 text-black">
+                <span class="w-6 h-6 rounded-full bg-teal-50 text-black border border-teal-100 flex items-center justify-center text-xs">3</span>
                 Review & Edit
               </h4>
               <p class="ml-8">Review generated lessons and make any adjustments before publishing.</p>
@@ -182,8 +222,8 @@
           </div>
 
           <div class="mt-6 pt-6 border-t border-slate-200">
-            <h4 class="font-semibold text-slate-900 mb-2">💡 Tips</h4>
-            <ul class="text-xs text-slate-600 space-y-1">
+            <h4 class="font-semibold text-black mb-2">💡 Tips</h4>
+            <ul class="text-xs text-black space-y-1">
               <li>• One PDF per lesson works best</li>
               <li>• Use descriptive PDF filenames</li>
               <li>• Review AI-generated content before publishing</li>
@@ -221,8 +261,8 @@ function displayFiles(files) {
       fileItem.innerHTML = `
         <div class="flex items-center gap-3 min-w-0">
           <i class="fas fa-file-pdf text-teal-600"></i>
-          <span class="text-sm text-slate-900 truncate">${file.name}</span>
-          <span class="text-xs text-slate-500 whitespace-nowrap">(${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+          <span class="text-sm text-black truncate">${file.name}</span>
+          <span class="text-xs text-black whitespace-nowrap">(${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
         </div>
       `;
       fileList.appendChild(fileItem);
@@ -298,7 +338,7 @@ dropZone.addEventListener('drop', function(e) {
   }, false);
 });
 
-// Form submission
+// Form submission with preloader
 document.getElementById('pdf-upload-form').addEventListener('submit', function(e) {
   if (!fileInput.files.length) {
     e.preventDefault();
@@ -306,8 +346,87 @@ document.getElementById('pdf-upload-form').addEventListener('submit', function(e
     return false;
   }
 
+  // Show preloader
+  const preloader = document.getElementById('preloader-overlay');
+  const progressBar = document.getElementById('progress-bar');
+  const progressText = document.getElementById('progress-text');
+  
+  preloader.classList.remove('hidden');
   submitBtn.disabled = true;
   submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+  
+  // Simulate progress updates
+  let progress = 0;
+  const progressInterval = setInterval(function() {
+    progress += Math.random() * 15;
+    if (progress > 90) progress = 90; // Don't go to 100% until actually done
+    
+    progressBar.style.width = progress + '%';
+    
+    if (progress < 30) {
+      progressText.textContent = 'Extracting text from PDFs...';
+    } else if (progress < 50) {
+      progressText.textContent = 'Extracting images from PDFs...';
+    } else if (progress < 70) {
+      progressText.textContent = 'Converting images to WebP format...';
+    } else if (progress < 90) {
+      progressText.textContent = 'Uploading images to Cloudinary...';
+    } else {
+      progressText.textContent = 'Generating lesson content...';
+    }
+  }, 500);
+  
+  // Clear interval when page unloads (form submitted)
+  window.addEventListener('beforeunload', function() {
+    clearInterval(progressInterval);
+  });
 });
+
+// Hide preloader if form validation fails (though it shouldn't get here)
+document.getElementById('pdf-upload-form').addEventListener('invalid', function(e) {
+  const preloader = document.getElementById('preloader-overlay');
+  preloader.classList.add('hidden');
+}, true);
+
+// Check if module exists and show clear button
+function checkModuleExists() {
+  const moduleName = document.getElementById('module-name').value.trim();
+  const clearBtn = document.getElementById('clear-module-btn');
+  
+  if (moduleName.length > 0) {
+    clearBtn.classList.remove('hidden');
+  } else {
+    clearBtn.classList.add('hidden');
+  }
+}
+
+// Clear lessons for specific module
+function clearModuleLessons() {
+  const moduleName = document.getElementById('module-name').value.trim();
+  
+  if (!moduleName) {
+    alert('Please enter a module name first.');
+    return;
+  }
+  
+  if (confirm(`Are you sure you want to clear all lessons from module "${moduleName}"? This action cannot be undone.`)) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "clear_course_lessons" course.slug %}?module_name=' + encodeURIComponent(moduleName);
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+
+// Check on page load
+checkModuleExists();
 </script>
 {% endblock %}

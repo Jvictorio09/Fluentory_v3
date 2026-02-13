@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login, logout
@@ -585,6 +586,7 @@ def upload_pdf_lessons(request, course_slug):
         try:
             from myApp.utils.pdf_extractor import PDFExtractor
             from myApp.utils.ai_content_generator import AIContentGenerator
+            from myApp.utils.pdf_image_extractor import PDFImageExtractor
             from django.db.models import Max
         except ImportError as e:
             messages.error(request, f'Required packages not installed: {str(e)}')
@@ -594,6 +596,12 @@ def upload_pdf_lessons(request, course_slug):
         
         # Initialize extractor and AI generator
         pdf_extractor = PDFExtractor()
+        image_extractor = None
+        try:
+            image_extractor = PDFImageExtractor()
+        except Exception as e:
+            messages.warning(request, f'Image extraction not available: {str(e)}. PDFs will be processed without images.')
+        
         ai_generator = None
         if use_ai:
             try:
@@ -630,15 +638,39 @@ def upload_pdf_lessons(request, course_slug):
                     temp_path = temp_file.name
                 
                 try:
+                    # Extract images from PDF (if image extractor is available)
+                    pdf_images = []
+                    if image_extractor:
+                        try:
+                            # Generate a prefix for image public_ids based on PDF filename
+                            pdf_name_slug = slugify(os.path.splitext(pdf_file.name)[0])
+                            pdf_images = image_extractor.extract_and_upload_images(
+                                temp_path,
+                                folder='pdf-lessons',
+                                public_id_prefix=pdf_name_slug,
+                                min_size=500,  # Minimum 500px width or height
+                                quality=85
+                            )
+                            if pdf_images:
+                                messages.info(request, f'Extracted and uploaded {len(pdf_images)} image(s) from {pdf_file.name}')
+                        except Exception as e:
+                            messages.warning(request, f'Could not extract images from {pdf_file.name}: {str(e)}')
+                    
                     if split_by_pages and split_by_pages > 0:
                         # Split PDF into multiple lessons
                         chunks = pdf_extractor.extract_by_pages(temp_path, split_by_pages)
                         
                         for i, chunk in enumerate(chunks, 1):
                             suggested_title = f"{os.path.splitext(pdf_file.name)[0]} - Part {i}"
+                            # Filter images for this chunk's page range
+                            chunk_images = [
+                                img for img in pdf_images 
+                                if chunk['start_page'] <= img['page_num'] <= chunk['end_page']
+                            ]
                             created, updated = _process_pdf_chunk(
                                 course, module, chunk['text'], suggested_title,
-                                ai_generator, not use_ai, course.name, module_name
+                                ai_generator, not use_ai, course.name, module_name,
+                                images=chunk_images
                             )
                             lessons_created += created
                             lessons_updated += updated
@@ -649,7 +681,8 @@ def upload_pdf_lessons(request, course_slug):
                         
                         created, updated = _process_pdf_chunk(
                             course, module, pdf_text, suggested_title,
-                            ai_generator, not use_ai, course.name, module_name
+                            ai_generator, not use_ai, course.name, module_name,
+                            images=pdf_images
                         )
                         lessons_created += created
                         lessons_updated += updated
@@ -675,6 +708,10 @@ def upload_pdf_lessons(request, course_slug):
             for error in errors:
                 messages.error(request, error)
         
+        # Redirect back to appropriate page based on referrer
+        referrer = request.META.get('HTTP_REFERER', '')
+        if 'dashboard' in referrer:
+            return redirect('dashboard_course_lessons', course_slug=course_slug)
         return redirect('course_lessons', course_slug=course_slug)
     
     return render(request, 'creator/upload_pdf_lessons.html', {
@@ -682,9 +719,210 @@ def upload_pdf_lessons(request, course_slug):
     })
 
 
-def _process_pdf_chunk(course, module, pdf_text, suggested_title, ai_generator, skip_ai, course_name, module_name):
+@staff_member_required
+def clear_course_lessons(request, course_slug):
+    """Clear all lessons from a course (for testing/re-uploading)"""
+    course = get_object_or_404(Course, slug=course_slug)
+    module_name = request.GET.get('module_name', '').strip() or request.POST.get('module_name', '').strip()
+    
+    if request.method == 'POST':
+        try:
+            if module_name:
+                # Clear lessons from specific module
+                module = Module.objects.filter(course=course, name=module_name).first()
+                if module:
+                    lessons_count = module.lessons.count()
+                    module.lessons.all().delete()
+                    messages.success(request, f'Cleared {lessons_count} lesson(s) from module "{module_name}"')
+                else:
+                    messages.warning(request, f'Module "{module_name}" not found. No lessons to clear.')
+            else:
+                # Clear all lessons from course
+                lessons_count = course.lessons.count()
+                course.lessons.all().delete()
+                messages.success(request, f'Cleared {lessons_count} lesson(s) from course "{course.name}"')
+        except Exception as e:
+            messages.error(request, f'Error clearing lessons: {str(e)}')
+    
+    # Redirect back to appropriate page based on referrer
+    referrer = request.META.get('HTTP_REFERER', '')
+    if 'dashboard' in referrer:
+        return redirect('dashboard_upload_pdf_lessons', course_slug=course_slug)
+    return redirect('upload_pdf_lessons', course_slug=course_slug)
+
+
+def _insert_images_contextually(content_blocks, images, pdf_text):
+    """
+    Insert images into content blocks at logical positions based on page numbers.
+    Images are inserted after headers or distributed evenly throughout content.
+    """
+    if not images or not content_blocks:
+        return content_blocks
+    
+    # Extract page numbers from PDF text to estimate content distribution
+    page_markers = re.findall(r'--- Page (\d+) ---', pdf_text)
+    total_pages = int(page_markers[-1]) if page_markers else 1
+    
+    # Calculate approximate position for each image based on page number
+    # Position is a ratio (0.0 to 1.0) indicating where in the content the image should appear
+    image_positions = []
+    for img in images:
+        page_num = img.get('page_num', 1)
+        position_ratio = (page_num - 1) / max(total_pages, 1)
+        image_positions.append({
+            'image': img,
+            'position_ratio': position_ratio,
+            'page_num': page_num
+        })
+    
+    # Sort by position ratio
+    image_positions.sort(key=lambda x: x['position_ratio'])
+    
+    # Special handling: If we only have one paragraph block, split it and insert images
+    if len(content_blocks) == 1 and content_blocks[0].get('type') == 'paragraph':
+        # Split long paragraphs at logical points and insert images
+        text = content_blocks[0]['data'].get('text', '')
+        if len(text) > 500 and len(images) > 0:
+            # Split text into chunks and insert images between chunks
+            chunks = _split_text_with_images(text, images, total_pages)
+            result_blocks = []
+            for chunk in chunks:
+                if isinstance(chunk, dict) and chunk.get('type') == 'image':
+                    result_blocks.append(chunk)
+                else:
+                    result_blocks.append({
+                        'type': 'paragraph',
+                        'data': {'text': chunk}
+                    })
+            return result_blocks
+    
+    # Find header positions in content blocks for better image placement
+    header_positions = []
+    for i, block in enumerate(content_blocks):
+        if block.get('type') == 'header':
+            header_positions.append(i)
+    
+    # Insert images at appropriate positions
+    result_blocks = []
+    images_inserted = 0
+    
+    for i, block in enumerate(content_blocks):
+        result_blocks.append(block)
+        
+        # Check if we should insert an image after this block
+        while images_inserted < len(image_positions):
+            current_image = image_positions[images_inserted]
+            current_position_ratio = (i + 1) / max(len(content_blocks), 1)
+            
+            # Insert image if we've reached or passed the target position
+            if current_position_ratio >= current_image['position_ratio']:
+                # Prefer inserting after headers, but insert anywhere if we've passed the position
+                is_header = block.get('type') == 'header'
+                is_good_position = is_header or current_position_ratio >= current_image['position_ratio'] + 0.1
+                
+                if is_good_position or i == len(content_blocks) - 1:
+                    # Create image block
+                    image_block = {
+                        'type': 'image',
+                        'data': {
+                            'file': {
+                                'url': current_image['image']['url']
+                            },
+                            'caption': f"Image from page {current_image['page_num']}",
+                            'withBorder': False,
+                            'withBackground': False,
+                            'stretched': False
+                        }
+                    }
+                    result_blocks.append(image_block)
+                    images_inserted += 1
+                else:
+                    # Wait for a better position (like after next header)
+                    break
+            else:
+                # Haven't reached this image's position yet
+                break
+    
+    # Add any remaining images at the end (shouldn't happen, but safety check)
+    while images_inserted < len(image_positions):
+        current_image = image_positions[images_inserted]
+        image_block = {
+            'type': 'image',
+            'data': {
+                'file': {
+                    'url': current_image['image']['url']
+                },
+                'caption': f"Image from page {current_image['page_num']}",
+                'withBorder': False,
+                'withBackground': False,
+                'stretched': False
+            }
+        }
+        result_blocks.append(image_block)
+        images_inserted += 1
+    
+    return result_blocks
+
+
+def _split_text_with_images(text, images, total_pages):
+    """
+    Split text into chunks and return list of text chunks and image blocks
+    positioned based on page numbers.
+    """
+    if not images:
+        return [text]
+    
+    # Find page markers in text
+    page_markers = list(re.finditer(r'--- Page (\d+) ---', text))
+    
+    result = []
+    current_pos = 0
+    
+    for img_idx, img in enumerate(sorted(images, key=lambda x: x.get('page_num', 0))):
+        page_num = img.get('page_num', 1)
+        
+        # Find the position in text corresponding to this page
+        target_pos = len(text)
+        for marker in page_markers:
+            marker_page = int(marker.group(1))
+            if marker_page >= page_num:
+                target_pos = marker.start()
+                break
+        
+        # If we haven't reached the target position yet, add text up to it
+        if current_pos < target_pos:
+            chunk = text[current_pos:target_pos].strip()
+            if chunk:
+                result.append(chunk)
+            current_pos = target_pos
+        
+        # Add the image
+        result.append({
+            'type': 'image',
+            'data': {
+                'file': {'url': img['url']},
+                'caption': f"Image from page {page_num}",
+                'withBorder': False,
+                'withBackground': False,
+                'stretched': False
+            }
+        })
+    
+    # Add remaining text
+    if current_pos < len(text):
+        chunk = text[current_pos:].strip()
+        if chunk:
+            result.append(chunk)
+    
+    return result if result else [text]
+
+
+def _process_pdf_chunk(course, module, pdf_text, suggested_title, ai_generator, skip_ai, course_name, module_name, images=None):
     """Helper method to process PDF chunk and create/update lesson"""
     from django.db.models import Max
+    
+    if images is None:
+        images = []
     
     created = 0
     updated = 0
@@ -699,6 +937,39 @@ def _process_pdf_chunk(course, module, pdf_text, suggested_title, ai_generator, 
     
     if skip_ai or not ai_generator:
         # Create basic lesson without AI generation
+        # Create basic content blocks with images if available
+        import uuid
+        import time
+        
+        basic_blocks = [
+            {
+                'type': 'paragraph',
+                'data': {
+                    'text': pdf_text[:1000] + '...' if len(pdf_text) > 1000 else pdf_text
+                }
+            }
+        ]
+        
+        # Add images if available - insert contextually
+        if images:
+            sorted_images = sorted(images, key=lambda x: x.get('page_num', 0))
+            basic_blocks = _insert_images_contextually(basic_blocks, sorted_images, pdf_text)
+        
+        # Convert to Editor.js format
+        editorjs_blocks = []
+        for block in basic_blocks:
+            editorjs_blocks.append({
+                'id': str(uuid.uuid4()),
+                'type': block['type'],
+                'data': block['data']
+            })
+        
+        basic_content = {
+            'time': int(time.time() * 1000),
+            'blocks': editorjs_blocks,
+            'version': '2.28.2'
+        }
+        
         lesson, was_created = Lesson.objects.get_or_create(
             course=course,
             module=module,
@@ -709,6 +980,7 @@ def _process_pdf_chunk(course, module, pdf_text, suggested_title, ai_generator, 
                 'order': max_order + 1,
                 'lesson_type': 'video',
                 'ai_generation_status': 'pending',
+                'content': basic_content,
             }
         )
         
@@ -726,9 +998,21 @@ def _process_pdf_chunk(course, module, pdf_text, suggested_title, ai_generator, 
                 suggested_title=suggested_title
             )
             
+            # Add image blocks to content blocks
+            content_blocks_with_images = list(ai_content['content_blocks'])
+            
+            # Insert images into content blocks based on page numbers and content structure
+            if images:
+                sorted_images = sorted(images, key=lambda x: x.get('page_num', 0))
+                content_blocks_with_images = _insert_images_contextually(
+                    content_blocks_with_images, 
+                    sorted_images,
+                    pdf_text
+                )
+            
             # Convert content blocks to Editor.js format
             editorjs_content = ai_generator.convert_to_editorjs_format(
-                ai_content['content_blocks']
+                content_blocks_with_images
             )
             
             # Create or update lesson
@@ -1095,11 +1379,128 @@ def complete_lesson(request, lesson_id):
     user_progress.progress_percentage = 100
     user_progress.save()
     
+    # Check if this is the last lesson in the course
+    course = lesson.course
+    all_lessons = course.lessons.order_by('order', 'id')
+    is_last_lesson = False
+    certificate_url = None
+    
+    if all_lessons.exists():
+        last_lesson = all_lessons.last()
+        if last_lesson.id == lesson.id:
+            # This is the last lesson, check if all lessons are now completed
+            completed_lessons_count = UserProgress.objects.filter(
+                user=request.user,
+                lesson__course=course,
+                completed=True
+            ).count()
+            
+            if completed_lessons_count == all_lessons.count():
+                is_last_lesson = True
+                
+                # Check if there's a final exam for this course
+                has_exam = Exam.objects.filter(course=course).exists()
+                
+                # Get or create certification
+                certification, created = Certification.objects.get_or_create(
+                    user=request.user,
+                    course=course,
+                    defaults={'status': 'not_eligible'}
+                )
+                
+                # If there's no exam, automatically issue the certificate
+                if not has_exam:
+                    certification.status = 'passed'
+                    if not certification.issued_at:
+                        certification.issued_at = timezone.now()
+                    
+                    # Generate certificate PDF and upload to Cloudinary
+                    try:
+                        from .utils.certificate_generator import generate_certificate
+                        cert_result = generate_certificate(
+                            user=request.user,
+                            course=course,
+                            issued_date=certification.issued_at,
+                            upload_to_cloudinary=True
+                        )
+                        
+                        if cert_result and cert_result.get('certificate_url'):
+                            # Store the generated certificate URL
+                            certification.accredible_certificate_url = cert_result['certificate_url']
+                            if cert_result.get('certificate_id'):
+                                certification.accredible_certificate_id = cert_result['certificate_id']
+                    except Exception as e:
+                        # Log error but don't fail certificate issuance
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.error(f"Error generating certificate: {str(e)}")
+                    
+                    certification.save()
+                
+                # Determine certificate URL
+                if certification.accredible_certificate_url:
+                    certificate_url = certification.accredible_certificate_url
+                else:
+                    # Redirect to course progress page to view certificate status
+                    certificate_url = reverse('student_course_progress', args=[course.slug])
+    
     return JsonResponse({
         'success': True,
         'message': 'Lesson marked as complete',
-        'lesson_id': lesson_id
+        'lesson_id': lesson_id,
+        'is_last_lesson': is_last_lesson,
+        'certificate_url': certificate_url
     })
+
+
+@login_required
+def view_certificate(request, course_slug):
+    """View or download certificate for a course"""
+    course = get_object_or_404(Course, slug=course_slug)
+    
+    # Get certification
+    try:
+        certification = Certification.objects.get(user=request.user, course=course)
+    except Certification.DoesNotExist:
+        messages.error(request, 'Certificate not found.')
+        return redirect('student_certifications')
+    
+    # Check if certificate is passed
+    if certification.status != 'passed':
+        messages.warning(request, 'Certificate not yet issued.')
+        return redirect('student_course_progress', course_slug=course_slug)
+    
+    # If certificate URL exists, redirect to it
+    if certification.accredible_certificate_url:
+        return redirect(certification.accredible_certificate_url)
+    
+    # Otherwise, generate on-the-fly
+    try:
+        from .utils.certificate_generator import generate_certificate
+        cert_result = generate_certificate(
+            user=request.user,
+            course=course,
+            issued_date=certification.issued_at or timezone.now(),
+            upload_to_cloudinary=False  # Generate for direct download
+        )
+        
+        if cert_result and cert_result.get('pdf_buffer'):
+            from django.http import HttpResponse
+            response = HttpResponse(
+                cert_result['pdf_buffer'].getvalue(),
+                content_type='application/pdf'
+            )
+            response['Content-Disposition'] = f'inline; filename="certificate_{course.slug}_{request.user.id}.pdf"'
+            return response
+        else:
+            messages.error(request, 'Error generating certificate.')
+            return redirect('student_certifications')
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error generating certificate: {str(e)}")
+        messages.error(request, 'Error generating certificate.')
+        return redirect('student_certifications')
 
 
 @require_http_methods(["POST"])

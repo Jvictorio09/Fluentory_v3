@@ -42,7 +42,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {% if exam %}
         <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
-            <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+            <h3 class="text-2xl font-bold mb-2 text-black flex items-center gap-2">
                 <i class="fas fa-clipboard-check text-teal-soft"></i>
                 Final Exam
             </h3>
@@ -101,7 +101,7 @@
         
         {% if certification %}
         <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
-            <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+            <h3 class="text-2xl font-bold mb-2 text-black flex items-center gap-2">
                 <i class="fas fa-certificate text-yellow-400"></i>
                 Certification
             </h3>
@@ -124,7 +124,11 @@
                 {% endif %}
                 {% if certification.accredible_certificate_url %}
                 <a href="{{ certification.accredible_certificate_url }}" target="_blank" class="block w-full mt-4 px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-500/90 hover:to-yellow-600/90 text-white font-semibold text-gray-700 rounded-lg transition-all text-center">
-                    <i class="fas fa-external-link-alt mr-2"></i>View Certificate
+                    <i class="fas fa-download mr-2"></i>Download Certificate
+                </a>
+                {% elif certification.status == 'passed' %}
+                <a href="{% url 'view_certificate' course.slug %}" target="_blank" class="block w-full mt-4 px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-500/90 hover:to-yellow-600/90 text-white font-semibold text-gray-700 rounded-lg transition-all text-center">
+                    <i class="fas fa-download mr-2"></i>Download Certificate
                 </a>
                 {% endif %}
             </div>

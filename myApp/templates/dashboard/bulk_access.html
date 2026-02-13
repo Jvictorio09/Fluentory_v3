@@ -8,13 +8,13 @@
 <div class="space-y-6">
     <!-- Header -->
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
-        <h2 class="text-2xl font-bold mb-2">Bulk Access Management</h2>
+        <h2 class="text-2xl font-bold mb-2 text-black">Bulk Access Management</h2>
         <p class="text-gray-700">Grant or revoke course access for multiple students at once</p>
     </div>
 
     <!-- Bulk Grant Course Access -->
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
-        <h3 class="text-xl font-bold mb-4">Grant Course Access (Bulk)</h3>
+        <h3 class="text-2xl font-bold mb-2 text-black">Grant Course Access (Bulk)</h3>
         <form id="bulk-grant-form" class="space-y-4">
             {% csrf_token %}
             
@@ -75,7 +75,7 @@
 
     <!-- Bulk Grant Bundle Access -->
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-blue-soft/10 rounded-xl p-6">
-        <h3 class="text-xl font-bold mb-4">Grant Bundle Access (Bulk)</h3>
+        <h3 class="text-2xl font-bold mb-2 text-black">Grant Bundle Access (Bulk)</h3>
         <form id="bulk-bundle-form" class="space-y-4">
             {% csrf_token %}
             
@@ -121,7 +121,7 @@
 
     <!-- Bulk Add to Cohort -->
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
-        <h3 class="text-xl font-bold mb-4">Add to Cohort (Bulk)</h3>
+        <h3 class="text-2xl font-bold mb-2 text-black">Add to Cohort (Bulk)</h3>
         <form id="bulk-cohort-form" class="space-y-4">
             {% csrf_token %}
             

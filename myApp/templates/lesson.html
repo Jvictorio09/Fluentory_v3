@@ -44,11 +44,33 @@
             <div class="space-y-6">
                 <!-- What You'll Learn Today -->
                 <section class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
-                    <h3 class="text-xl font-bold text-slate-900 mb-4">What You'll Learn Today</h3>
-                    <p class="text-slate-700 leading-relaxed">
-                        {{ lesson.description|default:"Learn the fundamentals of live streaming and how to engage your audience in real-time." }}
-                    </p>
+                    <h3 class="text-xl font-bold text-black mb-4">What You'll Learn Today</h3>
+                    {% if lesson.ai_full_description %}
+                        <div class="text-black leading-relaxed description-content">
+                            {{ lesson.ai_full_description|linebreaks }}
+                        </div>
+                    {% else %}
+                        <div class="text-black leading-relaxed description-content">
+                            {{ lesson.description|linebreaks|default:"Learn the fundamentals of live streaming and how to engage your audience in real-time." }}
+                        </div>
+                    {% endif %}
                 </section>
+                
+                <style>
+                    .description-content p {
+                        margin-bottom: 1.25rem;
+                        margin-top: 0;
+                    }
+                    .description-content p:first-child {
+                        margin-top: 0;
+                    }
+                    .description-content p:last-child {
+                        margin-bottom: 0;
+                    }
+                    .description-content br {
+                        display: none;
+                    }
+                </style>
                 
                 <!-- Lesson Notes / Content Blocks -->
                 {% if lesson.content and lesson.content.blocks %}
@@ -59,23 +81,58 @@
                     </h2>
                     <div class="prose max-w-none">
                         {% for block in lesson.content.blocks %}
-                            {% if block.type == 'paragraph' %}
-                                <p class="text-slate-700 leading-relaxed mb-4">{{ block.data.text|linebreaks }}</p>
-                            {% elif block.type == 'header' %}
-                                <h{{ block.data.level }} class="text-slate-900 font-bold mb-4 mt-6 {% if block.data.level == 2 %}text-2xl{% elif block.data.level == 3 %}text-xl{% else %}text-lg{% endif %}">{{ block.data.text }}</h{{ block.data.level }}>
-                            {% elif block.type == 'list' %}
-                                <ul class="list-disc list-outside pl-6 space-y-1 mb-4 {% if block.data.style == 'ordered' %}list-decimal{% endif %}">
-                                    {% for item in block.data.items %}
-                                        <li class="text-slate-700 leading-normal">{{ item }}</li>
-                                    {% endfor %}
-                                </ul>
-                            {% elif block.type == 'quote' %}
-                                <blockquote class="border-l-4 border-teal-soft/50 pl-4 py-2 my-4 italic text-slate-700">
-                                    <p class="mb-2">{{ block.data.text }}</p>
-                                    {% if block.data.caption %}
-                                        <cite class="text-sm text-slate-600 not-italic">— {{ block.data.caption }}</cite>
-                                    {% endif %}
-                                </blockquote>
+                            {# Skip blocks that are part of "AI Coach Action Suggestions" section #}
+                            {% if block.type == 'header' and 'AI Coach Action Suggestions' in block.data.text %}
+                                {# Skip this header - it's the start of coach actions section #}
+                            {% elif block.type == 'paragraph' and 'AI Coach Action Suggestions' in block.data.text %}
+                                {# Skip this paragraph if it mentions coach actions #}
+                            {% else %}
+                                {# Check if this is a list that matches coach actions pattern #}
+                                {% if block.type == 'list' %}
+                                    {% with list_text=block.data.items|join:' '|lower %}
+                                        {% if 'encourage students' in list_text or 'suggest experimenting' in list_text or 'remind students' in list_text or 'advise on safety' in list_text or 'promote sharing' in list_text or 'create a personal' in list_text or 'research the origins' in list_text %}
+                                            {# Skip this list - it's likely coach actions #}
+                                        {% else %}
+                                            <ul class="list-disc list-outside pl-6 space-y-1 mb-4 {% if block.data.style == 'ordered' %}list-decimal{% endif %}">
+                                                {% for item in block.data.items %}
+                                                    <li class="text-slate-700 leading-normal">{{ item }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% elif block.type == 'paragraph' %}
+                                    <p class="text-slate-700 leading-relaxed mb-4">{{ block.data.text|linebreaks }}</p>
+                                {% elif block.type == 'header' %}
+                                    <h{{ block.data.level }} class="text-slate-900 font-bold mb-4 mt-6 {% if block.data.level == 2 %}text-2xl{% elif block.data.level == 3 %}text-xl{% else %}text-lg{% endif %}">{{ block.data.text }}</h{{ block.data.level }}>
+                                {% elif block.type == 'quote' %}
+                                    <blockquote class="border-l-4 border-teal-soft/50 pl-4 py-2 my-4 italic text-slate-700">
+                                        <p class="mb-2">{{ block.data.text }}</p>
+                                        {% if block.data.caption %}
+                                            <cite class="text-sm text-slate-600 not-italic">— {{ block.data.caption }}</cite>
+                                        {% endif %}
+                                    </blockquote>
+                                {% elif block.type == 'image' %}
+                                    <div class="my-6">
+                                        {% if block.data.file.url %}
+                                            <img 
+                                                src="{{ block.data.file.url }}" 
+                                                alt="{% if block.data.caption %}{{ block.data.caption }}{% else %}Lesson image{% endif %}"
+                                                class="w-full rounded-lg shadow-lg {% if block.data.stretched %}object-cover h-96{% else %}max-w-full h-auto{% endif %} {% if block.data.withBorder %}border-2 border-slate-300{% endif %} {% if block.data.withBackground %}bg-slate-100 p-4{% endif %}"
+                                                loading="lazy"
+                                            >
+                                        {% elif block.data.url %}
+                                            <img 
+                                                src="{{ block.data.url }}" 
+                                                alt="{% if block.data.caption %}{{ block.data.caption }}{% else %}Lesson image{% endif %}"
+                                                class="w-full rounded-lg shadow-lg {% if block.data.stretched %}object-cover h-96{% else %}max-w-full h-auto{% endif %} {% if block.data.withBorder %}border-2 border-slate-300{% endif %} {% if block.data.withBackground %}bg-slate-100 p-4{% endif %}"
+                                                loading="lazy"
+                                            >
+                                        {% endif %}
+                                        {% if block.data.caption %}
+                                            <p class="text-sm text-slate-600 italic mt-2 text-center">{{ block.data.caption }}</p>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
                             {% endif %}
                         {% endfor %}
                     </div>
@@ -355,6 +412,8 @@
         transform: translateX(2px);
     }
 </style>
+<!-- Canvas Confetti Library -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 <script>
     // Get CSRF token from cookies
     function getCookie(name) {
@@ -724,7 +783,14 @@
         document.querySelectorAll('.quick-suggestion-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const action = this.dataset.action;
-                sendMessage('', action);
+                const actionText = this.dataset.actionText;
+                // If actionText is provided (from lesson coach actions), use it directly
+                // Otherwise, use the action code to get the mapped text
+                if (actionText) {
+                    sendMessage(actionText);
+                } else {
+                    sendMessage('', action);
+                }
             });
         });
         
@@ -793,8 +859,61 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
+                        // Check if this is the last lesson - show confetti and redirect to certificate
+                        if (data.is_last_lesson && data.certificate_url) {
+                            // Show confetti celebration
+                            const duration = 3000; // 3 seconds
+                            const animationEnd = Date.now() + duration;
+                            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+                            function randomInRange(min, max) {
+                                return Math.random() * (max - min) + min;
+                            }
+
+                            const interval = setInterval(function() {
+                                const timeLeft = animationEnd - Date.now();
+
+                                if (timeLeft <= 0) {
+                                    return clearInterval(interval);
+                                }
+
+                                const particleCount = 50 * (timeLeft / duration);
+                                
+                                // Launch confetti from left
+                                confetti({
+                                    ...defaults,
+                                    particleCount,
+                                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+                                });
+                                
+                                // Launch confetti from right
+                                confetti({
+                                    ...defaults,
+                                    particleCount,
+                                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+                                });
+                            }, 250);
+
+                            // Show congratulations message
+                            hideStudentPreloader();
+                            btn.outerHTML = `
+                                <div class="flex flex-col items-center justify-center gap-3 p-6 bg-gradient-to-r from-yellow-500/20 to-green-500/20 border-2 border-yellow-500/30 rounded-xl">
+                                    <i class="fas fa-trophy text-yellow-500 text-4xl animate-bounce"></i>
+                                    <div class="text-center">
+                                        <h3 class="text-2xl font-bold text-yellow-600 mb-2">🎉 Congratulations! 🎉</h3>
+                                        <p class="text-green-600 font-semibold">You've completed all lessons!</p>
+                                        <p class="text-sm text-gray-700 mt-2">Redirecting to your certificate...</p>
+                                    </div>
+                                </div>
+                            `;
+
+                            // Redirect to certificate after confetti animation
+                            setTimeout(() => {
+                                window.location.href = data.certificate_url;
+                            }, duration + 500);
+                        }
                         // If there's a next lesson, go there automatically.
-                        if (nextLessonUrl) {
+                        else if (nextLessonUrl) {
                             // Keep preloader visible during redirect
                             setTimeout(() => {
                                 window.location.href = nextLessonUrl;

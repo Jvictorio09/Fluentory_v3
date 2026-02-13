@@ -20,7 +20,7 @@
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-2xl p-8 mb-8">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h2 class="text-2xl font-bold mb-2">Achievement Trophies</h2>
+                <h2 class="text-2xl font-bold mb-2 text-black">Achievement Trophies</h2>
                 <p class="text-gray-700 text-sm">Unlock trophies by completing courses and earning certifications</p>
             </div>
             <div class="text-right">
@@ -271,12 +271,12 @@
             
             {% if cert.accredible_certificate_url %}
             <a href="{{ cert.accredible_certificate_url }}" target="_blank" class="block w-full px-4 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-500/90 hover:to-yellow-600/90 text-white font-semibold text-gray-700 rounded-lg transition-all text-center">
-                <i class="fas fa-external-link-alt mr-2"></i>View Certificate on Accredible
+                <i class="fas fa-download mr-2"></i>Download Certificate
             </a>
             {% elif cert.status == 'passed' %}
-            <div class="text-center py-2 text-sm text-gray-700">
-                Certificate processing...
-            </div>
+            <a href="{% url 'view_certificate' cert.course.slug %}" target="_blank" class="block w-full px-4 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-500/90 hover:to-yellow-600/90 text-white font-semibold text-gray-700 rounded-lg transition-all text-center">
+                <i class="fas fa-download mr-2"></i>Download Certificate
+            </a>
             {% elif cert.status == 'eligible' %}
             <a href="{% url 'student_course_progress' cert.course.slug %}" class="block w-full px-4 py-3 bg-gradient-to-r from-teal-soft to-blue-soft hover:from-teal-soft/90 hover:to-blue-soft/90 text-[#ffffff] font-semibold text-gray-700 rounded-lg transition-all text-center">
                 Take Final Exam

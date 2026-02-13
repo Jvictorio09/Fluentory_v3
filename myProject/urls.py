@@ -19,6 +19,7 @@ urlpatterns = [
     path('my-dashboard/', views.student_dashboard, name='student_dashboard'),
     path('my-dashboard/course/<slug:course_slug>/', views.student_course_progress, name='student_course_progress'),
     path('my-certifications/', views.student_certifications, name='student_certifications'),
+    path('certificate/<slug:course_slug>/', views.view_certificate, name='view_certificate'),
     
     # Dashboard URLs (Admin-facing, for developers)
     path('dashboard/', dashboard_views.dashboard_home, name='dashboard_home'),
@@ -28,6 +29,8 @@ urlpatterns = [
     path('dashboard/courses/<slug:course_slug>/', dashboard_views.dashboard_course_detail, name='dashboard_course_detail'),
     path('dashboard/courses/<slug:course_slug>/delete/', dashboard_views.dashboard_delete_course, name='dashboard_delete_course'),
     path('dashboard/courses/<slug:course_slug>/lessons/', dashboard_views.dashboard_course_lessons, name='dashboard_course_lessons'),
+    path('dashboard/courses/<slug:course_slug>/upload-pdf/', views.upload_pdf_lessons, name='dashboard_upload_pdf_lessons'),
+    path('dashboard/courses/<slug:course_slug>/clear-lessons/', views.clear_course_lessons, name='dashboard_clear_course_lessons'),
     path('dashboard/lessons/', dashboard_views.dashboard_lessons, name='dashboard_lessons'),
     path('dashboard/lessons/add/', dashboard_views.dashboard_add_lesson, name='dashboard_add_lesson'),
     path('dashboard/lessons/upload-quiz/', dashboard_views.dashboard_upload_quiz, name='dashboard_upload_quiz'),
@@ -63,6 +66,7 @@ urlpatterns = [
     path('creator/courses/<slug:course_slug>/lessons/', views.course_lessons, name='course_lessons'),
     path('creator/courses/<slug:course_slug>/add-lesson/', views.add_lesson, name='add_lesson'),
     path('creator/courses/<slug:course_slug>/upload-pdf/', views.upload_pdf_lessons, name='upload_pdf_lessons'),
+    path('creator/courses/<slug:course_slug>/clear-lessons/', views.clear_course_lessons, name='clear_course_lessons'),
     path('creator/courses/<slug:course_slug>/lessons/<int:lesson_id>/generate/', views.generate_lesson_ai, name='generate_lesson_ai'),
     path('creator/verify-vimeo/', views.verify_vimeo_url, name='verify_vimeo_url'),
     path('creator/upload-video-transcribe/', views.upload_video_transcribe, name='upload_video_transcribe'),
