@@ -39,6 +39,69 @@ def home(request):
     # Get all active courses for the homepage
     courses = Course.objects.filter(status='active', visibility='public')
     
+    # Define category mappings
+    CATEGORY_MAPPING = {
+        'natural_health': {
+            'name': 'Natural Health',
+            'icon': 'fa-seedling',
+            'description': 'Holistic wellness & natural therapies',
+            'subtitle': 'Learn plant-based healing, herbs, and holistic wellness tools.',
+            'course_types': ['aroma_therapy', 'nutrition', 'naturopathy', 'ayurveda'],
+            'color': 'emerald',
+            'bg_color': 'emerald-200/60',
+            'badge_color': 'emerald-100/70',
+            'text_color': 'emerald-700',
+            'icon_bg': 'from-emerald-100 to-teal-soft/60',
+            'icon_text': 'emerald-800',
+            'hover_border': 'teal-soft/50',
+            'hover_shadow': 'teal-soft/10',
+            'link_color': 'teal-soft',
+        },
+        'personal_development': {
+            'name': 'Personal Development',
+            'icon': 'fa-brain',
+            'description': 'Mindset, psychology, and performance',
+            'subtitle': 'Coach others (and yourself) through proven growth frameworks.',
+            'course_types': ['positive_psychology', 'nlp', 'art_therapy', 'hypnotherapy'],
+            'color': 'sky',
+            'bg_color': 'sky-200/70',
+            'badge_color': 'sky-100/80',
+            'text_color': 'sky-800',
+            'icon_bg': 'from-sky-100 to-blue-soft/70',
+            'icon_text': 'sky-900',
+            'hover_border': 'blue-soft/50',
+            'hover_shadow': 'blue-soft/10',
+            'link_color': 'blue-soft',
+        },
+        'energy_therapies': {
+            'name': 'Energy Therapies',
+            'icon': 'fa-bolt',
+            'description': 'Subtle energy & transformational work',
+            'subtitle': 'Learn modalities that support emotional, mental, and spiritual wellness.',
+            'course_types': [],  # Will include any courses not in other categories
+            'color': 'purple',
+            'bg_color': 'purple-200/80',
+            'badge_color': 'purple-100/80',
+            'text_color': 'purple-800',
+            'icon_bg': 'from-purple-100 to-purple-400/80',
+            'icon_text': 'purple-900',
+            'hover_border': 'purple-400/60',
+            'hover_shadow': 'purple-300/20',
+            'link_color': 'purple-700',
+        },
+    }
+    
+    # Group courses by category
+    categories_data = {}
+    all_categorized_types = set()
+    
+    for cat_key, cat_info in CATEGORY_MAPPING.items():
+        categories_data[cat_key] = {
+            **cat_info,
+            'courses': [],
+        }
+        all_categorized_types.update(cat_info['course_types'])
+    
     # Get progress and favorite status for each course if user is authenticated
     courses_data = []
     user = request.user if request.user.is_authenticated else None
@@ -80,11 +143,140 @@ def home(request):
             })
         
         courses_data.append(course_info)
+        
+        # Categorize course
+        course_type = course.course_type
+        categorized = False
+        
+        for cat_key, cat_info in CATEGORY_MAPPING.items():
+            if course_type in cat_info['course_types']:
+                categories_data[cat_key]['courses'].append(course)
+                categorized = True
+                break
+        
+        # If not categorized, add to energy_therapies or create a catch-all
+        if not categorized:
+            categories_data['energy_therapies']['courses'].append(course)
+    
+    # Filter out categories with no courses
+    categories_list = [
+        cat_data for cat_key, cat_data in categories_data.items()
+        if len(cat_data['courses']) > 0
+    ]
+    
+    # Select featured courses (top 3)
+    # Priority: courses with special_tag first, then by lesson count
+    from django.db.models import Count, Case, When, IntegerField
+    featured_courses = list(
+        courses.annotate(
+            lesson_count=Count('lessons'),
+            has_special_tag=Case(
+                When(special_tag='', then=0),
+                default=1,
+                output_field=IntegerField()
+            )
+        )
+        .order_by('-has_special_tag', '-lesson_count', 'id')[:3]
+    )
+    
+    # Map course types to styling
+    COURSE_STYLE_MAP = {
+        'aroma_therapy': {
+            'color': 'teal',
+            'bg_gradient': 'from-emerald-100 via-emerald-50 to-teal-soft/30',
+            'icon': 'fa-leaf',
+            'icon_color': 'emerald-700',
+            'border_color': 'emerald-200/80',
+            'hover_border': 'teal-soft/60',
+            'hover_shadow': 'teal-soft/10',
+            'badge_color': 'teal-soft',
+            'badge_bg': 'teal-soft/5',
+            'link_color': 'teal-soft',
+        },
+        'hypnotherapy': {
+            'color': 'blue',
+            'bg_gradient': 'from-slate-900 via-slate-800 to-blue-soft/60',
+            'icon': 'fa-brain',
+            'icon_color': 'blue-soft',
+            'border_color': 'slate-600/60',
+            'hover_border': 'blue-soft/60',
+            'hover_shadow': 'blue-soft/10',
+            'badge_color': 'blue-soft',
+            'badge_bg': 'blue-soft/5',
+            'link_color': 'blue-soft',
+        },
+        'nutrition': {
+            'color': 'coral',
+            'bg_gradient': 'from-amber-100 via-orange-50 to-coral-cta/50',
+            'icon': 'fa-carrot',
+            'icon_color': 'amber-700',
+            'border_color': 'amber-300',
+            'hover_border': 'coral-cta/60',
+            'hover_shadow': 'coral-cta/10',
+            'badge_color': 'coral-cta',
+            'badge_bg': 'coral-cta/5',
+            'link_color': 'coral-cta',
+        },
+        'art_therapy': {
+            'color': 'purple',
+            'bg_gradient': 'from-purple-100 via-purple-50 to-purple-400/50',
+            'icon': 'fa-palette',
+            'icon_color': 'purple-700',
+            'border_color': 'purple-200/80',
+            'hover_border': 'purple-400/60',
+            'hover_shadow': 'purple-300/10',
+            'badge_color': 'purple-600',
+            'badge_bg': 'purple-100/5',
+            'link_color': 'purple-600',
+        },
+        'positive_psychology': {
+            'color': 'sky',
+            'bg_gradient': 'from-sky-100 via-sky-50 to-blue-soft/50',
+            'icon': 'fa-heart',
+            'icon_color': 'sky-700',
+            'border_color': 'sky-200/80',
+            'hover_border': 'sky-400/60',
+            'hover_shadow': 'sky-300/10',
+            'badge_color': 'sky-600',
+            'badge_bg': 'sky-100/5',
+            'link_color': 'sky-600',
+        },
+        'nlp': {
+            'color': 'indigo',
+            'bg_gradient': 'from-indigo-100 via-indigo-50 to-indigo-400/50',
+            'icon': 'fa-lightbulb',
+            'icon_color': 'indigo-700',
+            'border_color': 'indigo-200/80',
+            'hover_border': 'indigo-400/60',
+            'hover_shadow': 'indigo-300/10',
+            'badge_color': 'indigo-600',
+            'badge_bg': 'indigo-100/5',
+            'link_color': 'indigo-600',
+        },
+    }
+    
+    # Get default style for courses without specific mapping
+    default_style = {
+        'color': 'teal',
+        'bg_gradient': 'from-emerald-100 via-emerald-50 to-teal-soft/30',
+        'icon': 'fa-book-open',
+        'icon_color': 'emerald-700',
+        'border_color': 'emerald-200/80',
+        'hover_border': 'teal-soft/60',
+        'hover_shadow': 'teal-soft/10',
+        'badge_color': 'teal-soft',
+        'badge_bg': 'teal-soft/5',
+        'link_color': 'teal-soft',
+    }
     
     # Render the new premium landing page instead of the old partialsv2 hub
     return render(request, 'landing.html', {
         'courses': courses,
         'courses_data': courses_data,
+        'categories': categories_list,
+        'featured_courses': featured_courses[:6],
+        'course_style_map': COURSE_STYLE_MAP,
+        'default_style': default_style,
     })
 
 
@@ -206,7 +398,7 @@ def course_detail(request, course_slug):
                 return lesson_detail(request, course_slug, first_lesson.slug)
     
     # Show premium sales page for non-authenticated or users without access
-    return render(request, 'landing/partialsv2/course_detail.html', {
+    return render(request, 'course_detail.html', {
         'course': course,
     })
 

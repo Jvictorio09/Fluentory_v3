@@ -1,0 +1,83 @@
+<article class="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition
+                hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+  <!-- top: image strip (clean, premium) -->
+  <div class="relative h-44 overflow-hidden">
+    {% if course.thumbnail %}
+      <img src="{{ course.thumbnail.url }}" alt="{{ course.name }}"
+           class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]">
+      <div class="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent"></div>
+    {% else %}
+      <div class="absolute inset-0 {{ accent_bg }}"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(900px_300px_at_30%_20%,rgba(255,255,255,0.75),transparent_60%)]"></div>
+      <div class="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent"></div>
+      <div class="absolute left-5 top-5 h-12 w-12 rounded-2xl border {{ accent_iconbg }} flex items-center justify-center shadow-sm">
+        <i class="fas fa-graduation-cap {{ accent_text }}"></i>
+      </div>
+    {% endif %}
+
+    <!-- type tag -->
+    <div class="absolute left-5 bottom-5">
+      <span class="inline-flex items-center gap-2 rounded-full border {{ accent_border }} bg-white/85 px-3 py-1 text-[11px] font-semibold text-slate-700 shadow-sm">
+        <span class="h-1.5 w-1.5 rounded-full {{ accent_bg }}"></span>
+        {{ course.get_course_type_display }}
+      </span>
+    </div>
+
+    <!-- optional accredited badge -->
+    {% if course.is_accredible_certified %}
+      <div class="absolute right-5 top-5">
+        <span class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-extrabold text-amber-700 shadow-sm">
+          <i class="fas fa-certificate text-[10px]"></i> Accredited
+        </span>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- body -->
+  <div class="p-6">
+    <h3 class="text-base font-extrabold text-ink-deep leading-snug line-clamp-2">
+      {{ course.name }}
+    </h3>
+
+    <p class="mt-2 text-sm text-slate-600 leading-relaxed line-clamp-2">
+      {{ course.short_description|default:course.description|truncatewords:22 }}
+    </p>
+
+    <!-- meta chips (simplified + consistent) -->
+    <div class="mt-4 flex flex-wrap gap-2 text-[11px]">
+      <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600">
+        <i class="fas fa-infinity text-[10px] {{ accent_text }}"></i> Lifetime access
+      </span>
+
+      <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600">
+        <i class="fas fa-layer-group text-[10px] text-slate-400"></i> {{ course.get_lesson_count }} lessons
+      </span>
+
+      <span class="inline-flex items-center gap-2 rounded-full border {{ accent_border }} {{ accent_bg }} px-3 py-1 text-[11px] font-semibold {{ accent_text }}">
+        <i class="fas fa-certificate text-[10px]"></i>
+        {% if course.is_accredible_certified %}Certification{% else %}Certificate{% endif %}
+      </span>
+    </div>
+
+    <!-- divider -->
+    <div class="mt-5 h-px bg-slate-100"></div>
+
+    <!-- footer actions -->
+    <div class="mt-4 flex items-center justify-between">
+      <div class="text-xs text-slate-500">
+        <span class="inline-flex items-center gap-2">
+          <i class="fas fa-star text-[10px] text-amber-400"></i>
+          Popular pick
+        </span>
+      </div>
+
+      <a href="{% url 'course_detail' course.slug %}"
+         class="inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-xs font-extrabold {{ accent_text }} transition
+                hover:opacity-90 focus:outline-none focus:ring-4 focus:ring-teal-soft/15">
+        View course
+        <i class="fas fa-arrow-right text-[10px]"></i>
+      </a>
+    </div>
+  </div>
+</article>
+

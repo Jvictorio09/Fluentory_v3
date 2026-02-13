@@ -1,117 +1,141 @@
-<!-- Right Column: AI Lesson Coach - Modern Chatbot Interface -->
-<!-- Mobile: Hidden (use floating chat head instead) -->
-<!-- Desktop: Fixed to right viewport edge -->
+<!-- Right Column: AI Lesson Coach - Premium Interface -->
 <div class="hidden lg:block lg:fixed lg:right-0 lg:top-24 lg:w-[20%] lg:z-40 sidebar-right-desktop">
-    <div class="bg-[#ffffff]/90 backdrop-blur-md border border-teal-soft/10 rounded-xl lg:rounded-l-xl lg:rounded-r-none lg:sticky lg:top-24 lg:h-[calc(100vh-6rem)] lg:overflow-hidden flex flex-col sidebar-scroll border-r lg:border-r-0">
-        <!-- Chat Header -->
-        <div class="flex items-center gap-3 px-4 py-3 border-b border-teal-soft/10 bg-gradient-to-r from-teal-soft/5 to-transparent">
-            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-teal-soft via-blue-soft to-teal-soft flex items-center justify-center shadow-lg shadow-teal-soft/20 flex-shrink-0">
-                {% if lesson.ai_chatbot_enabled and lesson.ai_chatbot_training_status == 'trained' %}
-                <i class="fas fa-robot text-white text-xs"></i>
-                {% else %}
-                <i class="fas fa-sparkles text-white text-xs"></i>
-                {% endif %}
+    <div class="bg-white border border-slate-200 rounded-xl lg:rounded-l-xl lg:rounded-r-none lg:sticky lg:top-24
+                lg:h-[calc(100vh-6rem)] lg:overflow-hidden flex flex-col shadow-sm">
+  
+      <!-- Chat Header (clean, not neon) -->
+      <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-200 bg-slate-50">
+        <div class="w-9 h-9 rounded-2xl bg-slate-900 flex items-center justify-center shadow-sm flex-shrink-0">
+          {% if lesson.ai_chatbot_enabled and lesson.ai_chatbot_training_status == 'trained' %}
+            <i class="fas fa-robot text-white text-xs"></i>
+          {% else %}
+            <i class="fas fa-sparkles text-white text-xs"></i>
+          {% endif %}
+        </div>
+  
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-extrabold text-slate-900 truncate leading-tight">
+            {% if lesson.ai_chatbot_enabled and lesson.ai_chatbot_training_status == 'trained' %}
+              Lesson AI Assistant
+            {% else %}
+              {{ course.coach_name }}
+            {% endif %}
+          </div>
+  
+          <div class="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            {% if lesson.ai_chatbot_enabled and lesson.ai_chatbot_training_status == 'trained' %}
+              <span>Trained on this lesson</span>
+            {% else %}
+              <span>Online</span>
+            {% endif %}
+          </div>
+        </div>
+  
+        <button class="w-8 h-8 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center
+                       text-slate-500 hover:text-slate-700 transition-all"
+                id="clear-chat" title="Clear chat">
+          <i class="fas fa-trash-alt text-[11px]"></i>
+        </button>
+      </div>
+  
+      <!-- Chat Messages -->
+      <div id="chat-messages" class="flex-1 overflow-y-auto px-3 py-4 space-y-5 sidebar-scroll bg-white">
+        <!-- Welcome Message -->
+        <div class="chat-message ai-message">
+          <div class="flex items-start gap-2.5">
+            <div class="w-7 h-7 rounded-2xl bg-slate-900 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i class="fas fa-sparkles text-white text-[10px]"></i>
             </div>
+  
             <div class="flex-1 min-w-0">
-                <div class="text-sm font-bold text-gray-700 text-white truncate leading-tight">
-                    {% if lesson.ai_chatbot_enabled and lesson.ai_chatbot_training_status == 'trained' %}
-                    Lesson AI Assistant
-                    {% else %}
-                    {{ course.coach_name }}
-                    {% endif %}
-                </div>
-                <div class="text-[11px] text-teal-soft/70 flex items-center gap-1 mt-0.5">
-                    <span class="w-1.5 h-1.5 rounded-full bg-teal-soft animate-pulse"></span>
-                    {% if lesson.ai_chatbot_enabled and lesson.ai_chatbot_training_status == 'trained' %}
-                    <span>Trained on this lesson</span>
-                    {% else %}
-                    Online
-                    {% endif %}
-                </div>
-            </div>
-            <button class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-teal-soft/70 hover:text-teal-soft transition-all" id="clear-chat" title="Clear chat">
-                <i class="fas fa-trash-alt text-[10px]"></i>
-            </button>
-        </div>
-        
-        <!-- Chat Messages Area -->
-        <div id="chat-messages" class="flex-1 overflow-y-auto px-3 py-4 space-y-5 sidebar-scroll">
-            <!-- Welcome Message -->
-            <div class="chat-message ai-message">
-                <div class="flex items-start gap-2.5">
-                    <div class="w-6 h-6 rounded-full bg-gradient-to-br from-teal-soft to-blue-soft flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <i class="fas fa-sparkles text-white text-[9px]"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="bg-[#0d1230] border border-teal-soft/15 rounded-2xl rounded-tl-md px-3.5 py-3">
-                            {% if lesson.ai_chatbot_enabled and lesson.ai_chatbot_training_status == 'trained' %}
-                            <p class="text-[13px] text-gray-200 leading-[1.6]">
-                                Hi! I'm your AI Assistant for this lesson. I've been trained on the lesson content and can answer your questions!
-                            </p>
-                            <p class="text-[13px] text-gray-200 leading-[1.6] mt-2">
-                                Ask me anything about this specific lesson, or try one of the suggestions below.
-                            </p>
-                            {% else %}
-                            <p class="text-[13px] text-gray-200 leading-[1.6]">
-                                Hi! I'm your AI Lesson Coach. I'm wired to this program and your lesson history.
-                            </p>
-                            <p class="text-[13px] text-gray-200 leading-[1.6] mt-2">
-                                Ask me anything about this lesson, or try one of the suggestions below.
-                            </p>
-                            {% endif %}
-                        </div>
-                        <div class="text-[10px] text-gray-500 mt-1.5 ml-1">Just now</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Quick Action Suggestions -->
-            <div id="quick-suggestions" class="space-y-1.5 ml-8">
-                {% if lesson.get_coach_actions_list %}
-                    {% for action in lesson.get_coach_actions_list %}
-                    <button class="quick-suggestion-btn w-full text-left px-3 py-2 bg-teal-soft/5 border border-teal-soft/15 rounded-lg hover:bg-teal-soft/15 hover:border-teal-soft/30 transition-all text-[11px] font-medium text-teal-soft/80 hover:text-teal-soft" data-action-text="{{ action|escapejs }}">
-                        <i class="fas fa-lightbulb mr-1.5 text-[10px]"></i>{{ action }}
-                    </button>
-                    {% endfor %}
+              <!-- premium bubble: light, readable -->
+              <div class="bg-slate-50 border border-slate-200 rounded-2xl rounded-tl-md px-3.5 py-3">
+                {% if lesson.ai_chatbot_enabled and lesson.ai_chatbot_training_status == 'trained' %}
+                  <p class="text-[13px] text-slate-700 leading-[1.6]">
+                    Hi! I'm your AI Assistant for this lesson. I’ve been trained on the lesson content and can answer your questions.
+                  </p>
+                  <p class="text-[13px] text-slate-700 leading-[1.6] mt-2">
+                    Ask me anything about this lesson, or try one of the suggestions below.
+                  </p>
                 {% else %}
-                    <!-- Fallback to default suggestions if no coach actions are set -->
-                    <button class="quick-suggestion-btn w-full text-left px-3 py-2 bg-teal-soft/5 border border-teal-soft/15 rounded-lg hover:bg-teal-soft/15 hover:border-teal-soft/30 transition-all text-[11px] font-medium text-teal-soft/80 hover:text-teal-soft" data-action="bullet-summary">
-                        <i class="fas fa-list-ul mr-1.5 text-[10px]"></i>5-bullet summary
-                    </button>
-                    <button class="quick-suggestion-btn w-full text-left px-3 py-2 bg-teal-soft/5 border border-teal-soft/15 rounded-lg hover:bg-teal-soft/15 hover:border-teal-soft/30 transition-all text-[11px] font-medium text-teal-soft/80 hover:text-teal-soft" data-action="action-plan">
-                        <i class="fas fa-tasks mr-1.5 text-[10px]"></i>3-step action plan
-                    </button>
-                    <button class="quick-suggestion-btn w-full text-left px-3 py-2 bg-teal-soft/5 border border-teal-soft/15 rounded-lg hover:bg-teal-soft/15 hover:border-teal-soft/30 transition-all text-[11px] font-medium text-teal-soft/80 hover:text-teal-soft" data-action="delegate-instructions">
-                        <i class="fas fa-users mr-1.5 text-[10px]"></i>Delegation guide
-                    </button>
+                  <p class="text-[13px] text-slate-700 leading-[1.6]">
+                    Hi! I'm your AI Lesson Coach. I’m wired to this program and your lesson history.
+                  </p>
+                  <p class="text-[13px] text-slate-700 leading-[1.6] mt-2">
+                    Ask me anything about this lesson, or try one of the suggestions below.
+                  </p>
                 {% endif %}
+              </div>
+  
+              <div class="text-[10px] text-slate-400 mt-1.5 ml-1">Just now</div>
             </div>
+          </div>
         </div>
-        
-        <!-- Chat Input Area -->
-        <div class="border-t border-teal-soft/10 bg-[#080b1e] p-3">
-            <div class="flex items-end gap-2">
-                <textarea 
-                    id="chat-input" 
-                    rows="1" 
-                    placeholder="Ask me anything..." 
-                    class="flex-1 bg-[#0d1230] border border-teal-soft/15 rounded-xl px-3.5 py-2.5 text-[13px] text-white placeholder-gray-500 focus:outline-none focus:border-teal-soft/40 focus:ring-1 focus:ring-teal-soft/15 resize-none transition-all leading-[1.5]"
-                    style="min-height: 40px; max-height: 100px;"
-                ></textarea>
-                <button 
-                    id="send-message" 
-                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-soft to-blue-soft hover:from-teal-soft/90 hover:to-blue-soft/90 flex items-center justify-center text-white shadow-lg shadow-teal-soft/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
-                    title="Send message"
-                >
-                    <i class="fas fa-paper-plane text-sm"></i>
-                </button>
-            </div>
-            <div class="flex items-center justify-center mt-2">
-                <div class="text-[10px] text-gray-500 flex items-center gap-1.5">
-                    <i class="fas fa-keyboard text-[8px]"></i>
-                    Enter to send · Shift+Enter for new line
-                </div>
-            </div>
+  
+        <!-- Quick Suggestions (neutral pills, subtle teal) -->
+        <div id="quick-suggestions" class="space-y-1.5 ml-9">
+          {% if lesson.get_coach_actions_list %}
+            {% for action in lesson.get_coach_actions_list %}
+              <button
+                class="quick-suggestion-btn w-full text-left px-3 py-2 rounded-xl border border-slate-200 bg-white
+                       hover:bg-slate-50 hover:border-slate-300 transition-all text-[11px] font-semibold text-slate-700"
+                data-action-text="{{ action|escapejs }}">
+                <i class="fas fa-lightbulb mr-1.5 text-[10px] text-teal-600"></i>{{ action }}
+              </button>
+            {% endfor %}
+          {% else %}
+            <button class="quick-suggestion-btn w-full text-left px-3 py-2 rounded-xl border border-slate-200 bg-white
+                           hover:bg-slate-50 hover:border-slate-300 transition-all text-[11px] font-semibold text-slate-700"
+                    data-action="bullet-summary">
+              <i class="fas fa-list-ul mr-1.5 text-[10px] text-teal-600"></i>5-bullet summary
+            </button>
+  
+            <button class="quick-suggestion-btn w-full text-left px-3 py-2 rounded-xl border border-slate-200 bg-white
+                           hover:bg-slate-50 hover:border-slate-300 transition-all text-[11px] font-semibold text-slate-700"
+                    data-action="action-plan">
+              <i class="fas fa-tasks mr-1.5 text-[10px] text-teal-600"></i>3-step action plan
+            </button>
+  
+            <button class="quick-suggestion-btn w-full text-left px-3 py-2 rounded-xl border border-slate-200 bg-white
+                           hover:bg-slate-50 hover:border-slate-300 transition-all text-[11px] font-semibold text-slate-700"
+                    data-action="delegate-instructions">
+              <i class="fas fa-users mr-1.5 text-[10px] text-teal-600"></i>Delegation guide
+            </button>
+          {% endif %}
         </div>
+      </div>
+  
+      <!-- Input (enterprise: light input + dark send) -->
+      <div class="border-t border-slate-200 bg-white p-3">
+        <div class="flex items-end gap-2">
+          <textarea
+            id="chat-input"
+            rows="1"
+            placeholder="Ask me anything…"
+            class="flex-1 bg-white border border-slate-200 rounded-2xl px-3.5 py-2.5 text-[13px] text-slate-900
+                   placeholder:text-slate-400 focus:outline-none focus:border-teal-500/60 focus:ring-4 focus:ring-teal-500/10
+                   resize-none transition-all leading-[1.5]"
+            style="min-height: 40px; max-height: 100px;"
+          ></textarea>
+  
+          <button
+            id="send-message"
+            class="w-10 h-10 rounded-2xl bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-white
+                   shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
+            title="Send message">
+            <i class="fas fa-paper-plane text-sm"></i>
+          </button>
+        </div>
+  
+        <div class="flex items-center justify-center mt-2">
+          <div class="text-[10px] text-slate-400 flex items-center gap-1.5">
+            <i class="fas fa-keyboard text-[8px]"></i>
+            Enter to send · Shift+Enter for new line
+          </div>
+        </div>
+      </div>
+  
     </div>
-</div>
+  </div>
+  

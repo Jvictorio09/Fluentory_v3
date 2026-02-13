@@ -1,57 +1,107 @@
-<!-- Left Column: Syllabus / Module Navigation - Stuck to Left Edge -->
-<!-- Mobile/Tablet: Normal flow -->
-<!-- Desktop: Fixed to left viewport edge -->
 <div class="w-full lg:fixed lg:left-0 lg:top-24 lg:w-[20%] lg:z-40 mb-6 lg:mb-0 sidebar-left-desktop">
-    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl lg:rounded-r-xl lg:rounded-l-none p-6 lg:sticky lg:top-24 lg:h-[calc(100vh-6rem)] lg:overflow-y-auto sidebar-scroll border-l lg:border-l-0">
-        <!-- Program Info -->
-        <div class="mb-6">
-            <div class="text-xs uppercase tracking-widest text-teal-soft/70 font-semibold text-gray-700 mb-1">Program</div>
-            <div class="font-bold text-lg mb-3">{{ course.name }}</div>
-            <div class="w-full bg-gray-700/30 rounded-full h-2 mb-2">
-                <div class="bg-teal-soft h-2 rounded-full transition-all duration-500" style="width: {{ progress_percentage }}%"></div>
-            </div>
-            <div class="text-xs text-gray-700">{{ progress_percentage }}% Complete</div>
+    <div class="bg-white border border-slate-200 rounded-xl lg:rounded-r-xl lg:rounded-l-none 
+                p-6 lg:sticky lg:top-24 lg:h-[calc(100vh-6rem)] lg:overflow-y-auto 
+                sidebar-scroll shadow-sm">
+  
+      <!-- Program Info -->
+      <div class="mb-8">
+        <div class="text-[11px] uppercase tracking-[0.28em] text-slate-400 font-semibold mb-1">
+          Program
         </div>
-        
-        <!-- Modules -->
-        <div class="space-y-4">
-            {% for module in course.modules.all %}
-            <div>
-                <button class="w-full flex items-center justify-between text-left font-semibold text-gray-700 text-sm mb-2 hover:text-teal-soft transition-colors module-toggle" data-module="{{ module.id }}">
-                    <span>{{ module.name }}</span>
-                    <i class="fas fa-chevron-down text-xs text-gray-500 transition-transform"></i>
-                </button>
-                <div class="module-content pl-4 space-y-2" data-module="{{ module.id }}">
-                    {% for module_lesson in module.lessons.all %}
-                    {% if module_lesson.id in accessible_lessons %}
-                    <a href="{% url 'lesson_detail' course.slug module_lesson.slug %}" class="flex items-center gap-3 py-2 px-3 rounded-lg transition-all
-                        {% if module_lesson.id == lesson.id %}bg-teal-soft/20 border-l-2 border-teal-soft{% else %}hover:bg-teal-soft/5{% endif %}">
-                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
-                            {% if module_lesson.id == lesson.id %}bg-teal-soft text-[#ffffff]{% else %}bg-gray-700 text-gray-700{% endif %}">
-                            {{ forloop.counter }}
-                        </div>
-                        <span class="flex-1 text-sm {% if module_lesson.id == lesson.id %}font-semibold text-gray-700 text-teal-soft{% else %}text-gray-700{% endif %}">
-                            {{ module_lesson.title }}
-                        </span>
-                        {% if module_lesson.id in completed_lessons %}
-                        <i class="fas fa-check-circle text-green-400"></i>
-                        {% endif %}
-                    </a>
-                    {% else %}
-                    <div class="flex items-center gap-3 py-2 px-3 rounded-lg opacity-50 cursor-not-allowed">
-                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-gray-800 text-gray-600">
-                            {{ forloop.counter }}
-                        </div>
-                        <span class="flex-1 text-sm text-gray-500">
-                            {{ module_lesson.title }}
-                        </span>
-                        <i class="fas fa-lock text-gray-600" title="Complete previous lessons to unlock"></i>
-                    </div>
-                    {% endif %}
-                    {% endfor %}
-                </div>
+  
+        <div class="font-extrabold text-lg text-slate-900 mb-4">
+          {{ course.name }}
+        </div>
+  
+        <!-- Progress Bar -->
+        <div class="w-full bg-slate-100 rounded-full h-2 mb-2">
+          <div class="bg-gradient-to-r from-teal-500 to-cyan-500 
+                      h-2 rounded-full transition-all duration-500"
+               style="width: {{ progress_percentage }}%"></div>
+        </div>
+  
+        <div class="text-xs text-slate-500 font-medium">
+          {{ progress_percentage }}% Complete
+        </div>
+      </div>
+  
+      <!-- Modules -->
+      <div class="space-y-6">
+        {% for module in course.modules.all %}
+        <div>
+          <!-- Module Header -->
+          <button class="w-full flex items-center justify-between text-left 
+                         font-semibold text-slate-700 text-sm mb-3 
+                         hover:text-slate-900 transition-colors module-toggle"
+                  data-module="{{ module.id }}">
+  
+            <span class="tracking-tight">{{ module.name }}</span>
+  
+            <i class="fas fa-chevron-down text-xs text-slate-400 transition-transform"></i>
+          </button>
+  
+          <!-- Lessons -->
+          <div class="module-content pl-2 space-y-1" data-module="{{ module.id }}">
+            {% for module_lesson in module.lessons.all %}
+  
+            {% if module_lesson.id in accessible_lessons %}
+            <a href="{% url 'lesson_detail' course.slug module_lesson.slug %}"
+               class="group flex items-center gap-3 py-2 px-3 rounded-lg 
+                      transition-all duration-200
+                      {% if module_lesson.id == lesson.id %}
+                        bg-slate-100 border-l-2 border-teal-500
+                      {% else %}
+                        hover:bg-slate-50
+                      {% endif %}">
+  
+              <!-- Number Circle -->
+              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold
+                          {% if module_lesson.id == lesson.id %}
+                            bg-teal-500 text-white
+                          {% else %}
+                            bg-slate-200 text-slate-600 group-hover:bg-slate-300
+                          {% endif %}">
+                {{ forloop.counter }}
+              </div>
+  
+              <!-- Title -->
+              <span class="flex-1 text-sm
+                           {% if module_lesson.id == lesson.id %}
+                             font-semibold text-teal-600
+                           {% else %}
+                             text-slate-600 group-hover:text-slate-900
+                           {% endif %}">
+                {{ module_lesson.title }}
+              </span>
+  
+              <!-- Completed Icon -->
+              {% if module_lesson.id in completed_lessons %}
+              <i class="fas fa-check-circle text-emerald-500 text-sm"></i>
+              {% endif %}
+            </a>
+  
+            {% else %}
+            <!-- Locked -->
+            <div class="flex items-center gap-3 py-2 px-3 rounded-lg opacity-50 cursor-not-allowed">
+  
+              <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold
+                          bg-slate-200 text-slate-400">
+                {{ forloop.counter }}
+              </div>
+  
+              <span class="flex-1 text-sm text-slate-400">
+                {{ module_lesson.title }}
+              </span>
+  
+              <i class="fas fa-lock text-slate-400 text-xs"></i>
             </div>
+            {% endif %}
+  
             {% endfor %}
+          </div>
         </div>
+        {% endfor %}
+      </div>
     </div>
-</div>
+  </div>
+  
