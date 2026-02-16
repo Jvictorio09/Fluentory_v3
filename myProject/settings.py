@@ -15,20 +15,33 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-7-9br=zyg7m$!ewa^nlsg+&#e+ux^s00ffn2nh13xl-cvuui@u')
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    raise ImproperlyConfigured(
+        "SECRET_KEY environment variable is required. "
+        "Set it in your .env or environment variables."
+    )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Default to False for production safety
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'kane-sproject-production.up.railway.app', 'danielwoodcourses-production.up.railway.app', 'edmarincourse-production.up.railway.app']
+# Allow configuration via environment variable (comma-separated)
+# Default hosts for backward compatibility
+default_hosts = ['localhost', '127.0.0.1', 'kane-sproject-production.up.railway.app', 'danielwoodcourses-production.up.railway.app', 'edmarincourse-production.up.railway.app', 'fluentoryv3-production.up.railway.app']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', ','.join(default_hosts)).split(',')
 
-CSRF_TRUSTED_ORIGINS = [
+# CSRF trusted origins - can be configured via environment variable
+default_origins = [
     'http://localhost',
     'https://localhost',
     'https://kane-sproject-production.up.railway.app',
     'https://danielwoodcourses-production.up.railway.app',
     'https://edmarincourse-production.up.railway.app',
+    'https://fluentoryv3-production.up.railway.app',
 ]
+csrf_origins_env = os.getenv('CSRF_TRUSTED_ORIGINS')
+CSRF_TRUSTED_ORIGINS = csrf_origins_env.split(',') if csrf_origins_env else default_origins
 
 # Application definition
 
@@ -44,6 +57,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -137,6 +151,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
+# WhiteNoise configuration for static file serving
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = 'media/'
