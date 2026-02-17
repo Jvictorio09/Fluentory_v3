@@ -470,7 +470,7 @@ def register_view(request):
                 )
                 # Automatically log in the user
                 login(request, user)
-                messages.success(request, 'Account created successfully! Welcome to PrimoLearn.')
+                messages.success(request, 'Account created successfully! Welcome to Fluentory.')
                 
                 # If registering with a gift, redirect to redeem
                 gift_token = request.GET.get('gift')
