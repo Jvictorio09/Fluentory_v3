@@ -40,10 +40,10 @@
                 <div id="quiz-result" class="mb-8 p-6 rounded-2xl border-2 {% if result.passed %}border-green-500/50 bg-gradient-to-br from-green-500/20 to-green-600/10{% else %}border-yellow-500/50 bg-gradient-to-br from-yellow-500/20 to-yellow-600/10{% endif %} backdrop-blur-sm">
                     <div class="flex items-start gap-4">
                         <div class="w-16 h-16 rounded-full {% if result.passed %}bg-green-500/20 border-2 border-green-400{% else %}bg-yellow-500/20 border-2 border-yellow-400{% endif %} flex items-center justify-center flex-shrink-0">
-                            <i class="fas {% if result.passed %}fa-check-circle text-green-400{% else %}fa-exclamation-circle text-yellow-400{% endif %} text-3xl"></i>
+                            <i class="fas {% if result.passed %}fa-check-circle text-gray-700{% else %}fa-exclamation-circle text-black-400{% endif %} text-3xl"></i>
                         </div>
                         <div class="flex-1">
-                            <h2 class="text-2xl font-bold mb-2 text-black {% if result.passed %}text-green-400{% else %}text-yellow-400{% endif %}">
+                            <h2 class="text-2xl font-bold mb-2 text-black {% if result.passed %}text-gray-700{% else %}text-black-400{% endif %}">
                                 {% if result.passed %}
                                     🎉 Congratulations! You Passed!
                                 {% else %}
@@ -52,7 +52,7 @@
                             </h2>
                             <div class="space-y-2">
                                 <div class="text-lg text-white">
-                                    Score: <span class="font-bold {% if result.passed %}text-green-400{% else %}text-yellow-400{% endif %}">{{ result.score }}%</span>
+                                    Score: <span class="font-bold {% if result.passed %}text-gray-700{% else %}text-black-400{% endif %}">{{ result.score }}%</span>
                                 </div>
                                 <div class="text-gray-700">
                                     {{ result.correct }} out of {{ result.total }} questions correct
@@ -97,33 +97,33 @@
                                 </div>
                                 <div class="space-y-3">
                                     <label class="flex items-start gap-3 p-3 rounded-lg border border-teal-soft/20 hover:border-teal-soft/40 hover:bg-teal-soft/5 cursor-pointer transition-all group">
-                                        <input type="radio" name="q_{{ question.id }}" value="A" class="mt-1 text-teal-soft focus:ring-teal-soft" required>
+                                        <input type="radio" name="q_{{ question.id }}" value="A" class="mt-1 text-black focus:ring-teal-soft" required>
                                         <div class="flex-1">
-                                            <span class="font-medium text-teal-soft/70 group-hover:text-teal-soft">A.</span>
+                                            <span class="font-medium text-black/70 group-hover:text-black">A.</span>
                                             <span class="text-gray-700 ml-2">{{ question.option_a }}</span>
                                         </div>
                                     </label>
                                     <label class="flex items-start gap-3 p-3 rounded-lg border border-teal-soft/20 hover:border-teal-soft/40 hover:bg-teal-soft/5 cursor-pointer transition-all group">
-                                        <input type="radio" name="q_{{ question.id }}" value="B" class="mt-1 text-teal-soft focus:ring-teal-soft">
+                                        <input type="radio" name="q_{{ question.id }}" value="B" class="mt-1 text-black focus:ring-teal-soft">
                                         <div class="flex-1">
-                                            <span class="font-medium text-teal-soft/70 group-hover:text-teal-soft">B.</span>
+                                            <span class="font-medium text-black/70 group-hover:text-black">B.</span>
                                             <span class="text-gray-700 ml-2">{{ question.option_b }}</span>
                                         </div>
                                     </label>
                                     {% if question.option_c %}
                                     <label class="flex items-start gap-3 p-3 rounded-lg border border-teal-soft/20 hover:border-teal-soft/40 hover:bg-teal-soft/5 cursor-pointer transition-all group">
-                                        <input type="radio" name="q_{{ question.id }}" value="C" class="mt-1 text-teal-soft focus:ring-teal-soft">
+                                        <input type="radio" name="q_{{ question.id }}" value="C" class="mt-1 text-black focus:ring-teal-soft">
                                         <div class="flex-1">
-                                            <span class="font-medium text-teal-soft/70 group-hover:text-teal-soft">C.</span>
+                                            <span class="font-medium text-black/70 group-hover:text-black">C.</span>
                                             <span class="text-gray-700 ml-2">{{ question.option_c }}</span>
                                         </div>
                                     </label>
                                     {% endif %}
                                     {% if question.option_d %}
                                     <label class="flex items-start gap-3 p-3 rounded-lg border border-teal-soft/20 hover:border-teal-soft/40 hover:bg-teal-soft/5 cursor-pointer transition-all group">
-                                        <input type="radio" name="q_{{ question.id }}" value="D" class="mt-1 text-teal-soft focus:ring-teal-soft">
+                                        <input type="radio" name="q_{{ question.id }}" value="D" class="mt-1 text-black focus:ring-teal-soft">
                                         <div class="flex-1">
-                                            <span class="font-medium text-teal-soft/70 group-hover:text-teal-soft">D.</span>
+                                            <span class="font-medium text-black/70 group-hover:text-black">D.</span>
                                             <span class="text-gray-700 ml-2">{{ question.option_d }}</span>
                                         </div>
                                     </label>
@@ -135,7 +135,7 @@
                     {% endfor %}
 
                     <div class="flex items-center justify-between mt-8 pt-6 border-t border-teal-soft/10">
-                        <a href="{% url 'lesson_detail' course.slug lesson.slug %}" class="px-5 py-3 rounded-xl border border-teal-soft/30 text-teal-soft font-semibold text-gray-700 hover:bg-teal-soft/10 transition-all flex items-center gap-2">
+                        <a href="{% url 'lesson_detail' course.slug lesson.slug %}" class="px-5 py-3 rounded-xl border border-teal-soft/30 text-black font-semibold text-gray-700 hover:bg-teal-soft/10 transition-all flex items-center gap-2">
                             <i class="fas fa-arrow-left"></i>
                             <span>Back to Lesson</span>
                         </a>

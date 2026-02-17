@@ -101,7 +101,7 @@
           <div class="mx-auto inline-flex items-center justify-center">
             <!-- Replace with PrimoLearn logo -->
             <img
-              src="https://res.cloudinary.com/dcuswyfur/image/upload/v1770713188/PrimoLearn-logo-small_zhxpd9.webp"
+              src="https://res.cloudinary.com/dwooadxdj/image/upload/v1771294639/copy_of_copy_of_fluentory_-_branding-05_ijgdpz_a6f568_7b4fc3.png"
               alt="PrimoLearn"
               class="h-16 w-auto"
               loading="eager"
@@ -114,7 +114,7 @@
 
           <!-- Trust pill -->
           <div class="mx-auto mt-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-1.5 text-[11px] font-semibold text-gray-700 text-slate-700 shadow-sm backdrop-blur">
-            <i class="fas fa-shield-check text-teal-soft"></i>
+            <i class="fas fa-shield-check text-black"></i>
             Lifetime access • Accredited certifications
           </div>
         </div>
@@ -125,12 +125,12 @@
           <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-teal-soft/40 to-transparent"></div>
 
           <div class="relative p-7 sm:p-8">
-            <!-- Errors -->
+            <!-- Messages -->
             {% if messages %}
               <div class="mb-5 space-y-2">
                 {% for message in messages %}
-                  <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-start gap-3">
-                    <i class="fas fa-circle-exclamation mt-0.5"></i>
+                  <div class="rounded-2xl border {% if message.tags == 'error' %}border-red-200 bg-red-50 text-red-700{% elif message.tags == 'success' %}border-green-200 bg-green-50 text-green-700{% else %}border-blue-200 bg-blue-50 text-blue-700{% endif %} px-4 py-3 text-sm flex items-start gap-3">
+                    <i class="fas {% if message.tags == 'error' %}fa-circle-exclamation{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %} mt-0.5"></i>
                     <span>{{ message }}</span>
                   </div>
                 {% endfor %}
@@ -195,11 +195,11 @@
                   <input
                     type="checkbox"
                     name="remember"
-                    class="h-4 w-4 rounded border-slate-300 text-teal-soft focus:ring-teal-soft/30"
+                    class="h-4 w-4 rounded border-slate-300 text-black focus:ring-teal-soft/30"
                   />
                   Remember me
                 </label>
-                <a href="#" class="text-sm font-semibold text-gray-700 text-blue-soft hover:text-teal-soft transition">
+                <a href="#" class="text-sm font-semibold text-gray-700 text-blue-soft hover:text-black transition">
                   Forgot password?
                 </a>
               </div>
@@ -232,10 +232,20 @@
 
             <!-- Create account -->
             <div class="text-center">
-              <a href="#" class="inline-flex items-center gap-2 text-sm font-semibold text-gray-700 text-blue-soft hover:text-teal-soft transition">
+              <a href="{% url 'register' %}" class="group inline-flex items-center gap-2 rounded-2xl border border-teal-soft/30 bg-teal-soft/10 px-6 py-3 text-sm font-extrabold text-teal-soft transition hover:bg-teal-soft/20 hover:border-teal-soft/50 hover:-translate-y-0.5 hover:shadow-lg">
+                <i class="fas fa-user-plus text-xs"></i>
                 Create an account
-                <i class="fas fa-arrow-right text-xs"></i>
+                <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
               </a>
+              
+              <!-- Register as Teacher Link -->
+              <div class="mt-4">
+                <a href="{% url 'register_teacher' %}" class="text-sm text-slate-600 hover:text-slate-800 transition inline-flex items-center gap-2">
+                  <i class="fas fa-chalkboard-teacher text-xs"></i>
+                  Register as a Teacher
+                  <i class="fas fa-arrow-right text-xs"></i>
+                </a>
+              </div>
             </div>
 
             {% if user.is_authenticated %}
@@ -244,7 +254,7 @@
                   <i class="fas fa-circle-info mr-2"></i>
                   You're already logged in as <strong>{{ user.username }}</strong>
                 </p>
-                <a href="{% url 'logout' %}" class="mt-2 inline-block text-xs font-semibold text-gray-700 text-blue-soft hover:text-teal-soft transition underline">
+                <a href="{% url 'logout' %}" class="mt-2 inline-block text-xs font-semibold text-gray-700 text-blue-soft hover:text-black transition underline">
                   Log out to sign in as a different user
                 </a>
               </div>

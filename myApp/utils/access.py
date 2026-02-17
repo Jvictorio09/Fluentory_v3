@@ -233,3 +233,46 @@ def grant_cohort_access(user, cohort):
     # For now, return empty list
     return []
 
+
+def grant_purchase_access(user, course, purchase):
+    """
+    Grant course access based on a purchase.
+    Creates/updates CourseAccess as active with access_type='purchase' and no expiry.
+    
+    Args:
+        user: User who made the purchase
+        course: Course that was purchased
+        purchase: CoursePurchase object
+    
+    Returns:
+        CourseAccess object
+    """
+    # Check if access already exists for this purchase
+    existing_access = CourseAccess.objects.filter(
+        user=user,
+        course=course,
+        course_purchase=purchase
+    ).first()
+    
+    if existing_access:
+        # Update existing access to unlocked if it was pending
+        if existing_access.status != 'unlocked':
+            existing_access.status = 'unlocked'
+            existing_access.save()
+        return existing_access
+    
+    # Create new access record
+    access = grant_course_access(
+        user=user,
+        course=course,
+        access_type='purchase',
+        purchase_id=purchase.provider_id or str(purchase.id),
+        expires_at=None,  # Lifetime access - no expiry
+        notes=f"Granted via purchase: {purchase.provider or 'manual'} - {purchase.provider_id or purchase.id}"
+    )
+    
+    # Link to purchase
+    access.course_purchase = purchase
+    access.save()
+    
+    return access

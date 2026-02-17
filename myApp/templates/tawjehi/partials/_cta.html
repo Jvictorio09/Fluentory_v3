@@ -1,0 +1,29 @@
+<!-- CTA Section -->
+<section class="bg-gradient-to-br from-[#0c1b2a] to-[#1a2d42] py-20 lg:py-28 text-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-4xl sm:text-5xl font-bold mb-6">
+            Ready to Excel in Your Tawjehi Exams?
+        </h2>
+        <p class="text-xl text-white/80 mb-10 leading-relaxed">
+            Join thousands of students preparing for success. Start your journey today.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            {% if user.is_authenticated %}
+            <a href="{% url 'courses' %}" class="inline-flex items-center justify-center px-8 py-4 bg-[#c9a227] text-[#0c1b2a] rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 hover:bg-[#d4b03a]">
+                Browse All Courses
+                <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+            {% else %}
+            <a href="{% url 'register' %}" class="inline-flex items-center justify-center px-8 py-4 bg-[#c9a227] text-[#0c1b2a] rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 hover:bg-[#d4b03a]">
+                Get Started Free
+                <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+            <a href="{% url 'login' %}" class="inline-flex items-center justify-center px-8 py-4 bg-transparent border-2 border-white/30 text-white rounded-xl font-semibold text-lg hover:bg-white/10 hover:border-white/50 transition-all duration-300">
+                Already Have an Account?
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+

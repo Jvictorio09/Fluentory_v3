@@ -38,8 +38,8 @@
                 <p class="text-sm text-gray-700">Train an AI assistant for this lesson using the transcript</p>
             </div>
             <span class="px-3 py-1 rounded-full text-xs font-semibold text-gray-700
-                {% if lesson.ai_chatbot_training_status == 'trained' %}bg-green-500/20 text-green-400 border border-green-500/30
-                {% elif lesson.ai_chatbot_training_status == 'training' %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30
+                {% if lesson.ai_chatbot_training_status == 'trained' %}bg-green-500/20 text-gray-700 border border-green-500/30
+                {% elif lesson.ai_chatbot_training_status == 'training' %}bg-yellow-500/20 text-black-400 border border-yellow-500/30
                 {% elif lesson.ai_chatbot_training_status == 'failed' %}bg-red-500/20 text-red-400 border border-red-500/30
                 {% else %}bg-gray-500/20 text-gray-700 border border-gray-500/30{% endif %}">
                 {% if lesson.ai_chatbot_training_status == 'trained' %}
@@ -59,10 +59,10 @@
             <div>
                 <label class="block text-sm font-medium mb-2 text-gray-700">Lesson Transcript</label>
                 <div class="flex gap-2 mb-3">
-                    <button type="button" id="use-existing-transcript" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm hover:bg-teal-soft/20 transition-all text-teal-soft cursor-pointer" style="pointer-events: auto !important; z-index: 100; position: relative;" onclick="if(window.handleUseExistingTranscript){window.handleUseExistingTranscript(event);}else{alert('Function not loaded yet');} return false;">
+                    <button type="button" id="use-existing-transcript" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm hover:bg-teal-soft/20 transition-all text-black cursor-pointer" style="pointer-events: auto !important; z-index: 100; position: relative;" onclick="if(window.handleUseExistingTranscript){window.handleUseExistingTranscript(event);}else{alert('Function not loaded yet');} return false;">
                         <i class="fas fa-file-alt mr-2"></i> Use Existing Transcription
                     </button>
-                    <button type="button" id="upload-transcript" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm hover:bg-teal-soft/20 transition-all text-teal-soft cursor-pointer" style="pointer-events: auto !important; z-index: 100; position: relative;" onclick="if(window.handleUploadTranscript){window.handleUploadTranscript(event);}else{alert('Function not loaded yet');} return false;">
+                    <button type="button" id="upload-transcript" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm hover:bg-teal-soft/20 transition-all text-black cursor-pointer" style="pointer-events: auto !important; z-index: 100; position: relative;" onclick="if(window.handleUploadTranscript){window.handleUploadTranscript(event);}else{alert('Function not loaded yet');} return false;">
                         <i class="fas fa-upload mr-2"></i> Upload File
                     </button>
                 </div>
@@ -87,7 +87,7 @@
             <!-- Training Status Display -->
             {% if lesson.ai_chatbot_training_status == 'trained' %}
             <div class="bg-green-500/10 border border-green-500/30 rounded-lg p-4 mb-4">
-                <div class="flex items-center gap-2 text-green-400">
+                <div class="flex items-center gap-2 text-gray-700">
                     <i class="fas fa-check-circle"></i>
                     <div>
                         <p class="font-semibold text-gray-700">AI Chatbot trained successfully!</p>
@@ -142,7 +142,7 @@
             </div>
             {% elif lesson.ai_chatbot_training_status == 'training' %}
             <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
-                <div class="flex items-center gap-2 text-yellow-400">
+                <div class="flex items-center gap-2 text-black-400">
                     <i class="fas fa-spinner fa-spin"></i>
                     <span>Training in progress... This may take a few moments.</span>
                 </div>
@@ -187,6 +187,61 @@
 
     <form method="POST" id="ai-content-form">
         {% csrf_token %}
+        
+        <!-- Video URL Configuration Section (Inside Form) -->
+        <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6 mb-6">
+            <h3 class="text-lg font-bold mb-4">Video Source Configuration</h3>
+            
+            <div class="space-y-4">
+                <!-- Vimeo URL -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fab fa-vimeo mr-2 text-teal-soft"></i>Vimeo URL
+                    </label>
+                    <input 
+                        type="url" 
+                        name="vimeo_url" 
+                        id="vimeo-url-input"
+                        value="{{ lesson.vimeo_url }}"
+                        placeholder="https://vimeo.com/123456789"
+                        class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50"
+                    >
+                    <p class="text-xs text-gray-500 mt-1">Full Vimeo URL (e.g., https://vimeo.com/123456789)</p>
+                </div>
+                
+                <!-- Google Drive URL -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fab fa-google-drive mr-2 text-blue-soft"></i>Google Drive Embed URL
+                    </label>
+                    <input 
+                        type="url" 
+                        name="google_drive_url" 
+                        id="google-drive-url-input"
+                        value="{{ lesson.google_drive_url }}"
+                        placeholder="https://drive.google.com/file/d/FILE_ID/preview"
+                        class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50"
+                    >
+                    <p class="text-xs text-gray-500 mt-1">Google Drive embed URL (must end with /preview)</p>
+                </div>
+                
+                <!-- Generic Video URL (YouTube, etc.) -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-video mr-2 text-purple-soft"></i>Generic Video URL (YouTube, Direct Links, etc.)
+                    </label>
+                    <input 
+                        type="url" 
+                        name="video_url" 
+                        id="video-url-input"
+                        value="{{ lesson.video_url }}"
+                        placeholder="https://www.youtube.com/watch?v=VIDEO_ID or https://youtu.be/VIDEO_ID"
+                        class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50"
+                    >
+                    <p class="text-xs text-gray-500 mt-1">YouTube URL, direct video URL, or other video source</p>
+                </div>
+            </div>
+        </div>
         
         <!-- AI Generated Content Sections -->
         <div class="space-y-6">
@@ -264,7 +319,7 @@
                             <ul class="space-y-2">
                                 {% for outcome in lesson.get_outcomes_list %}
                                 <li class="flex items-start gap-2 text-gray-700">
-                                    <i class="fas fa-check-circle text-teal-soft mt-1"></i>
+                                    <i class="fas fa-check-circle text-black mt-1"></i>
                                     <span>{{ outcome }}</span>
                                 </li>
                                 {% endfor %}
@@ -300,6 +355,88 @@
                         <p class="text-gray-700">AI coach actions will appear here...</p>
                     {% endif %}
                 </div>
+            </div>
+
+            <!-- 6. Lesson Content Blocks (Editable) -->
+            <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold">6. Lesson Content Blocks</h3>
+                    <button type="button" id="add-content-block-btn" class="px-3 py-1 bg-teal-soft/10 border border-teal-soft/30 rounded-full text-xs font-medium hover:bg-teal-soft/20 transition-all">
+                        <i class="fas fa-plus mr-1"></i> Add Block
+                    </button>
+                </div>
+                <p class="text-sm text-gray-600 mb-4">Edit, reorder, or add new content blocks for this lesson.</p>
+                
+                <div id="content-blocks-container" class="space-y-4">
+                    {% if lesson.content and lesson.content.blocks %}
+                        {% for block in lesson.content.blocks %}
+                        <div class="content-block-item border border-teal-soft/20 rounded-lg p-4 bg-[#ffffff]/40" data-block-index="{{ forloop.counter0 }}">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-semibold text-teal-soft bg-teal-soft/10 px-2 py-1 rounded">{{ block.type|title }}</span>
+                                    <button type="button" class="move-block-up text-xs text-gray-600 hover:text-teal-soft" title="Move up">
+                                        <i class="fas fa-arrow-up"></i>
+                                    </button>
+                                    <button type="button" class="move-block-down text-xs text-gray-600 hover:text-teal-soft" title="Move down">
+                                        <i class="fas fa-arrow-down"></i>
+                                    </button>
+                                </div>
+                                <button type="button" class="delete-block text-xs text-red-600 hover:text-red-700" title="Delete block">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="block-content">
+                                {% if block.type == 'paragraph' %}
+                                    <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm resize-none" rows="3" data-field="text" placeholder="Enter paragraph text...">{{ block.data.text }}</textarea>
+                                {% elif block.type == 'header' %}
+                                    <div class="flex gap-2 mb-2">
+                                        <select class="block-input bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="level">
+                                            <option value="1" {% if block.data.level == 1 %}selected{% endif %}>H1</option>
+                                            <option value="2" {% if block.data.level == 2 %}selected{% endif %}>H2</option>
+                                            <option value="3" {% if block.data.level == 3 %}selected{% endif %}>H3</option>
+                                            <option value="4" {% if block.data.level == 4 %}selected{% endif %}>H4</option>
+                                        </select>
+                                        <input type="text" class="block-input flex-1 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="text" value="{{ block.data.text }}" placeholder="Enter header text...">
+                                    </div>
+                                {% elif block.type == 'list' %}
+                                    <div class="space-y-2">
+                                        <select class="block-input mb-2 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="style">
+                                            <option value="unordered" {% if block.data.style == 'unordered' or not block.data.style %}selected{% endif %}>Unordered List</option>
+                                            <option value="ordered" {% if block.data.style == 'ordered' %}selected{% endif %}>Ordered List</option>
+                                        </select>
+                                        <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm resize-none" rows="4" data-field="items" placeholder="Enter list items, one per line...">{% for item in block.data.items %}{{ item }}
+{% endfor %}</textarea>
+                                    </div>
+                                {% elif block.type == 'quote' %}
+                                    <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm resize-none mb-2" rows="3" data-field="text" placeholder="Enter quote text...">{{ block.data.text }}</textarea>
+                                    <input type="text" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="caption" value="{{ block.data.caption|default:'' }}" placeholder="Enter citation (optional)...">
+                                {% elif block.type == 'image' %}
+                                    <div class="space-y-2">
+                                        <input type="url" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="url" value="{% if block.data.file %}{{ block.data.file.url }}{% elif block.data.url %}{{ block.data.url }}{% endif %}" placeholder="Enter image URL...">
+                                        <input type="text" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="caption" value="{{ block.data.caption|default:'' }}" placeholder="Enter image caption (optional)...">
+                                        {% if block.data.file.url or block.data.url %}
+                                        <div class="mt-2">
+                                            <img src="{% if block.data.file %}{{ block.data.file.url }}{% elif block.data.url %}{{ block.data.url }}{% endif %}" alt="{{ block.data.caption|default:'Image' }}" class="max-w-xs rounded-lg border border-teal-soft/20">
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <div class="text-sm text-gray-600 p-2 bg-gray-100 rounded">
+                                        <strong>Type:</strong> {{ block.type }}<br>
+                                        <strong>Data:</strong> <pre class="text-xs mt-1">{{ block.data|safe }}</pre>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-gray-600 text-sm italic">No content blocks yet. Click "Add Block" to create one.</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Hidden input to store JSON data -->
+                <input type="hidden" name="content_blocks" id="content-blocks-json" value="">
             </div>
         </div>
 
@@ -477,6 +614,20 @@
         document.querySelectorAll('.edit-field-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const field = this.dataset.field;
+                
+                // Special handling for video_urls field
+                if (field === 'video_urls') {
+                    const display = document.getElementById('video-urls-display');
+                    const input = document.getElementById('video-urls-input');
+                    
+                    if (display && input) {
+                        display.classList.toggle('hidden');
+                        input.classList.toggle('hidden');
+                    }
+                    return;
+                }
+                
+                // Standard field handling
                 const display = document.getElementById(`${field.replace('_', '-')}-display`);
                 const input = document.getElementById(`${field.replace('_', '-')}-input`);
                 
@@ -824,6 +975,227 @@
         handleUploadTranscript: typeof window.handleUploadTranscript,
         handleTrainChatbot: typeof window.handleTrainChatbot
     });
+
+    // Content Blocks Management
+    function initContentBlocks() {
+        const container = document.getElementById('content-blocks-container');
+        const addBtn = document.getElementById('add-content-block-btn');
+        const form = document.getElementById('ai-content-form');
+        
+        if (!container || !addBtn) return;
+
+        // Add new block
+        addBtn.addEventListener('click', function() {
+            const blockType = prompt('Enter block type (paragraph, header, list, quote, image):', 'paragraph');
+            if (!blockType) return;
+            
+            const block = createBlockElement(blockType, {});
+            container.appendChild(block);
+            updateBlockIndices();
+            serializeBlocks();
+        });
+
+        // Delete block
+        container.addEventListener('click', function(e) {
+            if (e.target.closest('.delete-block')) {
+                if (confirm('Are you sure you want to delete this block?')) {
+                    e.target.closest('.content-block-item').remove();
+                    updateBlockIndices();
+                    serializeBlocks();
+                }
+            }
+        });
+
+        // Move block up
+        container.addEventListener('click', function(e) {
+            if (e.target.closest('.move-block-up')) {
+                const block = e.target.closest('.content-block-item');
+                const prev = block.previousElementSibling;
+                if (prev) {
+                    block.parentNode.insertBefore(block, prev);
+                    updateBlockIndices();
+                    serializeBlocks();
+                }
+            }
+        });
+
+        // Move block down
+        container.addEventListener('click', function(e) {
+            if (e.target.closest('.move-block-down')) {
+                const block = e.target.closest('.content-block-item');
+                const next = block.nextElementSibling;
+                if (next) {
+                    block.parentNode.insertBefore(next, block);
+                    updateBlockIndices();
+                    serializeBlocks();
+                }
+            }
+        });
+
+        // Update on input change
+        container.addEventListener('input', function(e) {
+            if (e.target.classList.contains('block-input')) {
+                serializeBlocks();
+            }
+        });
+
+        // Serialize before form submit
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                serializeBlocks();
+            });
+        }
+
+        // Initial serialize
+        serializeBlocks();
+    }
+
+    function createBlockElement(type, data) {
+        const blockDiv = document.createElement('div');
+        blockDiv.className = 'content-block-item border border-teal-soft/20 rounded-lg p-4 bg-[#ffffff]/40';
+        
+        let contentHTML = '';
+        
+        if (type === 'paragraph') {
+            contentHTML = `<textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm resize-none" rows="3" data-field="text" placeholder="Enter paragraph text...">${data.text || ''}</textarea>`;
+        } else if (type === 'header') {
+            contentHTML = `
+                <div class="flex gap-2 mb-2">
+                    <select class="block-input bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="level">
+                        <option value="1" ${data.level == 1 ? 'selected' : ''}>H1</option>
+                        <option value="2" ${data.level == 2 ? 'selected' : 'selected'}>H2</option>
+                        <option value="3" ${data.level == 3 ? 'selected' : ''}>H3</option>
+                        <option value="4" ${data.level == 4 ? 'selected' : ''}>H4</option>
+                    </select>
+                    <input type="text" class="block-input flex-1 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="text" value="${data.text || ''}" placeholder="Enter header text...">
+                </div>
+            `;
+        } else if (type === 'list') {
+            const itemsText = (data.items || []).join('\n');
+            contentHTML = `
+                <div class="space-y-2">
+                    <select class="block-input mb-2 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="style">
+                        <option value="unordered" ${data.style === 'ordered' ? '' : 'selected'}>Unordered List</option>
+                        <option value="ordered" ${data.style === 'ordered' ? 'selected' : ''}>Ordered List</option>
+                    </select>
+                    <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm resize-none" rows="4" data-field="items" placeholder="Enter list items, one per line...">${itemsText}</textarea>
+                </div>
+            `;
+        } else if (type === 'quote') {
+            contentHTML = `
+                <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm resize-none mb-2" rows="3" data-field="text" placeholder="Enter quote text...">${data.text || ''}</textarea>
+                <input type="text" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="caption" value="${data.caption || ''}" placeholder="Enter citation (optional)...">
+            `;
+        } else if (type === 'image') {
+            const imageUrl = (data.file && data.file.url) || data.url || '';
+            contentHTML = `
+                <div class="space-y-2">
+                    <input type="url" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="url" value="${imageUrl}" placeholder="Enter image URL...">
+                    <input type="text" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="caption" value="${data.caption || ''}" placeholder="Enter image caption (optional)...">
+                    ${imageUrl ? `<div class="mt-2"><img src="${imageUrl}" alt="${data.caption || 'Image'}" class="max-w-xs rounded-lg border border-teal-soft/20"></div>` : ''}
+                </div>
+            `;
+        } else {
+            contentHTML = `<div class="text-sm text-gray-600 p-2 bg-gray-100 rounded">Unknown block type: ${type}</div>`;
+        }
+        
+        blockDiv.innerHTML = `
+            <div class="flex items-start justify-between mb-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold text-teal-soft bg-teal-soft/10 px-2 py-1 rounded">${type.charAt(0).toUpperCase() + type.slice(1)}</span>
+                    <button type="button" class="move-block-up text-xs text-gray-600 hover:text-teal-soft" title="Move up">
+                        <i class="fas fa-arrow-up"></i>
+                    </button>
+                    <button type="button" class="move-block-down text-xs text-gray-600 hover:text-teal-soft" title="Move down">
+                        <i class="fas fa-arrow-down"></i>
+                    </button>
+                </div>
+                <button type="button" class="delete-block text-xs text-red-600 hover:text-red-700" title="Delete block">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <div class="block-content">
+                ${contentHTML}
+            </div>
+        `;
+        
+        return blockDiv;
+    }
+
+    function updateBlockIndices() {
+        const blocks = document.querySelectorAll('.content-block-item');
+        blocks.forEach((block, index) => {
+            block.setAttribute('data-block-index', index);
+        });
+    }
+
+    function serializeBlocks() {
+        const container = document.getElementById('content-blocks-container');
+        const blocks = container.querySelectorAll('.content-block-item');
+        const serializedBlocks = [];
+        
+        blocks.forEach(block => {
+            const typeSpan = block.querySelector('.text-teal-soft');
+            if (!typeSpan) return;
+            
+            const type = typeSpan.textContent.trim().toLowerCase();
+            const data = {};
+            
+            // Extract data based on block type
+            if (type === 'paragraph') {
+                const textarea = block.querySelector('textarea[data-field="text"]');
+                if (textarea) data.text = textarea.value;
+            } else if (type === 'header') {
+                const levelSelect = block.querySelector('select[data-field="level"]');
+                const textInput = block.querySelector('input[data-field="text"]');
+                if (levelSelect) data.level = parseInt(levelSelect.value);
+                if (textInput) data.text = textInput.value;
+            } else if (type === 'list') {
+                const styleSelect = block.querySelector('select[data-field="style"]');
+                const itemsTextarea = block.querySelector('textarea[data-field="items"]');
+                if (styleSelect) data.style = styleSelect.value;
+                if (itemsTextarea) {
+                    data.items = itemsTextarea.value.split('\n').filter(item => item.trim());
+                }
+            } else if (type === 'quote') {
+                const textTextarea = block.querySelector('textarea[data-field="text"]');
+                const captionInput = block.querySelector('input[data-field="caption"]');
+                if (textTextarea) data.text = textTextarea.value;
+                if (captionInput) data.caption = captionInput.value;
+            } else if (type === 'image') {
+                const urlInput = block.querySelector('input[data-field="url"]');
+                const captionInput = block.querySelector('input[data-field="caption"]');
+                if (urlInput && urlInput.value) {
+                    data.file = { url: urlInput.value };
+                    data.url = urlInput.value;
+                }
+                if (captionInput) data.caption = captionInput.value;
+            }
+            
+            serializedBlocks.push({
+                type: type,
+                data: data
+            });
+        });
+        
+        const contentData = {
+            time: Date.now(),
+            blocks: serializedBlocks,
+            version: "2.28.2"
+        };
+        
+        const jsonInput = document.getElementById('content-blocks-json');
+        if (jsonInput) {
+            jsonInput.value = JSON.stringify(contentData);
+        }
+    }
+
+    // Initialize content blocks on page load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initContentBlocks);
+    } else {
+        initContentBlocks();
+    }
 </script>
 {% endblock %}
 

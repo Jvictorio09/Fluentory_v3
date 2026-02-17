@@ -1,0 +1,47 @@
+<!-- Footer -->
+<footer class="bg-[#0c1b2a] text-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-3 gap-8 mb-8">
+            <!-- Brand -->
+            <div>
+                <img 
+                    src="https://res.cloudinary.com/dwooadxdj/image/upload/v1771294639/copy_of_copy_of_fluentory_-_branding-05_ijgdpz_a6f568_7b4fc3.png" 
+                    alt="Fluentory Logo" 
+                    class="h-10 w-auto mb-4 object-contain"
+                >
+                <p class="text-slate-400 text-sm">
+                    Expert Tawjehi exam preparation for Jordanian high school students.
+                </p>
+            </div>
+            
+            <!-- Quick Links -->
+            <div>
+                <h3 class="font-semibold mb-4">Quick Links</h3>
+                <ul class="space-y-2 text-sm text-slate-400">
+                    <li><a href="{% url 'landing' %}" class="hover:text-white transition-colors">Home</a></li>
+                    <li><a href="{% url 'courses' %}" class="hover:text-white transition-colors">Language Courses</a></li>
+                    <li><a href="{% url 'tawjehi_page' %}" class="hover:text-white transition-colors">Tawjehi Courses</a></li>
+                    {% if not user.is_authenticated %}
+                    <li><a href="{% url 'login' %}" class="hover:text-white transition-colors">Login</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            
+            <!-- Contact -->
+            <div>
+                <h3 class="font-semibold mb-4">Contact</h3>
+                <ul class="space-y-2 text-sm text-slate-400">
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-envelope"></i>
+                        <span>support@primorelearn.com</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="border-t border-white/10 pt-8 text-center text-sm text-slate-500">
+            <p>© 2024 PrimoLearn. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+

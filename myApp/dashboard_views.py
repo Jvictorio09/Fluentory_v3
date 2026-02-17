@@ -28,6 +28,12 @@ from .models import (
     UserProgress,
     CourseEnrollment,
     Exam,
+    TeacherRequest,
+    Lead,
+    LeadTimeline,
+    LeadEnrollmentLink,
+    LeadGiftLink,
+    GiftPurchase,
     CourseAccess,
     ExamAttempt,
     Certification,
@@ -431,11 +437,41 @@ def dashboard_course_detail(request, course_slug):
         course.status = request.POST.get('status', course.status)
         course.course_type = request.POST.get('course_type', course.course_type)
         course.coach_name = request.POST.get('coach_name', course.coach_name)
+        
+        # Delivery type and pricing
+        course.delivery_type = request.POST.get('delivery_type', course.delivery_type)
+        course.is_paid = request.POST.get('is_paid') == 'on'
+        price = request.POST.get('price', '') or None
+        course.price = float(price) if price else None
+        course.currency = request.POST.get('currency', course.currency)
+        
         course.save()
+        
+        # Update teacher assignment if live course
+        if course.delivery_type == 'live':
+            teacher_ids = request.POST.getlist('teachers')
+            if teacher_ids:
+                from django.contrib.auth.models import User
+                teachers = User.objects.filter(id__in=teacher_ids)
+                course.teachers.set(teachers)
+            else:
+                course.teachers.clear()
+        else:
+            course.teachers.clear()
+        
+        messages.success(request, 'Course updated successfully.')
         return redirect('dashboard_course_detail', course_slug=course.slug)
+    
+    # Get all users who could be teachers
+    from django.contrib.auth.models import User
+    from django.db.models import Q
+    potential_teachers = User.objects.filter(
+        Q(is_staff=False) | Q(taught_courses__isnull=False)
+    ).distinct().order_by('username')
     
     return render(request, 'dashboard/course_detail.html', {
         'course': course,
+        'potential_teachers': potential_teachers,
     })
 
 
@@ -621,6 +657,12 @@ def dashboard_add_course(request):
         status = request.POST.get('status', 'active')
         coach_name = request.POST.get('coach_name', 'Sprint Coach')
         
+        # Delivery type and pricing
+        delivery_type = request.POST.get('delivery_type', 'pre_recorded')
+        is_paid = request.POST.get('is_paid') == 'on'
+        price = request.POST.get('price', '') or None
+        currency = request.POST.get('currency', 'USD')
+        
         course = Course.objects.create(
             name=name,
             slug=slug,
@@ -629,11 +671,32 @@ def dashboard_add_course(request):
             course_type=course_type,
             status=status,
             coach_name=coach_name,
+            delivery_type=delivery_type,
+            is_paid=is_paid,
+            price=float(price) if price else None,
+            currency=currency,
         )
+        
+        # Assign teacher if live course
+        if delivery_type == 'live':
+            teacher_ids = request.POST.getlist('teachers')
+            if teacher_ids:
+                from django.contrib.auth.models import User
+                teachers = User.objects.filter(id__in=teacher_ids)
+                course.teachers.set(teachers)
+        
         messages.success(request, f'Course "{course.name}" has been created successfully.')
         return redirect('dashboard_courses')
     
-    return render(request, 'dashboard/add_course.html')
+    # Get all users who could be teachers (non-staff users or users with taught courses)
+    from django.contrib.auth.models import User
+    potential_teachers = User.objects.filter(
+        Q(is_staff=False) | Q(taught_courses__isnull=False)
+    ).distinct().order_by('username')
+    
+    return render(request, 'dashboard/add_course.html', {
+        'potential_teachers': potential_teachers,
+    })
 
 
 @staff_member_required
@@ -1934,4 +1997,655 @@ def dashboard_delete_bundle(request, bundle_id):
     bundle.delete()
     messages.success(request, f'Bundle "{bundle_name}" deleted successfully!')
     return redirect('dashboard_bundles')
+
+
+# ============================================================================
+# CRM LEAD MANAGEMENT VIEWS
+# ============================================================================
+
+@staff_member_required
+def dashboard_leads(request):
+    """List all leads with filtering, pagination, and search"""
+    from django.core.paginator import Paginator
+    
+    # Get filter parameters
+    status_filter = request.GET.get('status', '')
+    source_filter = request.GET.get('source', '')
+    owner_filter = request.GET.get('owner', '')
+    search_query = request.GET.get('search', '')
+    sort_by = request.GET.get('sort', '-updated_at')
+    
+    # Base queryset
+    leads = Lead.objects.all()
+    
+    # Apply filters
+    if status_filter:
+        leads = leads.filter(status=status_filter)
+    if source_filter:
+        leads = leads.filter(source=source_filter)
+    if owner_filter:
+        leads = leads.filter(owner_id=owner_filter)
+    if search_query:
+        leads = leads.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(phone__icontains=search_query)
+        )
+    
+    # Apply sorting
+    valid_sorts = {
+        'updated': '-updated_at',
+        'created': '-created_at',
+        'name': 'first_name',
+        'last_contact': '-last_contact_date',
+    }
+    sort_key = valid_sorts.get(sort_by, '-updated_at')
+    leads = leads.order_by(sort_key)
+    
+    # Pagination
+    paginator = Paginator(leads, 25)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    # Get filter options
+    owners = User.objects.filter(is_staff=True).order_by('username')
+    
+    # AJAX request - return JSON
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        leads_data = []
+        for lead in page_obj:
+            leads_data.append({
+                'id': lead.id,
+                'name': lead.get_full_name(),
+                'email': lead.email,
+                'phone': lead.phone,
+                'status': lead.status,
+                'status_display': lead.get_status_display(),
+                'source': lead.source,
+                'source_display': lead.get_source_display(),
+                'owner': lead.owner.username if lead.owner else None,
+                'last_contact': lead.last_contact_date.isoformat() if lead.last_contact_date else None,
+                'created_at': lead.created_at.isoformat(),
+                'updated_at': lead.updated_at.isoformat(),
+            })
+        return JsonResponse({
+            'leads': leads_data,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous(),
+            'page_number': page_obj.number,
+            'num_pages': paginator.num_pages,
+        })
+    
+    # Regular request - render template
+    context = {
+        'page_obj': page_obj,
+        'status_filter': status_filter,
+        'source_filter': source_filter,
+        'owner_filter': owner_filter,
+        'search_query': search_query,
+        'sort_by': sort_by,
+        'owners': owners,
+        'status_choices': Lead.STATUS_CHOICES,
+        'source_choices': Lead.SOURCE_CHOICES,
+    }
+    return render(request, 'dashboard/crm/leads.html', context)
+
+
+@staff_member_required
+def dashboard_lead_detail(request, lead_id):
+    """View full lead profile with timeline and linked items"""
+    lead = get_object_or_404(Lead, id=lead_id)
+    
+    # Get timeline events
+    timeline_events = lead.timeline_events.all()[:50]
+    
+    # Get linked enrollments
+    enrollment_links = lead.enrollment_links.select_related('enrollment__course', 'enrollment__user').all()
+    
+    # Get linked gifts
+    gift_links = lead.gift_links.select_related('gift__course', 'gift__purchaser').all()
+    
+    context = {
+        'lead': lead,
+        'timeline_events': timeline_events,
+        'enrollment_links': enrollment_links,
+        'gift_links': gift_links,
+        'owners': User.objects.filter(is_staff=True).order_by('username'),
+    }
+    return render(request, 'dashboard/crm/lead_detail.html', context)
+
+
+@staff_member_required
+def dashboard_lead_create(request):
+    """Create new lead"""
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        status = request.POST.get('status', 'new')
+        source = request.POST.get('source', 'website')
+        owner_id = request.POST.get('owner', '')
+        notes = request.POST.get('notes', '').strip()
+        
+        # Validation
+        if not first_name or not last_name:
+            messages.error(request, 'First name and last name are required.')
+            return redirect('dashboard_leads')
+        
+        if not email:
+            messages.error(request, 'Email is required.')
+            return redirect('dashboard_leads')
+        
+        # Check if lead with email already exists
+        if Lead.objects.filter(email=email).exists():
+            messages.error(request, f'A lead with email {email} already exists.')
+            return redirect('dashboard_leads')
+        
+        # Create lead
+        lead = Lead.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone=phone,
+            status=status,
+            source=source,
+            owner_id=owner_id if owner_id else None,
+            notes=notes,
+        )
+        
+        # Create timeline event
+        LeadTimeline.objects.create(
+            lead=lead,
+            event_type='LEAD_CREATED',
+            actor=request.user,
+            description=f"Lead created by {request.user.username}",
+        )
+        
+        messages.success(request, f'Lead "{lead.get_full_name()}" created successfully!')
+        return redirect('dashboard_lead_detail', lead_id=lead.id)
+    
+    context = {
+        'status_choices': Lead.STATUS_CHOICES,
+        'source_choices': Lead.SOURCE_CHOICES,
+        'owners': User.objects.filter(is_staff=True).order_by('username'),
+    }
+    return render(request, 'dashboard/crm/lead_create.html', context)
+
+
+@staff_member_required
+def dashboard_lead_edit(request, lead_id):
+    """Edit lead fields"""
+    lead = get_object_or_404(Lead, id=lead_id)
+    
+    if request.method == 'POST':
+        old_status = lead.status
+        old_owner = lead.owner
+        
+        # Update fields
+        lead.first_name = request.POST.get('first_name', '').strip()
+        lead.last_name = request.POST.get('last_name', '').strip()
+        lead.email = request.POST.get('email', '').strip()
+        lead.phone = request.POST.get('phone', '').strip()
+        lead.status = request.POST.get('status', lead.status)
+        lead.source = request.POST.get('source', lead.source)
+        lead.notes = request.POST.get('notes', '').strip()
+        
+        owner_id = request.POST.get('owner', '')
+        lead.owner_id = owner_id if owner_id else None
+        
+        # Update last contact date
+        lead.last_contact_date = timezone.now()
+        lead.updated_at = timezone.now()
+        lead.save()
+        
+        # Create timeline events for changes
+        if old_status != lead.status:
+            LeadTimeline.objects.create(
+                lead=lead,
+                event_type='LEAD_STATUS_CHANGED',
+                actor=request.user,
+                description=f"Status changed from {old_status} to {lead.status}",
+                metadata={'old_status': old_status, 'new_status': lead.status}
+            )
+        
+        if old_owner != lead.owner:
+            LeadTimeline.objects.create(
+                lead=lead,
+                event_type='LEAD_OWNER_CHANGED',
+                actor=request.user,
+                description=f"Owner changed from {old_owner.username if old_owner else 'None'} to {lead.owner.username if lead.owner else 'None'}",
+                metadata={'old_owner_id': old_owner.id if old_owner else None, 'new_owner_id': lead.owner.id if lead.owner else None}
+            )
+        
+        LeadTimeline.objects.create(
+            lead=lead,
+            event_type='LEAD_UPDATED',
+            actor=request.user,
+            description=f"Lead updated by {request.user.username}",
+        )
+        
+        messages.success(request, f'Lead "{lead.get_full_name()}" updated successfully!')
+        return redirect('dashboard_lead_detail', lead_id=lead.id)
+    
+    context = {
+        'lead': lead,
+        'status_choices': Lead.STATUS_CHOICES,
+        'source_choices': Lead.SOURCE_CHOICES,
+        'owners': User.objects.filter(is_staff=True).order_by('username'),
+    }
+    return render(request, 'dashboard/crm/lead_edit.html', context)
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def dashboard_lead_add_note(request, lead_id):
+    """Add timestamped note to lead"""
+    lead = get_object_or_404(Lead, id=lead_id)
+    note_text = request.POST.get('note', '').strip()
+    
+    if not note_text:
+        messages.error(request, 'Note cannot be empty.')
+        return redirect('dashboard_lead_detail', lead_id=lead.id)
+    
+    # Append to existing notes
+    timestamp = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+    new_note = f"\n\n[{timestamp}] {request.user.username}: {note_text}"
+    lead.notes = (lead.notes + new_note).strip()
+    lead.last_contact_date = timezone.now()
+    lead.updated_at = timezone.now()
+    lead.save()
+    
+    # Create timeline event
+    LeadTimeline.objects.create(
+        lead=lead,
+        event_type='LEAD_NOTE_ADDED',
+        actor=request.user,
+        description=f"Note added: {note_text[:100]}",
+        metadata={'note': note_text}
+    )
+    
+    messages.success(request, 'Note added successfully!')
+    return redirect('dashboard_lead_detail', lead_id=lead.id)
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def dashboard_lead_link_user(request, lead_id):
+    """Link or unlink user account to lead"""
+    lead = get_object_or_404(Lead, id=lead_id)
+    action = request.POST.get('action', 'link')
+    user_id = request.POST.get('user_id', '')
+    
+    if action == 'link':
+        if not user_id:
+            messages.error(request, 'User ID is required.')
+            return redirect('dashboard_lead_detail', lead_id=lead.id)
+        
+        user = get_object_or_404(User, id=user_id)
+        
+        # Check if user is already linked to another lead
+        if Lead.objects.filter(linked_user=user).exclude(id=lead.id).exists():
+            messages.error(request, f'User {user.username} is already linked to another lead.')
+            return redirect('dashboard_lead_detail', lead_id=lead.id)
+        
+        lead.linked_user = user
+        lead.save()
+        
+        # Create timeline event
+        LeadTimeline.objects.create(
+            lead=lead,
+            event_type='USER_LINKED_TO_LEAD',
+            actor=request.user,
+            description=f"User {user.username} linked to lead",
+            metadata={'user_id': user.id, 'user_email': user.email}
+        )
+        
+        messages.success(request, f'User {user.username} linked successfully!')
+    
+    elif action == 'unlink':
+        if lead.linked_user:
+            unlinked_user = lead.linked_user
+            lead.linked_user = None
+            lead.save()
+            
+            # Create timeline event
+            LeadTimeline.objects.create(
+                lead=lead,
+                event_type='USER_UNLINKED_FROM_LEAD',
+                actor=request.user,
+                description=f"User {unlinked_user.username} unlinked from lead",
+                metadata={'user_id': unlinked_user.id}
+            )
+            
+            messages.success(request, f'User {unlinked_user.username} unlinked successfully!')
+    
+    return redirect('dashboard_lead_detail', lead_id=lead.id)
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def dashboard_lead_link_gift(request, lead_id):
+    """Link or unlink gift enrollment to lead"""
+    lead = get_object_or_404(Lead, id=lead_id)
+    action = request.POST.get('action', 'link')
+    gift_id = request.POST.get('gift_id', '')
+    
+    if action == 'link':
+        if not gift_id:
+            messages.error(request, 'Gift ID is required.')
+            return redirect('dashboard_lead_detail', lead_id=lead.id)
+        
+        gift = get_object_or_404(GiftPurchase, id=gift_id)
+        
+        # Check if already linked
+        if LeadGiftLink.objects.filter(lead=lead, gift=gift).exists():
+            messages.error(request, 'Gift is already linked to this lead.')
+            return redirect('dashboard_lead_detail', lead_id=lead.id)
+        
+        # Create link
+        LeadGiftLink.objects.create(
+            lead=lead,
+            gift=gift,
+            created_by=request.user
+        )
+        
+        # Create timeline event
+        LeadTimeline.objects.create(
+            lead=lead,
+            event_type='GIFT_LINKED_TO_LEAD',
+            actor=request.user,
+            description=f"Gift for {gift.course.name} linked to lead",
+            metadata={'gift_id': gift.id, 'course_id': gift.course.id}
+        )
+        
+        messages.success(request, 'Gift linked successfully!')
+    
+    elif action == 'unlink':
+        if not gift_id:
+            messages.error(request, 'Gift ID is required.')
+            return redirect('dashboard_lead_detail', lead_id=lead.id)
+        
+        gift_link = get_object_or_404(LeadGiftLink, lead=lead, gift_id=gift_id)
+        gift = gift_link.gift
+        gift_link.delete()
+        
+        # Create timeline event
+        LeadTimeline.objects.create(
+            lead=lead,
+            event_type='GIFT_UNLINKED_FROM_LEAD',
+            actor=request.user,
+            description=f"Gift for {gift.course.name} unlinked from lead",
+            metadata={'gift_id': gift.id}
+        )
+        
+        messages.success(request, 'Gift unlinked successfully!')
+    
+    return redirect('dashboard_lead_detail', lead_id=lead.id)
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def dashboard_lead_link_enrollment(request, lead_id):
+    """Link or unlink enrollment to lead"""
+    lead = get_object_or_404(Lead, id=lead_id)
+    action = request.POST.get('action', 'link')
+    enrollment_id = request.POST.get('enrollment_id', '')
+    
+    if action == 'link':
+        if not enrollment_id:
+            messages.error(request, 'Enrollment ID is required.')
+            return redirect('dashboard_lead_detail', lead_id=lead.id)
+        
+        enrollment = get_object_or_404(CourseEnrollment, id=enrollment_id)
+        
+        # Check if already linked
+        if LeadEnrollmentLink.objects.filter(lead=lead, enrollment=enrollment).exists():
+            messages.error(request, 'Enrollment is already linked to this lead.')
+            return redirect('dashboard_lead_detail', lead_id=lead.id)
+        
+        # Create link
+        LeadEnrollmentLink.objects.create(
+            lead=lead,
+            enrollment=enrollment,
+            created_by=request.user
+        )
+        
+        # Create timeline event
+        LeadTimeline.objects.create(
+            lead=lead,
+            event_type='ENROLLMENT_LINKED_TO_LEAD',
+            actor=request.user,
+            description=f"Enrollment in {enrollment.course.name} linked to lead",
+            metadata={'enrollment_id': enrollment.id, 'course_id': enrollment.course.id}
+        )
+        
+        messages.success(request, 'Enrollment linked successfully!')
+    
+    elif action == 'unlink':
+        if not enrollment_id:
+            messages.error(request, 'Enrollment ID is required.')
+            return redirect('dashboard_lead_detail', lead_id=lead.id)
+        
+        enrollment_link = get_object_or_404(LeadEnrollmentLink, lead=lead, enrollment_id=enrollment_id)
+        enrollment = enrollment_link.enrollment
+        enrollment_link.delete()
+        
+        # Create timeline event
+        LeadTimeline.objects.create(
+            lead=lead,
+            event_type='ENROLLMENT_UNLINKED_FROM_LEAD',
+            actor=request.user,
+            description=f"Enrollment in {enrollment.course.name} unlinked from lead",
+            metadata={'enrollment_id': enrollment.id}
+        )
+        
+        messages.success(request, 'Enrollment unlinked successfully!')
+    
+    return redirect('dashboard_lead_detail', lead_id=lead.id)
+
+
+@staff_member_required
+def dashboard_crm_analytics(request):
+    """CRM Analytics dashboard"""
+    from django.db.models import Count, Q
+    from datetime import datetime, timedelta
+    
+    # Date range filter
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    owner_filter = request.GET.get('owner', '')
+    source_filter = request.GET.get('source', '')
+    
+    # Base queryset
+    leads = Lead.objects.all()
+    
+    # Apply date filters
+    if date_from:
+        try:
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+            leads = leads.filter(created_at__gte=date_from_obj)
+        except ValueError:
+            pass
+    
+    if date_to:
+        try:
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d') + timedelta(days=1)
+            leads = leads.filter(created_at__lt=date_to_obj)
+        except ValueError:
+            pass
+    
+    # Apply other filters
+    if owner_filter:
+        leads = leads.filter(owner_id=owner_filter)
+    if source_filter:
+        leads = leads.filter(source=source_filter)
+    
+    # Calculate metrics
+    total_leads = leads.count()
+    leads_by_status = leads.values('status').annotate(count=Count('id')).order_by('-count')
+    enrolled_leads = leads.filter(status='enrolled').count()
+    conversion_rate = (enrolled_leads / total_leads * 100) if total_leads > 0 else 0
+    
+    # Source performance
+    source_performance = leads.values('source').annotate(
+        total=Count('id'),
+        enrolled=Count('id', filter=Q(status='enrolled'))
+    ).order_by('-total')
+    
+    for item in source_performance:
+        item['conversion_rate'] = (item['enrolled'] / item['total'] * 100) if item['total'] > 0 else 0
+    
+    context = {
+        'total_leads': total_leads,
+        'leads_by_status': leads_by_status,
+        'enrolled_leads': enrolled_leads,
+        'conversion_rate': round(conversion_rate, 2),
+        'source_performance': source_performance,
+        'date_from': date_from,
+        'date_to': date_to,
+        'owner_filter': owner_filter,
+        'source_filter': source_filter,
+        'owners': User.objects.filter(is_staff=True).order_by('username'),
+        'source_choices': Lead.SOURCE_CHOICES,
+    }
+    return render(request, 'dashboard/crm/analytics.html', context)
+
+
+# ========== TEACHER REQUEST MANAGEMENT ==========
+
+@staff_member_required
+def dashboard_teacher_requests(request):
+    """List all teacher registration requests and approved teachers"""
+    status_filter = request.GET.get('status', 'pending')
+    search_query = request.GET.get('search', '')
+    
+    requests = TeacherRequest.objects.all()
+    
+    if status_filter and status_filter != 'all':
+        requests = requests.filter(status=status_filter)
+    
+    if search_query:
+        requests = requests.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(user__username__icontains=search_query)
+        )
+    
+    requests = requests.order_by('-created_at')
+    
+    # Count by status
+    pending_count = TeacherRequest.objects.filter(status='pending').count()
+    approved_count = TeacherRequest.objects.filter(status='approved').count()
+    rejected_count = TeacherRequest.objects.filter(status='rejected').count()
+    
+    # Get list of approved teachers (users with approved TeacherRequest or who teach courses)
+    from django.contrib.auth.models import User
+    from django.db.models import Count
+    
+    # Get users with approved teacher requests
+    approved_request_users = TeacherRequest.objects.filter(
+        status='approved'
+    ).values_list('user_id', flat=True)
+    
+    # Get all teachers (users who teach courses or have approved requests)
+    teachers = User.objects.filter(
+        Q(id__in=approved_request_users) | Q(taught_courses__isnull=False)
+    ).distinct().annotate(
+        course_count=Count('taught_courses')
+    ).order_by('-date_joined')
+    
+    # Apply search to teachers if provided
+    if search_query:
+        teachers = teachers.filter(
+            Q(username__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query)
+        )
+    
+    context = {
+        'requests': requests,
+        'status_filter': status_filter,
+        'search_query': search_query,
+        'pending_count': pending_count,
+        'approved_count': approved_count,
+        'rejected_count': rejected_count,
+        'teachers': teachers,
+    }
+    return render(request, 'dashboard/teacher_requests.html', context)
+
+
+@staff_member_required
+def dashboard_teacher_request_detail(request, request_id):
+    """View detailed teacher request"""
+    teacher_request = get_object_or_404(TeacherRequest, id=request_id)
+    
+    context = {
+        'request': teacher_request,
+    }
+    return render(request, 'dashboard/teacher_request_detail.html', context)
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def dashboard_teacher_request_approve(request, request_id):
+    """Approve a teacher request"""
+    from django.utils import timezone
+    from .utils.email import send_teacher_approval_email
+    
+    teacher_request = get_object_or_404(TeacherRequest, id=request_id)
+    
+    if teacher_request.status != 'pending':
+        messages.error(request, 'This request has already been processed.')
+        return redirect('dashboard_teacher_request_detail', request_id=request_id)
+    
+    # Update status
+    teacher_request.status = 'approved'
+    teacher_request.reviewed_by = request.user
+    teacher_request.reviewed_at = timezone.now()
+    teacher_request.save()
+    
+    # Set user as staff (teacher) if user exists
+    if teacher_request.user:
+        teacher_request.user.is_staff = True
+        teacher_request.user.save()
+    
+    # Send approval email
+    email_result = send_teacher_approval_email(teacher_request)
+    
+    messages.success(request, f'Teacher request approved! Email sent to {teacher_request.email}.')
+    return redirect('dashboard_teacher_request_detail', request_id=request_id)
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def dashboard_teacher_request_reject(request, request_id):
+    """Reject a teacher request"""
+    from django.utils import timezone
+    from .utils.email import send_teacher_rejection_email
+    
+    teacher_request = get_object_or_404(TeacherRequest, id=request_id)
+    
+    if teacher_request.status != 'pending':
+        messages.error(request, 'This request has already been processed.')
+        return redirect('dashboard_teacher_request_detail', request_id=request_id)
+    
+    rejection_reason = request.POST.get('rejection_reason', '').strip()
+    
+    # Update status
+    teacher_request.status = 'rejected'
+    teacher_request.reviewed_by = request.user
+    teacher_request.reviewed_at = timezone.now()
+    if rejection_reason:
+        teacher_request.admin_notes = f"Rejection reason: {rejection_reason}"
+    teacher_request.save()
+    
+    # Send rejection email
+    email_result = send_teacher_rejection_email(teacher_request, rejection_reason)
+    
+    messages.success(request, f'Teacher request rejected. Email sent to {teacher_request.email}.')
+    return redirect('dashboard_teacher_request_detail', request_id=request_id)
 

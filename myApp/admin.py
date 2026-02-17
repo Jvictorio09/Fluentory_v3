@@ -1,16 +1,38 @@
 from django.contrib import admin
 from .models import (
     Course, Module, Lesson, UserProgress, CourseEnrollment, Exam, ExamAttempt, Certification,
-    Cohort, CohortMember, Bundle, BundlePurchase, CourseAccess, LearningPath, LearningPathCourse
+    Cohort, CohortMember, Bundle, BundlePurchase, CourseAccess, CoursePurchase, GiftPurchase,
+    LearningPath, LearningPathCourse, LiveSession, Booking, TeacherRequest
 )
 
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ['name', 'course_type', 'status', 'coach_name', 'is_subscribers_only', 'created_at']
-    list_filter = ['course_type', 'status', 'is_subscribers_only', 'is_accredible_certified']
+    list_display = ['name', 'course_type', 'delivery_type', 'status', 'coach_name', 'is_paid', 'price', 'currency', 'is_subscribers_only', 'created_at']
+    list_filter = ['course_type', 'delivery_type', 'status', 'is_paid', 'is_subscribers_only', 'is_accredible_certified']
     search_fields = ['name', 'description']
     prepopulated_fields = {'slug': ('name',)}
+    filter_horizontal = ['teachers', 'prerequisite_courses']
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'slug', 'course_type', 'status', 'short_description', 'description')
+        }),
+        ('Media', {
+            'fields': ('thumbnail', 'preview_video_url')
+        }),
+        ('Pricing', {
+            'fields': ('is_paid', 'price', 'currency')
+        }),
+        ('Delivery', {
+            'fields': ('delivery_type', 'teachers', 'coach_name')
+        }),
+        ('Access & Enrollment', {
+            'fields': ('visibility', 'enrollment_method', 'access_duration_type', 'access_duration_days', 'access_until_date', 'prerequisite_courses')
+        }),
+        ('Features', {
+            'fields': ('is_subscribers_only', 'is_accredible_certified', 'has_asset_templates', 'exam_unlock_days', 'special_tag')
+        }),
+    )
 
 
 @admin.register(Module)
@@ -127,6 +149,28 @@ class BundlePurchaseAdmin(admin.ModelAdmin):
     readonly_fields = ['purchase_date']
 
 
+@admin.register(CoursePurchase)
+class CoursePurchaseAdmin(admin.ModelAdmin):
+    list_display = ['user', 'course', 'amount', 'currency', 'status', 'provider', 'paid_at', 'created_at']
+    list_filter = ['status', 'provider', 'currency', 'paid_at', 'created_at']
+    search_fields = ['user__username', 'course__name', 'provider_id', 'provider']
+    readonly_fields = ['created_at', 'paid_at']
+    fieldsets = (
+        ('Purchase Information', {
+            'fields': ('user', 'course', 'amount', 'currency', 'status')
+        }),
+        ('Payment Provider', {
+            'fields': ('provider', 'provider_id')
+        }),
+        ('Dates', {
+            'fields': ('created_at', 'paid_at')
+        }),
+        ('Notes', {
+            'fields': ('notes',)
+        }),
+    )
+
+
 @admin.register(CourseAccess)
 class CourseAccessAdmin(admin.ModelAdmin):
     list_display = ['user', 'course', 'access_type', 'status', 'get_source', 'granted_at', 'expires_at']
@@ -138,7 +182,7 @@ class CourseAccessAdmin(admin.ModelAdmin):
             'fields': ('user', 'course', 'access_type', 'status')
         }),
         ('Source', {
-            'fields': ('bundle_purchase', 'cohort', 'purchase_id', 'granted_by')
+            'fields': ('bundle_purchase', 'course_purchase', 'cohort', 'purchase_id', 'granted_by')
         }),
         ('Dates', {
             'fields': ('granted_at', 'expires_at', 'revoked_at', 'revoked_by', 'revocation_reason')
@@ -170,3 +214,95 @@ class LearningPathCourseAdmin(admin.ModelAdmin):
     list_filter = ['learning_path', 'is_required']
     search_fields = ['learning_path__name', 'course__name']
     ordering = ['learning_path', 'order']
+
+
+# ========== TEACHER & LIVE SESSIONS ADMIN ==========
+
+@admin.register(LiveSession)
+class LiveSessionAdmin(admin.ModelAdmin):
+    list_display = ['title', 'course', 'scheduled_at', 'duration_minutes', 'status', 'get_bookings_count', 'capacity', 'created_at']
+    list_filter = ['status', 'scheduled_at', 'course']
+    search_fields = ['title', 'description', 'course__name']
+    readonly_fields = ['created_at', 'updated_at']
+    fieldsets = (
+        ('Session Information', {
+            'fields': ('course', 'title', 'description', 'status')
+        }),
+        ('Scheduling', {
+            'fields': ('scheduled_at', 'duration_minutes', 'capacity')
+        }),
+        ('Meeting Details', {
+            'fields': ('meeting_link', 'meeting_password')
+        }),
+        ('Metadata', {
+            'fields': ('created_by', 'created_at', 'updated_at', 'notes')
+        }),
+    )
+    
+    def get_bookings_count(self, obj):
+        return obj.get_bookings_count()
+    get_bookings_count.short_description = 'Bookings'
+
+
+@admin.register(Booking)
+class BookingAdmin(admin.ModelAdmin):
+    list_display = ['user', 'session', 'status', 'attended', 'booked_at', 'attendance_marked_at', 'attendance_marked_by']
+    list_filter = ['status', 'attended', 'booked_at', 'session__course']
+    search_fields = ['user__username', 'session__title', 'session__course__name']
+    readonly_fields = ['booked_at', 'cancelled_at', 'attendance_marked_at']
+    fieldsets = (
+        ('Booking Information', {
+            'fields': ('user', 'session', 'status', 'attended')
+        }),
+        ('Attendance', {
+            'fields': ('attendance_marked_at', 'attendance_marked_by', 'notes')
+        }),
+        ('Timestamps', {
+            'fields': ('booked_at', 'cancelled_at')
+        }),
+    )
+
+
+@admin.register(GiftPurchase)
+class GiftPurchaseAdmin(admin.ModelAdmin):
+    list_display = ['course', 'purchaser', 'recipient_email', 'recipient_name', 'status', 'created_at', 'sent_at', 'redeemed_at']
+    list_filter = ['status', 'course', 'created_at', 'sent_at', 'redeemed_at']
+    search_fields = ['recipient_email', 'recipient_name', 'purchaser__username', 'course__name', 'gift_token']
+    readonly_fields = ['gift_token', 'created_at', 'sent_at', 'redeemed_at']
+    fieldsets = (
+        ('Gift Information', {
+            'fields': ('purchaser', 'course', 'course_purchase', 'gift_token')
+        }),
+        ('Recipient Details', {
+            'fields': ('recipient_email', 'recipient_name', 'recipient_user', 'gift_message')
+        }),
+        ('Status', {
+            'fields': ('status', 'expires_at')
+        }),
+        ('Dates', {
+            'fields': ('created_at', 'sent_at', 'redeemed_at')
+        }),
+    )
+
+
+@admin.register(TeacherRequest)
+class TeacherRequestAdmin(admin.ModelAdmin):
+    list_display = ['first_name', 'last_name', 'email', 'status', 'languages_spoken', 'created_at', 'reviewed_at', 'reviewed_by']
+    list_filter = ['status', 'created_at', 'reviewed_at']
+    search_fields = ['first_name', 'last_name', 'email', 'user__username', 'languages_spoken']
+    readonly_fields = ['created_at', 'updated_at', 'reviewed_at']
+    fieldsets = (
+        ('Personal Information', {
+            'fields': ('user', 'first_name', 'last_name', 'email', 'phone')
+        }),
+        ('Teaching Information', {
+            'fields': ('bio', 'qualifications', 'languages_spoken', 'teaching_experience', 'motivation')
+        }),
+        ('Review Status', {
+            'fields': ('status', 'reviewed_by', 'reviewed_at', 'admin_notes')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
+

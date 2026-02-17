@@ -1,0 +1,160 @@
+{% extends 'teacher/base.html' %}
+
+{% block title %}Create New Course{% endblock %}
+{% block page_title %}Create New Course{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-6">
+        <a href="{% url 'teacher_courses' %}" class="text-teal-700 hover:text-teal-800 text-sm mb-4 inline-block">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Courses
+        </a>
+    </div>
+
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-8 text-black">
+        <h2 class="text-2xl font-bold mb-6 text-black">Course Information</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Course Name *</label>
+                    <input type="text" name="name" required class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" placeholder="e.g., Advanced NLP Techniques">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Short Description *</label>
+                    <input type="text" name="short_description" required class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" placeholder="One-line description for course cards">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Full Description *</label>
+                    <textarea name="description" rows="6" required class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50 resize-none" placeholder="Detailed course description"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Course Type</label>
+                        <select name="course_type" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50">
+                            {% for value, label in course_types %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                        <select name="status" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50">
+                            <option value="active">Active</option>
+                            <option value="locked">Locked</option>
+                            <option value="coming_soon">Coming Soon</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Delivery Type -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Delivery Type *</label>
+                    <select name="delivery_type" id="delivery_type" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" required>
+                        <option value="pre_recorded">Pre-Recorded</option>
+                        <option value="live">Live Course</option>
+                    </select>
+                </div>
+                
+                <!-- Teacher Assignment (only for live courses) -->
+                <div id="teacher_assignment" class="hidden">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Assign Additional Teacher(s) (optional)</label>
+                    <select name="teachers" multiple class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" size="5">
+                        {% for teacher in potential_teachers %}
+                        {% if teacher.id != user.id %}
+                        <option value="{{ teacher.id }}">{{ teacher.get_full_name|default:teacher.username }} ({{ teacher.email }})</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                    <p class="text-xs text-gray-600 mt-1">You will be automatically assigned as the course teacher. Hold Ctrl/Cmd to select additional teachers.</p>
+                </div>
+                
+                <!-- Pricing -->
+                <div class="border-t border-teal-soft/20 pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Pricing</h3>
+                    
+                    <div class="mb-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="is_paid" id="is_paid" class="w-5 h-5 rounded border-teal-soft/30 text-black focus:ring-teal-soft">
+                            <span class="text-sm font-semibold text-gray-700">This course requires payment</span>
+                        </label>
+                    </div>
+                    
+                    <div id="pricing_fields" class="hidden grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Price *</label>
+                            <input type="number" name="price" step="0.01" min="0" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" placeholder="0.00">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Currency</label>
+                            <select name="currency" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50">
+                                <option value="USD">USD ($)</option>
+                                <option value="EUR">EUR (€)</option>
+                                <option value="GBP">GBP (£)</option>
+                                <option value="SEK">SEK (kr)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Coach Name</label>
+                    <input type="text" name="coach_name" value="Sprint Coach" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" placeholder="e.g., Sprint Coach">
+                </div>
+                
+                <div class="flex gap-4 pt-4">
+                    <button type="submit" class="flex-1 px-6 py-3 bg-teal-soft text-[#ffffff] rounded-full font-bold hover:bg-teal-soft/90 transition-all text-gray-800">
+                        Create Course
+                    </button>
+                    <a href="{% url 'teacher_courses' %}" class="px-6 py-3 border border-teal-soft/30 rounded-full font-medium hover:bg-teal-soft/10 transition-all text-black text-center text-gray-800">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deliveryType = document.getElementById('delivery_type');
+    const teacherAssignment = document.getElementById('teacher_assignment');
+    const isPaid = document.getElementById('is_paid');
+    const pricingFields = document.getElementById('pricing_fields');
+    const priceInput = pricingFields.querySelector('input[name="price"]');
+    
+    // Show/hide teacher assignment based on delivery type
+    function toggleTeacherAssignment() {
+        if (deliveryType.value === 'live') {
+            teacherAssignment.classList.remove('hidden');
+        } else {
+            teacherAssignment.classList.add('hidden');
+        }
+    }
+    
+    // Show/hide pricing fields based on is_paid checkbox
+    function togglePricingFields() {
+        if (isPaid.checked) {
+            pricingFields.classList.remove('hidden');
+            priceInput.required = true;
+        } else {
+            pricingFields.classList.add('hidden');
+            priceInput.required = false;
+        }
+    }
+    
+    deliveryType.addEventListener('change', toggleTeacherAssignment);
+    isPaid.addEventListener('change', togglePricingFields);
+    
+    // Initialize on page load
+    toggleTeacherAssignment();
+    togglePricingFields();
+});
+</script>
+{% endblock %}
+

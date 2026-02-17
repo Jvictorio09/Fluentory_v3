@@ -72,7 +72,7 @@
             {% for lesson in module.lessons.all %}
             <div class="flex items-center justify-between p-4 bg-[#ffffff]/40 rounded-lg">
                 <div class="flex items-center gap-4">
-                    <div class="w-8 h-8 rounded-full bg-teal-soft/20 text-teal-soft flex items-center justify-center font-bold">
+                    <div class="w-8 h-8 rounded-full bg-teal-soft/20 text-black flex items-center justify-center font-bold">
                         {{ lesson.order|default:forloop.counter }}
                     </div>
                     <div>
@@ -103,7 +103,7 @@
         <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <div class="w-8 h-8 rounded-full bg-teal-soft/20 text-teal-soft flex items-center justify-center font-bold">
+                    <div class="w-8 h-8 rounded-full bg-teal-soft/20 text-black flex items-center justify-center font-bold">
                         {{ lesson.order|default:forloop.counter }}
                     </div>
                     <div>

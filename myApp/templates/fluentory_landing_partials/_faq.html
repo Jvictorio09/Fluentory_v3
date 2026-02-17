@@ -1,0 +1,100 @@
+<!-- 8️⃣ FAQ — Clean & Calm -->
+<section id="faq" class="bg-[#f7f7f7] py-28 lg:py-36">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-20">
+            <h2 class="text-4xl sm:text-5xl font-bold text-[#0c1b2a] mb-6">Frequently Asked Questions</h2>
+        </div>
+        
+        <div class="space-y-4">
+            <!-- FAQ Item 1 -->
+            <div class="faq-item bg-white rounded-xl overflow-hidden shadow-sm">
+                <button class="faq-question w-full text-left px-6 py-5 flex items-center justify-between font-semibold text-lg text-[#0c1b2a] hover:bg-slate-50 transition-colors">
+                    <span>How long does it take to see results?</span>
+                    <i class="fas fa-chevron-down faq-icon transition-transform"></i>
+                </button>
+                <div class="faq-answer hidden px-6 pb-5 text-slate-600 leading-relaxed">
+                    Most students notice significant improvement in their confidence within 4-6 weeks. Full fluency typically develops over 8-12 weeks of consistent practice.
+                </div>
+            </div>
+            
+            <!-- FAQ Item 2 -->
+            <div class="faq-item bg-white rounded-xl overflow-hidden shadow-sm">
+                <button class="faq-question w-full text-left px-6 py-5 flex items-center justify-between font-semibold text-lg text-[#0c1b2a] hover:bg-slate-50 transition-colors">
+                    <span>Do I need any prior experience?</span>
+                    <i class="fas fa-chevron-down faq-icon transition-transform"></i>
+                </button>
+                <div class="faq-answer hidden px-6 pb-5 text-slate-600 leading-relaxed">
+                    No prior experience is required. Our courses are designed for all levels, from complete beginners to advanced learners looking to refine their skills.
+                </div>
+            </div>
+            
+            <!-- FAQ Item 3 -->
+            <div class="faq-item bg-white rounded-xl overflow-hidden shadow-sm">
+                <button class="faq-question w-full text-left px-6 py-5 flex items-center justify-between font-semibold text-lg text-[#0c1b2a] hover:bg-slate-50 transition-colors">
+                    <span>What makes this different from other language courses?</span>
+                    <i class="fas fa-chevron-down faq-icon transition-transform"></i>
+                </button>
+                <div class="faq-answer hidden px-6 pb-5 text-slate-600 leading-relaxed">
+                    We focus on real conversation practice rather than endless grammar drills. Our AI-powered system adapts to your pace, and our community provides the support you need to succeed.
+                </div>
+            </div>
+            
+            <!-- FAQ Item 4 -->
+            <div class="faq-item bg-white rounded-xl overflow-hidden shadow-sm">
+                <button class="faq-question w-full text-left px-6 py-5 flex items-center justify-between font-semibold text-lg text-[#0c1b2a] hover:bg-slate-50 transition-colors">
+                    <span>Can I access courses on mobile devices?</span>
+                    <i class="fas fa-chevron-down faq-icon transition-transform"></i>
+                </button>
+                <div class="faq-answer hidden px-6 pb-5 text-slate-600 leading-relaxed">
+                    Yes! All our courses are fully responsive and optimized for mobile, tablet, and desktop devices. Learn anywhere, anytime.
+                </div>
+            </div>
+            
+            <!-- FAQ Item 5 -->
+            <div class="faq-item bg-white rounded-xl overflow-hidden shadow-sm">
+                <button class="faq-question w-full text-left px-6 py-5 flex items-center justify-between font-semibold text-lg text-[#0c1b2a] hover:bg-slate-50 transition-colors">
+                    <span>Is there a money-back guarantee?</span>
+                    <i class="fas fa-chevron-down faq-icon transition-transform"></i>
+                </button>
+                <div class="faq-answer hidden px-6 pb-5 text-slate-600 leading-relaxed">
+                    Yes, we offer a 30-day money-back guarantee. If you're not satisfied with your progress, we'll refund your purchase—no questions asked.
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // FAQ Accordion Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const faqItems = document.querySelectorAll('.faq-item');
+        
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            const answer = item.querySelector('.faq-answer');
+            const icon = item.querySelector('.faq-icon');
+            
+            question.addEventListener('click', function() {
+                const isOpen = !answer.classList.contains('hidden');
+                
+                // Close all other items
+                faqItems.forEach(otherItem => {
+                    if (otherItem !== item) {
+                        otherItem.querySelector('.faq-answer').classList.add('hidden');
+                        otherItem.querySelector('.faq-icon').classList.remove('rotate-180');
+                    }
+                });
+                
+                // Toggle current item
+                if (isOpen) {
+                    answer.classList.add('hidden');
+                    icon.classList.remove('rotate-180');
+                } else {
+                    answer.classList.remove('hidden');
+                    icon.classList.add('rotate-180');
+                }
+            });
+        });
+    });
+</script>
+

@@ -23,19 +23,70 @@
                 <span class="absolute -bottom-3 left-0 w-14 h-[3px] bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full"></span>
             </h1>
             
+            <!-- Video Player Section -->
+            {% if lesson.vimeo_id or lesson.google_drive_url or lesson.video_url %}
+            <div class="mb-8">
+                <div class="relative w-full" style="padding-bottom: 56.25%; background: #000; border-radius: 0.75rem; overflow: hidden;">
+                    {% if lesson.vimeo_id %}
+                        <!-- Vimeo Video -->
+                        <iframe 
+                            src="https://player.vimeo.com/video/{{ lesson.vimeo_id }}?title=0&byline=0&portrait=0" 
+                            frameborder="0" 
+                            allow="autoplay; fullscreen; picture-in-picture" 
+                            allowfullscreen
+                            class="absolute top-0 left-0 w-full h-full"
+                            style="border-radius: 0.75rem;"
+                        ></iframe>
+                    {% elif lesson.google_drive_url %}
+                        <!-- Google Drive Video -->
+                        <iframe 
+                            src="{{ lesson.google_drive_url }}" 
+                            frameborder="0" 
+                            allow="autoplay; fullscreen" 
+                            allowfullscreen
+                            class="absolute top-0 left-0 w-full h-full"
+                            style="border-radius: 0.75rem;"
+                        ></iframe>
+                    {% elif lesson.video_url %}
+                        <!-- Generic Video URL (try to detect if it's embeddable) -->
+                        {% if youtube_video_id %}
+                            <!-- YouTube Video -->
+                            <iframe 
+                                src="https://www.youtube.com/embed/{{ youtube_video_id }}" 
+                                frameborder="0" 
+                                allow="autoplay; encrypted-media" 
+                                allowfullscreen
+                                class="absolute top-0 left-0 w-full h-full"
+                                style="border-radius: 0.75rem;"
+                            ></iframe>
+                        {% else %}
+                            <!-- Generic video URL - use HTML5 video player -->
+                            <video 
+                                controls 
+                                class="absolute top-0 left-0 w-full h-full"
+                                style="border-radius: 0.75rem; object-fit: contain;"
+                            >
+                                <source src="{{ lesson.video_url }}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
             
             <!-- Lesson Info Chips -->
             <div class="flex flex-wrap gap-3 mb-6">
                 
                 {% if lesson.workbook_url %}
                 <a href="{{ lesson.workbook_url }}" class="px-3 py-1 bg-teal-soft/10 border border-teal-soft/20 rounded-full text-xs flex items-center gap-2 hover:bg-teal-soft/20 transition-colors">
-                    <i class="fas fa-file text-teal-soft"></i>
+                    <i class="fas fa-file text-black"></i>
                     Download Workbook
                 </a>
                 {% endif %}
                 {% if lesson.resources_url %}
                 <a href="{{ lesson.resources_url }}" class="px-3 py-1 bg-teal-soft/10 border border-teal-soft/20 rounded-full text-xs flex items-center gap-2 hover:bg-teal-soft/20 transition-colors">
-                    <i class="fas fa-folder text-teal-soft"></i>
+                    <i class="fas fa-folder text-black"></i>
                     View Resources
                 </a>
                 {% endif %}
@@ -143,7 +194,7 @@
                         {% for outcome in lesson.get_outcomes_list %}
                         <li class="flex items-start gap-4">
                             <div class="flex-shrink-0 w-6 h-6 rounded-full bg-teal-soft/20 border border-teal-soft/40 flex items-center justify-center mt-0.5">
-                                <i class="fas fa-check text-teal-soft text-xs"></i>
+                                <i class="fas fa-check text-black text-xs"></i>
                             </div>
                             <span class="text-slate-700 leading-relaxed flex-1">{{ outcome }}</span>
                         </li>
@@ -555,7 +606,7 @@
             contentDiv.innerHTML = `
                 <div class="flex items-start justify-between gap-2">
                     <p class="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap flex-1">${escapeHtml(message)}</p>
-                    <button class="copy-message-btn flex-shrink-0 text-teal-soft/50 hover:text-teal-soft transition-colors" title="Copy message">
+                    <button class="copy-message-btn flex-shrink-0 text-black/50 hover:text-black transition-colors" title="Copy message">
                         <i class="fas fa-copy text-xs"></i>
                     </button>
                 </div>

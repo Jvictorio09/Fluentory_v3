@@ -24,7 +24,7 @@ if not SECRET_KEY:
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Default to False for production safety
-DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
+DEBUG = True
 
 # Allow configuration via environment variable (comma-separated)
 # Default hosts for backward compatibility
@@ -168,3 +168,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/my-dashboard/'
 LOGOUT_REDIRECT_URL = '/login/'
+
+# Payment simulation (for development/testing)
+# Set to False in production when using real payment providers
+SIMULATE_PAYMENT = True  # Auto-approve purchases without payment provider

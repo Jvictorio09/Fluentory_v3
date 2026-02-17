@@ -11,8 +11,8 @@
         </a>
     </div>
 
-    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-8">
-        <h2 class="text-2xl font-bold mb-6">Course Information</h2>
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-8 text-black">
+        <h2 class="text-2xl font-bold mb-6 text-black">Course Information</h2>
         <form method="POST">
             {% csrf_token %}
             <div class="space-y-6">
@@ -52,6 +52,55 @@
                     </div>
                 </div>
                 
+                <!-- Delivery Type -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Delivery Type *</label>
+                    <select name="delivery_type" id="delivery_type" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" required>
+                        <option value="pre_recorded">Pre-Recorded</option>
+                        <option value="live">Live Course</option>
+                    </select>
+                </div>
+                
+                <!-- Teacher Assignment (only for live courses) -->
+                <div id="teacher_assignment" class="hidden">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Assign Teacher(s) *</label>
+                    <select name="teachers" multiple class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" size="5">
+                        {% for teacher in potential_teachers %}
+                        <option value="{{ teacher.id }}">{{ teacher.get_full_name|default:teacher.username }} ({{ teacher.email }})</option>
+                        {% endfor %}
+                    </select>
+                    <p class="text-xs text-gray-600 mt-1">Hold Ctrl/Cmd to select multiple teachers</p>
+                </div>
+                
+                <!-- Pricing -->
+                <div class="border-t border-teal-soft/20 pt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Pricing</h3>
+                    
+                    <div class="mb-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="is_paid" id="is_paid" class="w-5 h-5 rounded border-teal-soft/30 text-black focus:ring-teal-soft">
+                            <span class="text-sm font-semibold text-gray-700">This course requires payment</span>
+                        </label>
+                    </div>
+                    
+                    <div id="pricing_fields" class="hidden grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Price *</label>
+                            <input type="number" name="price" step="0.01" min="0" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" placeholder="0.00">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Currency</label>
+                            <select name="currency" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50">
+                                <option value="USD">USD ($)</option>
+                                <option value="EUR">EUR (€)</option>
+                                <option value="GBP">GBP (£)</option>
+                                <option value="SEK">SEK (kr)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">AI Coach Name</label>
                     <input type="text" name="coach_name" value="Sprint Coach" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" placeholder="e.g., Sprint Coach">
@@ -61,7 +110,7 @@
                     <button type="submit" class="flex-1 px-6 py-3 bg-teal-soft text-[#ffffff] rounded-full font-bold hover:bg-teal-soft/90 transition-all text-gray-800">
                         Create Course
                     </button>
-                    <a href="{% url 'dashboard_courses' %}" class="px-6 py-3 border border-teal-soft/30 rounded-full font-medium hover:bg-teal-soft/10 transition-all text-center">
+                    <a href="{% url 'dashboard_courses' %}" class="px-6 py-3 border border-teal-soft/30 rounded-full font-medium hover:bg-teal-soft/10 transition-all text-black text-center">
                         Cancel
                     </a>
                 </div>
@@ -69,5 +118,44 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deliveryType = document.getElementById('delivery_type');
+    const teacherAssignment = document.getElementById('teacher_assignment');
+    const isPaid = document.getElementById('is_paid');
+    const pricingFields = document.getElementById('pricing_fields');
+    const priceInput = pricingFields.querySelector('input[name="price"]');
+    
+    // Show/hide teacher assignment based on delivery type
+    function toggleTeacherAssignment() {
+        if (deliveryType.value === 'live') {
+            teacherAssignment.classList.remove('hidden');
+            teacherAssignment.querySelector('select').required = true;
+        } else {
+            teacherAssignment.classList.add('hidden');
+            teacherAssignment.querySelector('select').required = false;
+        }
+    }
+    
+    // Show/hide pricing fields based on is_paid checkbox
+    function togglePricingFields() {
+        if (isPaid.checked) {
+            pricingFields.classList.remove('hidden');
+            priceInput.required = true;
+        } else {
+            pricingFields.classList.add('hidden');
+            priceInput.required = false;
+        }
+    }
+    
+    deliveryType.addEventListener('change', toggleTeacherAssignment);
+    isPaid.addEventListener('change', togglePricingFields);
+    
+    // Initialize on page load
+    toggleTeacherAssignment();
+    togglePricingFields();
+});
+</script>
 {% endblock %}
 

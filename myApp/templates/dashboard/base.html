@@ -56,8 +56,8 @@
                         <i class="fas fa-bolt text-white"></i>
                     </div>
                     <div>
-                        <div class="text-[10px] uppercase tracking-widest text-teal-soft/70 font-semibold text-gray-700">Dashboard</div>
-                        <div class="text-sm font-bold text-gray-700">AI Academy</div>
+                        <div class="text-[10px] uppercase tracking-widest text-black/70 font-semibold text-gray-700">Dashboard</div>
+                        <div class="text-sm font-bold text-gray-700">Fluentory</div>
                     </div>
                 </div>
                 <button id="close-sidebar" class="md:hidden p-2 text-gray-700 hover:text-white">
@@ -67,35 +67,43 @@
             
             <!-- Navigation Links -->
             <nav class="space-y-2">
-                <a href="{% url 'dashboard_home' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if request.resolver_match.url_name == 'dashboard_home' %}bg-teal-soft/20 text-teal-soft border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-teal-soft{% endif %}">
+                <a href="{% url 'dashboard_home' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if request.resolver_match.url_name == 'dashboard_home' %}bg-teal-soft/20 text-black border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-black{% endif %}">
                     <i class="fas fa-home w-5"></i>
                     <span>Overview</span>
                 </a>
-                <a href="{% url 'dashboard_analytics' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if request.resolver_match.url_name == 'dashboard_analytics' %}bg-teal-soft/20 text-teal-soft border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-teal-soft{% endif %}">
+                <a href="{% url 'dashboard_analytics' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if request.resolver_match.url_name == 'dashboard_analytics' %}bg-teal-soft/20 text-black border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-black{% endif %}">
                     <i class="fas fa-chart-line w-5"></i>
                     <span>Analytics</span>
                 </a>
-                <a href="{% url 'dashboard_courses' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'course' in request.resolver_match.url_name %}bg-teal-soft/20 text-teal-soft border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-teal-soft{% endif %}">
+                <a href="{% url 'dashboard_courses' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'course' in request.resolver_match.url_name %}bg-teal-soft/20 text-black border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-black{% endif %}">
                     <i class="fas fa-book w-5"></i>
                     <span>Courses</span>
                 </a>
-                <a href="{% url 'dashboard_lessons' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'lesson' in request.resolver_match.url_name and 'dashboard' in request.resolver_match.url_name and 'quiz' not in request.resolver_match.url_name %}bg-teal-soft/20 text-teal-soft border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-teal-soft{% endif %}">
+                <a href="{% url 'dashboard_lessons' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'lesson' in request.resolver_match.url_name and 'dashboard' in request.resolver_match.url_name and 'quiz' not in request.resolver_match.url_name %}bg-teal-soft/20 text-black border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-black{% endif %}">
                     <i class="fas fa-video w-5"></i>
                     <span>Lessons</span>
                 </a>
-                <a href="{% url 'dashboard_quizzes' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'quiz' in request.resolver_match.url_name and 'dashboard' in request.resolver_match.url_name %}bg-teal-soft/20 text-teal-soft border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-teal-soft{% endif %}">
+                <a href="{% url 'dashboard_quizzes' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'quiz' in request.resolver_match.url_name and 'dashboard' in request.resolver_match.url_name %}bg-teal-soft/20 text-black border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-black{% endif %}">
                     <i class="fas fa-clipboard-question w-5"></i>
                     <span>Quizzes</span>
                 </a>
-                <a href="{% url 'dashboard_students' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'student' in request.resolver_match.url_name %}bg-teal-soft/20 text-teal-soft border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-teal-soft{% endif %}">
+                <a href="{% url 'dashboard_students' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'student' in request.resolver_match.url_name %}bg-teal-soft/20 text-black border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-black{% endif %}">
                     <i class="fas fa-users w-5"></i>
                     <span>Students</span>
+                </a>
+                <a href="{% url 'dashboard_leads' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'lead' in request.resolver_match.url_name or 'crm' in request.resolver_match.url_name %}bg-teal-soft/20 text-black border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-black{% endif %}">
+                    <i class="fas fa-user-tag w-5"></i>
+                    <span>CRM / Leads</span>
+                </a>
+                <a href="{% url 'dashboard_teacher_requests' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'teacher' in request.resolver_match.url_name %}bg-teal-soft/20 text-black border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-black{% endif %}">
+                    <i class="fas fa-chalkboard-teacher w-5"></i>
+                    <span>Teachers</span>
                 </a>
                 <a href="{% url 'dashboard_bundles' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'bundle' in request.resolver_match.url_name %}bg-blue-soft/20 text-blue-soft border-l-2 border-blue-soft{% else %}text-gray-700 hover:bg-blue-soft/10 hover:text-blue-soft{% endif %}">
                     <i class="fas fa-gift w-5"></i>
                     <span>Bundles</span>
                 </a>
-                <a href="{% url 'home' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-gray-700 hover:bg-teal-soft/10 hover:text-teal-soft">
+                <a href="{% url 'home' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-gray-700 hover:bg-teal-soft/10 hover:text-black">
                     <i class="fas fa-external-link-alt w-5"></i>
                     <span>View Site</span>
                 </a>
@@ -109,7 +117,7 @@
         <div class="bg-[#ffffff]/80 backdrop-blur-sm border-b border-teal-soft/20 sticky top-0 z-30">
             <div class="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <button id="open-sidebar" class="md:hidden p-2 text-white hover:text-teal-soft transition-colors">
+                    <button id="open-sidebar" class="md:hidden p-2 text-white hover:text-black transition-colors">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                     <h1 class="text-xl sm:text-2xl font-bold text-black">{% block page_title %}Dashboard{% endblock %}</h1>
@@ -119,8 +127,8 @@
                         <i class="fas fa-user-circle mr-2"></i>
                         {{ user.get_full_name|default:user.username }}
                     </div>
-                    <a href="{% url 'home' %}" class="px-3 sm:px-4 py-2 rounded-full border border-teal-soft/30 text-xs sm:text-sm font-medium hover:bg-teal-soft/10 hover:border-teal-soft/50 transition-all">
-                        <span class="hidden sm:inline text-gray-700">Log Out</span>
+                    <a href="{% url 'logout' %}" class="px-3 sm:px-4 py-2 rounded-full border border-teal-soft/30 text-xs sm:text-sm font-medium hover:bg-teal-soft/10 hover:border-teal-soft/50 transition-all text-gray-700">
+                        <span class="hidden sm:inline">Log Out</span>
                         <i class="fas fa-sign-out-alt sm:hidden"></i>
                     </a>
                 </div>
@@ -133,7 +141,7 @@
             {% if messages %}
             <div class="mb-6 space-y-2">
                 {% for message in messages %}
-                <div class="px-4 py-3 rounded-lg border {% if message.tags == 'error' %}bg-red-500/20 border-red-500/30 text-red-400{% elif message.tags == 'success' %}bg-green-500/20 border-green-500/30 text-green-400{% else %}bg-teal-soft/20 border-teal-soft/30 text-teal-soft{% endif %}">
+                <div class="px-4 py-3 rounded-lg border {% if message.tags == 'error' %}bg-red-500/20 border-red-500/30 text-red-400{% elif message.tags == 'success' %}bg-green-500/20 border-green-500/30 text-gray-700{% else %}bg-teal-soft/20 border-teal-soft/30 text-black{% endif %}">
                     <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %} mr-2"></i>
                     {{ message }}
                 </div>

@@ -1,0 +1,386 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account - PrimoLearn</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind Config (PrimoLearn palette) -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            // Core
+            'ink-deep': '#2b2f3a',
+            'teal-soft': '#52A8B5',
+            'blue-soft': '#4492B3',
+            'coral-cta': '#DE604D',
+            'success-soft': '#2C9F5F',
+          },
+          boxShadow: {
+            'soft': '0 18px 50px rgba(15, 23, 42, 0.10)',
+            'lift': '0 22px 70px rgba(15, 23, 42, 0.16)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+
+    /* Subtle premium motion (not "gaming UI") */
+    @keyframes drift {
+      0%, 100% { transform: translate3d(0,0,0) }
+      50% { transform: translate3d(0,-14px,0) }
+    }
+    .drift { animation: drift 10s ease-in-out infinite; }
+
+    /* Soft grain for "expensive" texture */
+    .grain:before{
+      content:"";
+      position:absolute; inset:0;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.14'/%3E%3C/svg%3E");
+      opacity:.12; mix-blend-mode:multiply; pointer-events:none;
+    }
+
+    /* Input focus ring aligned to brand */
+    .focus-ring:focus{
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(82,168,181,0.18), 0 14px 35px rgba(68,146,179,0.12);
+      border-color: rgba(82,168,181,0.55);
+      background: rgba(255,255,255,0.92);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-white text-ink-deep">
+  <!-- Background: image + brand gradient wash -->
+  <div class="relative min-h-screen overflow-hidden">
+    <!-- Background image (swap to your own) -->
+    <div class="absolute inset-0">
+      <!-- Option B: tasteful fallback gradient if you don't have an image -->
+      <div class="h-full w-full bg-gradient-to-br from-white via-slate-50 to-slate-100"></div>
+
+      <!-- Brand wash -->
+      <div class="absolute inset-0 bg-gradient-to-b from-white/35 via-white/55 to-white"></div>
+    </div>
+
+    <!-- Ambient glows (teal/blue only) -->
+    <div class="pointer-events-none absolute inset-0">
+      <div class="absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-gradient-to-br from-teal-soft/25 to-blue-soft/25 blur-3xl drift"></div>
+      <div class="absolute -bottom-52 right-[-140px] h-[560px] w-[560px] rounded-full bg-gradient-to-tr from-blue-soft/18 to-teal-soft/18 blur-3xl drift" style="animation-delay: 2.2s;"></div>
+      <div class="absolute inset-0 opacity-[0.10]"
+           style="background-image: linear-gradient(rgba(15,23,42,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.06) 1px, transparent 1px);
+                  background-size: 56px 56px;">
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="relative z-10 flex min-h-screen items-center justify-center px-6 py-14">
+      <div class="w-full max-w-md">
+        <!-- Brand -->
+        <div class="text-center">
+          <div class="mx-auto inline-flex items-center justify-center">
+            <!-- Replace with PrimoLearn logo -->
+            <img
+              src="https://res.cloudinary.com/dwooadxdj/image/upload/v1771294639/copy_of_copy_of_fluentory_-_branding-05_ijgdpz_a6f568_7b4fc3.png"
+              alt="PrimoLearn"
+              class="h-16 w-auto"
+              loading="eager"
+            />
+          </div>
+
+          <p class="mt-4 text-sm text-slate-600">
+            Join thousands of learners. Start your journey today.
+          </p>
+
+          <!-- Trust pill -->
+          <div class="mx-auto mt-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-1.5 text-[11px] font-semibold text-gray-700 text-slate-700 shadow-sm backdrop-blur">
+            <i class="fas fa-shield-check text-black"></i>
+            Free to join • Lifetime access • Accredited certifications
+          </div>
+        </div>
+
+        <!-- Card -->
+        <div class="relative mt-10 rounded-3xl border border-slate-200/80 bg-white/75 shadow-soft backdrop-blur-xl overflow-hidden grain">
+          <!-- subtle top highlight -->
+          <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-teal-soft/40 to-transparent"></div>
+
+          <div class="relative p-7 sm:p-8">
+            <!-- Errors -->
+            {% if messages %}
+              <div class="mb-5 space-y-2">
+                {% for message in messages %}
+                  <div class="rounded-2xl border {% if message.tags == 'error' %}border-red-200 bg-red-50 text-red-700{% else %}border-green-200 bg-green-50 text-green-700{% endif %} px-4 py-3 text-sm flex items-start gap-3">
+                    <i class="fas {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %} mt-0.5"></i>
+                    <span>{{ message }}</span>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <!-- Form -->
+            <form method="POST" action="{% url 'register' %}" class="space-y-5" id="registerForm">
+              {% csrf_token %}
+
+              <!-- Name Fields -->
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label for="first_name" class="block text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-600">
+                    First Name
+                  </label>
+                  <div class="relative mt-2">
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                      <i class="fas fa-user text-slate-400"></i>
+                    </div>
+                    <input
+                      type="text"
+                      id="first_name"
+                      name="first_name"
+                      placeholder="John"
+                      class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label for="last_name" class="block text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-600">
+                    Last Name
+                  </label>
+                  <div class="relative mt-2">
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                      <i class="fas fa-user text-slate-400"></i>
+                    </div>
+                    <input
+                      type="text"
+                      id="last_name"
+                      name="last_name"
+                      placeholder="Doe"
+                      class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Username -->
+              <div>
+                <label for="username" class="block text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-600">
+                  Username *
+                </label>
+                <div class="relative mt-2">
+                  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                    <i class="fas fa-at text-slate-400"></i>
+                  </div>
+                  <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    required
+                    autofocus
+                    placeholder="johndoe"
+                    minlength="3"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                  />
+                </div>
+                <p class="mt-1 text-xs text-slate-500">At least 3 characters</p>
+              </div>
+
+              <!-- Email -->
+              <div>
+                <label for="email" class="block text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-600">
+                  Email Address *
+                </label>
+                <div class="relative mt-2">
+                  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                    <i class="fas fa-envelope text-slate-400"></i>
+                  </div>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    placeholder="john@example.com"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                  />
+                </div>
+              </div>
+
+              <!-- Password -->
+              <div>
+                <label for="password" class="block text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-600">
+                  Password *
+                </label>
+                <div class="relative mt-2">
+                  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                    <i class="fas fa-lock text-slate-400"></i>
+                  </div>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    required
+                    placeholder="At least 8 characters"
+                    minlength="8"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-12 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                  />
+                  <button type="button" id="togglePw"
+                    class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 transition"
+                    aria-label="Toggle password visibility">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Confirm Password -->
+              <div>
+                <label for="password_confirm" class="block text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-600">
+                  Confirm Password *
+                </label>
+                <div class="relative mt-2">
+                  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                    <i class="fas fa-lock text-slate-400"></i>
+                  </div>
+                  <input
+                    type="password"
+                    id="password_confirm"
+                    name="password_confirm"
+                    required
+                    placeholder="Re-enter your password"
+                    minlength="8"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-12 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                  />
+                  <button type="button" id="togglePwConfirm"
+                    class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 transition"
+                    aria-label="Toggle password visibility">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Submit -->
+              <button
+                type="submit"
+                id="submitBtn"
+                class="group relative w-full overflow-hidden rounded-2xl bg-coral-cta px-5 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/25 transition hover:-translate-y-0.5 hover:shadow-lift focus:outline-none"
+              >
+                <span class="relative z-10 inline-flex items-center justify-center gap-2">
+                  <span id="btnText">Create Account</span>
+                  <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
+                </span>
+                <div class="absolute inset-0 bg-gradient-to-r from-coral-cta via-blue-soft to-teal-soft opacity-0 group-hover:opacity-25 transition"></div>
+              </button>
+
+              <!-- Micro trust line -->
+              <p class="text-center text-[11px] text-slate-500">
+                By creating an account, you agree to our Terms of Service and Privacy Policy
+              </p>
+            </form>
+
+            <!-- Divider -->
+            <div class="my-7 flex items-center gap-3">
+              <div class="h-px flex-1 bg-slate-200"></div>
+              <span class="text-[11px] font-semibold text-gray-700 tracking-[0.18em] uppercase text-slate-400">Already have an account?</span>
+              <div class="h-px flex-1 bg-slate-200"></div>
+            </div>
+
+            <!-- Sign in link -->
+            <div class="text-center">
+              <a href="{% url 'login' %}" class="group inline-flex items-center gap-2 rounded-2xl border border-teal-soft/30 bg-teal-soft/10 px-6 py-3 text-sm font-extrabold text-teal-soft transition hover:bg-teal-soft/20 hover:border-teal-soft/50 hover:-translate-y-0.5 hover:shadow-lg">
+                <i class="fas fa-sign-in-alt text-xs"></i>
+                Sign in to your account
+                <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-7 text-center">
+          <div class="inline-flex items-center gap-2 text-xs text-slate-500">
+            <i class="fas fa-lock text-slate-400"></i>
+            Secure registration
+            <span class="text-slate-300">•</span>
+            256-bit SSL
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Password toggle
+    (function () {
+      const pw = document.getElementById('password');
+      const btn = document.getElementById('togglePw');
+      if (pw && btn) {
+        btn.addEventListener('click', () => {
+          const isPw = pw.type === 'password';
+          pw.type = isPw ? 'text' : 'password';
+          btn.innerHTML = isPw ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+        });
+      }
+
+      const pwConfirm = document.getElementById('password_confirm');
+      const btnConfirm = document.getElementById('togglePwConfirm');
+      if (pwConfirm && btnConfirm) {
+        btnConfirm.addEventListener('click', () => {
+          const isPw = pwConfirm.type === 'password';
+          pwConfirm.type = isPw ? 'text' : 'password';
+          btnConfirm.innerHTML = isPw ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+        });
+      }
+    })();
+
+    // Submit loading state
+    (function () {
+      const form = document.getElementById('registerForm');
+      const btn = document.getElementById('submitBtn');
+      const text = document.getElementById('btnText');
+      if (form && btn && text) {
+        form.addEventListener('submit', () => {
+          btn.disabled = true;
+          btn.classList.add('opacity-90', 'cursor-not-allowed');
+          text.innerHTML = 'Creating account… <i class="fas fa-spinner fa-spin ml-2"></i>';
+        });
+      }
+    })();
+
+    // Password match validation
+    (function () {
+      const password = document.getElementById('password');
+      const passwordConfirm = document.getElementById('password_confirm');
+      
+      function validateMatch() {
+        if (passwordConfirm.value && password.value !== passwordConfirm.value) {
+          passwordConfirm.setCustomValidity('Passwords do not match');
+          passwordConfirm.classList.add('border-red-300');
+        } else {
+          passwordConfirm.setCustomValidity('');
+          passwordConfirm.classList.remove('border-red-300');
+        }
+      }
+      
+      if (password && passwordConfirm) {
+        password.addEventListener('input', validateMatch);
+        passwordConfirm.addEventListener('input', validateMatch);
+      }
+    })();
+  </script>
+</body>
+</html>
+

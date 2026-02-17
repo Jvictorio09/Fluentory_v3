@@ -33,7 +33,7 @@
                             <div class="space-y-6">
                                 <!-- Video File Upload -->
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider text-teal-soft/70">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider text-black/70">
                                         <i class="fas fa-upload mr-2"></i>Upload MP4 Video File
                                     </label>
                                     <div class="relative">
@@ -46,9 +46,9 @@
                                         >
                                         <label for="video-file" class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-teal-soft/30 rounded-xl bg-[#ffffff]/40 cursor-pointer hover:border-teal-soft/50 hover:bg-[#ffffff]/60 transition-all group">
                                             <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                                <i class="fas fa-cloud-upload-alt text-5xl text-teal-soft/50 mb-4 group-hover:text-teal-soft transition-colors"></i>
+                                                <i class="fas fa-cloud-upload-alt text-5xl text-black/50 mb-4 group-hover:text-black transition-colors"></i>
                                                 <p class="mb-2 text-sm text-gray-700">
-                                                    <span class="font-semibold text-gray-700 text-teal-soft">Click to upload</span> or drag and drop
+                                                    <span class="font-semibold text-gray-700 text-black">Click to upload</span> or drag and drop
                                                 </p>
                                                 <p class="text-xs text-gray-500">MP4 video file (MAX. 500MB)</p>
                                             </div>
@@ -80,7 +80,7 @@
                                 
                                 <!-- Vimeo URL Input -->
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider text-teal-soft/70">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider text-black/70">
                                         <i class="fab fa-vimeo mr-2"></i>Paste Vimeo video link
                                     </label>
                                     <input 
@@ -105,7 +105,7 @@
                                                 <i class="fas fa-clock mr-2"></i>
                                                 <span id="preview-duration"></span>
                                             </div>
-                                            <div class="text-sm text-green-400 flex items-center gap-2">
+                                            <div class="text-sm text-gray-700 flex items-center gap-2">
                                                 <i class="fas fa-check-circle"></i>
                                                 <span>Video successfully recognized</span>
                                             </div>
@@ -119,7 +119,7 @@
                         <div class="mb-8 border-t border-teal-soft/10 pt-8">
                             <div class="flex items-center gap-3 mb-6">
                                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-soft to-blue-soft text-[#ffffff] flex items-center justify-center font-bold text-lg">2</div>
-                                <h2 class="text-2xl font-bold">Lesson Context</h2>
+                                <h2 class="text-2xl font-bold text-black">Lesson Context</h2>
                             </div>
                             
                             <div class="space-y-6">
@@ -179,10 +179,10 @@
                 <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-xl sticky top-24">
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-lg font-bold flex items-center gap-2">
-                            <i class="fas fa-file-alt text-teal-soft"></i>
+                            <i class="fas fa-file-alt text-black"></i>
                             Transcription
                         </h3>
-                        <button id="copy-transcription" class="hidden text-xs text-teal-soft/70 hover:text-teal-soft transition-colors" title="Copy transcription">
+                        <button id="copy-transcription" class="hidden text-xs text-black/70 hover:text-black transition-colors" title="Copy transcription">
                             <i class="fas fa-copy"></i>
                         </button>
                     </div>
@@ -196,9 +196,9 @@
                         
                         <div id="status-processing" class="hidden text-center py-8">
                             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-soft/10 mb-4">
-                                <i class="fas fa-spinner fa-spin text-2xl text-teal-soft"></i>
+                                <i class="fas fa-spinner fa-spin text-2xl text-black"></i>
                             </div>
-                            <p class="text-sm font-semibold text-gray-700 text-teal-soft mb-1">Generating transcription...</p>
+                            <p class="text-sm font-semibold text-gray-700 text-black mb-1">Generating transcription...</p>
                             <p class="text-xs text-gray-700">This may take a moment</p>
                         </div>
                         
@@ -207,7 +207,7 @@
                                 <i class="fas fa-exclamation-triangle text-xl text-red-400"></i>
                             </div>
                             <p class="text-sm text-red-400 mb-2" id="error-message">Transcription failed</p>
-                            <button id="retry-transcription" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-xs text-teal-soft hover:bg-teal-soft/20 transition-colors">
+                            <button id="retry-transcription" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-xs text-black hover:bg-teal-soft/20 transition-colors">
                                 <i class="fas fa-redo mr-1"></i> Retry Transcription
                             </button>
                         </div>
@@ -224,10 +224,10 @@
                         
                         <!-- Action Buttons -->
                         <div class="flex gap-2 mt-4">
-                            <button id="use-for-description" class="flex-1 px-3 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-xs text-teal-soft hover:bg-teal-soft/20 transition-colors">
+                            <button id="use-for-description" class="flex-1 px-3 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-xs text-black hover:bg-teal-soft/20 transition-colors">
                                 <i class="fas fa-magic mr-1"></i> Use for Description
                             </button>
-                            <button id="copy-transcription-btn" class="px-3 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-xs text-teal-soft hover:bg-teal-soft/20 transition-colors">
+                            <button id="copy-transcription-btn" class="px-3 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-xs text-black hover:bg-teal-soft/20 transition-colors">
                                 <i class="fas fa-copy"></i>
                             </button>
                         </div>
@@ -427,10 +427,10 @@
         // Show feedback
         const originalText = copyTranscriptionBtn2.innerHTML;
         copyTranscriptionBtn2.innerHTML = '<i class="fas fa-check"></i>';
-        copyTranscriptionBtn2.classList.add('bg-green-500/20', 'border-green-500/30', 'text-green-400');
+        copyTranscriptionBtn2.classList.add('bg-green-500/20', 'border-green-500/30', 'text-gray-700');
         setTimeout(() => {
             copyTranscriptionBtn2.innerHTML = originalText;
-            copyTranscriptionBtn2.classList.remove('bg-green-500/20', 'border-green-500/30', 'text-green-400');
+            copyTranscriptionBtn2.classList.remove('bg-green-500/20', 'border-green-500/30', 'text-gray-700');
         }, 2000);
     }
     

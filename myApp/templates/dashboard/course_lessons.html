@@ -50,7 +50,7 @@
             {% for lesson in module.lessons.all %}
             <div class="flex items-center justify-between p-4 bg-[#ffffff]/40 rounded-lg hover:bg-[#ffffff]/60 transition-all">
                 <div class="flex items-center gap-4 flex-1">
-                    <div class="w-10 h-10 rounded-lg bg-teal-soft/20 text-teal-soft flex items-center justify-center font-bold">
+                    <div class="w-10 h-10 rounded-lg bg-teal-soft/20 text-black flex items-center justify-center font-bold">
                         {{ lesson.order|default:forloop.counter }}
                     </div>
                     <div class="flex-1">
@@ -58,13 +58,13 @@
                         <div class="text-sm text-gray-700 flex items-center gap-4 mt-1">
                             <span><i class="fas fa-clock mr-1"></i> {{ lesson.get_formatted_duration }}</span>
                             {% if lesson.vimeo_id %}
-                            <span class="text-green-400"><i class="fas fa-check-circle mr-1"></i> Video Ready</span>
+                            <span class="text-gray-700"><i class="fas fa-check-circle mr-1"></i> Video Ready</span>
                             {% endif %}
                         </div>
                     </div>
                     <span class="px-3 py-1 rounded-full text-xs font-semibold text-gray-700
-                        {% if lesson.ai_generation_status == 'approved' %}bg-green-500/20 text-green-400 border border-green-500/30
-                        {% elif lesson.ai_generation_status == 'generated' %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30
+                        {% if lesson.ai_generation_status == 'approved' %}bg-green-500/20 text-gray-700 border border-green-500/30
+                        {% elif lesson.ai_generation_status == 'generated' %}bg-yellow-500/20 text-black-400 border border-yellow-500/30
                         {% else %}bg-gray-500/20 text-gray-700 border border-gray-500/30{% endif %}">
                         {{ lesson.get_ai_generation_status_display }}
                     </span>
@@ -92,7 +92,7 @@
         <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
             <div class="flex items-center justify-between p-4 bg-[#ffffff]/40 rounded-lg">
                 <div class="flex items-center gap-4 flex-1">
-                    <div class="w-10 h-10 rounded-lg bg-teal-soft/20 text-teal-soft flex items-center justify-center font-bold">
+                    <div class="w-10 h-10 rounded-lg bg-teal-soft/20 text-black flex items-center justify-center font-bold">
                         {{ lesson.order|default:forloop.counter }}
                     </div>
                     <div class="flex-1">
@@ -100,13 +100,13 @@
                         <div class="text-sm text-gray-700 flex items-center gap-4 mt-1">
                             <span><i class="fas fa-clock mr-1"></i> {{ lesson.get_formatted_duration }}</span>
                             {% if lesson.vimeo_id %}
-                            <span class="text-green-400"><i class="fas fa-check-circle mr-1"></i> Video Ready</span>
+                            <span class="text-gray-700"><i class="fas fa-check-circle mr-1"></i> Video Ready</span>
                             {% endif %}
                         </div>
                     </div>
                     <span class="px-3 py-1 rounded-full text-xs font-semibold text-gray-700
-                        {% if lesson.ai_generation_status == 'approved' %}bg-green-500/20 text-green-400 border border-green-500/30
-                        {% elif lesson.ai_generation_status == 'generated' %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30
+                        {% if lesson.ai_generation_status == 'approved' %}bg-green-500/20 text-gray-700 border border-green-500/30
+                        {% elif lesson.ai_generation_status == 'generated' %}bg-yellow-500/20 text-black-400 border border-yellow-500/30
                         {% else %}bg-gray-500/20 text-gray-700 border border-gray-500/30{% endif %}">
                         {{ lesson.get_ai_generation_status_display }}
                     </span>

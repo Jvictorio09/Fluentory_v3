@@ -1,0 +1,149 @@
+{% extends 'teacher/base.html' %}
+
+{% block title %}{{ session.title }}{% endblock %}
+{% block page_title %}{{ session.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="mb-6">
+        <a href="{% url 'teacher_live_sessions' %}" class="text-teal-700 hover:text-teal-800 text-sm mb-4 inline-block">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Sessions
+        </a>
+    </div>
+
+    <!-- Session Info -->
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6 mb-6">
+        <div class="flex items-start justify-between mb-4">
+            <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                    <h2 class="text-2xl font-bold text-gray-800">{{ session.title }}</h2>
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                        {% if session.status == 'scheduled' %}bg-green-500/20 text-gray-700 border border-green-500/30
+                        {% elif session.status == 'in_progress' %}bg-blue-500/20 text-blue-400 border border-blue-500/30
+                        {% elif session.status == 'completed' %}bg-gray-500/20 text-gray-700 border border-gray-500/30
+                        {% else %}bg-red-500/20 text-red-400 border border-red-500/30{% endif %}">
+                        {{ session.get_status_display }}
+                    </span>
+                </div>
+                <p class="text-gray-700 mb-4">{{ session.course.name }}</p>
+                <div class="flex flex-wrap gap-4 text-sm text-gray-700">
+                    <span><i class="fas fa-calendar mr-1"></i> {{ session.scheduled_at|date:"F d, Y" }}</span>
+                    <span><i class="fas fa-clock mr-1"></i> {{ session.scheduled_at|time:"g:i A" }}</span>
+                    <span><i class="fas fa-hourglass-half mr-1"></i> {{ session.duration_minutes }} minutes</span>
+                    {% if session.capacity %}
+                    <span><i class="fas fa-user-lock mr-1"></i> Capacity: {{ session.capacity }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex gap-2">
+                {% if session.status == 'scheduled' %}
+                <a href="{% url 'teacher_live_session_edit' session.id %}" class="px-4 py-2 bg-blue-soft/10 border border-blue-soft/30 rounded-lg font-medium hover:bg-blue-soft/20 transition-all text-gray-800">
+                    <i class="fas fa-edit mr-2"></i> Edit
+                </a>
+                <form method="POST" action="{% url 'teacher_live_session_cancel' session.id %}" class="inline" onsubmit="return confirm('Are you sure you want to cancel this session?');">
+                    {% csrf_token %}
+                    <button type="submit" class="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg font-medium hover:bg-red-500/20 transition-all text-red-400">
+                        <i class="fas fa-times mr-2"></i> Cancel
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if session.description %}
+        <div class="mt-4 p-4 bg-[#ffffff]/40 rounded-lg">
+            <h3 class="font-semibold text-gray-800 mb-2">Description</h3>
+            <p class="text-gray-700">{{ session.description }}</p>
+        </div>
+        {% endif %}
+        
+        {% if session.meeting_link %}
+        <div class="mt-4 p-4 bg-[#ffffff]/40 rounded-lg">
+            <h3 class="font-semibold text-gray-800 mb-2">Meeting Details</h3>
+            <p class="text-gray-700 mb-2">
+                <i class="fas fa-link mr-2"></i>
+                <a href="{{ session.meeting_link }}" target="_blank" class="text-black hover:text-teal-800">{{ session.meeting_link }}</a>
+            </p>
+            {% if session.meeting_password %}
+            <p class="text-gray-700">
+                <i class="fas fa-lock mr-2"></i>
+                Password: <span class="font-mono">{{ session.meeting_password }}</span>
+            </p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Bookings -->
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-gray-800">Bookings ({{ bookings.count }})</h3>
+            <div class="text-sm text-gray-700">
+                <span class="text-gray-700">{{ session.get_attended_count }} attended</span>
+                {% if session.capacity %}
+                <span class="mx-2">•</span>
+                <span>{% if session.is_full %}<span class="text-red-400">Full</span>{% else %}{{ session.capacity|add:"-"|add:session.get_bookings_count }} spots left{% endif %}</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if bookings %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-teal-soft/20">
+                        <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Student</th>
+                        <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Booked</th>
+                        <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Status</th>
+                        <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                    <tr class="border-b border-teal-soft/10 hover:bg-teal-soft/5">
+                        <td class="py-3 px-4 text-gray-800">{{ booking.user.get_full_name|default:booking.user.username }}</td>
+                        <td class="py-3 px-4 text-gray-700 text-sm">{{ booking.booked_at|date:"M d, Y g:i A" }}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold
+                                {% if booking.status == 'attended' %}bg-green-500/20 text-gray-700
+                                {% elif booking.status == 'no_show' %}bg-red-500/20 text-red-400
+                                {% elif booking.status == 'cancelled' %}bg-gray-500/20 text-gray-700
+                                {% else %}bg-yellow-500/20 text-black-400{% endif %}">
+                                {{ booking.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            {% if session.status == 'scheduled' or session.status == 'in_progress' %}
+                            {% if booking.status != 'attended' and booking.status != 'no_show' %}
+                            <form method="POST" action="{% url 'teacher_mark_attendance' booking.id %}" class="inline-block mr-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="attended">
+                                <button type="submit" class="px-3 py-1 bg-green-500/10 border border-green-500/30 rounded text-xs font-medium hover:bg-green-500/20 transition-all text-gray-700">
+                                    Mark Attended
+                                </button>
+                            </form>
+                            <form method="POST" action="{% url 'teacher_mark_attendance' booking.id %}" class="inline-block">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="no_show">
+                                <button type="submit" class="px-3 py-1 bg-red-500/10 border border-red-500/30 rounded text-xs font-medium hover:bg-red-500/20 transition-all text-red-400">
+                                    Mark No-Show
+                                </button>
+                            </form>
+                            {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-user-friends text-4xl text-gray-600 mb-4"></i>
+            <p class="text-gray-700">No bookings yet for this session</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

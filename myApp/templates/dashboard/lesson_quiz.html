@@ -15,7 +15,7 @@
     <!-- Quiz settings -->
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-bold">Quiz Settings</h2>
+            <h2 class="text-xl font-bold text-black">Quiz Settings</h2>
             <form method="POST" action="{% url 'dashboard_delete_quiz' lesson.id %}" class="inline" onsubmit="return confirm('Are you sure you want to delete this quiz? This will delete all questions and cannot be undone.');">
                 {% csrf_token %}
                 <button type="submit" class="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-sm font-medium hover:bg-red-500/20 transition-all text-red-400">
@@ -40,7 +40,7 @@
                     <input type="number" name="passing_score" value="{{ quiz.passing_score }}" min="0" max="100" class="w-24 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
                 </div>
                 <label class="inline-flex items-center gap-2 mt-6">
-                    <input type="checkbox" name="is_required" {% if quiz.is_required %}checked{% endif %} class="text-teal-soft">
+                    <input type="checkbox" name="is_required" {% if quiz.is_required %}checked{% endif %} class="text-black">
                     <span class="text-sm text-gray-700">Show as recommended after lesson</span>
                 </label>
             </div>
@@ -53,7 +53,7 @@
     <!-- Existing questions -->
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-bold">Questions</h2>
+            <h2 class="text-xl font-bold text-black">Questions</h2>
             <span class="text-sm text-gray-700">{{ questions|length }} question{{ questions|length|pluralize }}</span>
         </div>
         <div class="space-y-4">
@@ -63,18 +63,18 @@
                     <div>
                         <div class="font-semibold text-gray-700 text-gray-100 mb-2">Q{{ forloop.counter }}. {{ q.text }}</div>
                         <ul class="text-sm text-gray-700 space-y-1">
-                            <li><strong>A.</strong> {{ q.option_a }}{% if q.correct_option == 'A' %} <span class="text-green-400 font-semibold text-gray-700">(correct)</span>{% endif %}</li>
-                            <li><strong>B.</strong> {{ q.option_b }}{% if q.correct_option == 'B' %} <span class="text-green-400 font-semibold text-gray-700">(correct)</span>{% endif %}</li>
+                            <li><strong>A.</strong> {{ q.option_a }}{% if q.correct_option == 'A' %} <span class="text-gray-700 font-semibold text-gray-700">(correct)</span>{% endif %}</li>
+                            <li><strong>B.</strong> {{ q.option_b }}{% if q.correct_option == 'B' %} <span class="text-gray-700 font-semibold text-gray-700">(correct)</span>{% endif %}</li>
                             {% if q.option_c %}
-                            <li><strong>C.</strong> {{ q.option_c }}{% if q.correct_option == 'C' %} <span class="text-green-400 font-semibold text-gray-700">(correct)</span>{% endif %}</li>
+                            <li><strong>C.</strong> {{ q.option_c }}{% if q.correct_option == 'C' %} <span class="text-gray-700 font-semibold text-gray-700">(correct)</span>{% endif %}</li>
                             {% endif %}
                             {% if q.option_d %}
-                            <li><strong>D.</strong> {{ q.option_d }}{% if q.correct_option == 'D' %} <span class="text-green-400 font-semibold text-gray-700">(correct)</span>{% endif %}</li>
+                            <li><strong>D.</strong> {{ q.option_d }}{% if q.correct_option == 'D' %} <span class="text-gray-700 font-semibold text-gray-700">(correct)</span>{% endif %}</li>
                             {% endif %}
                         </ul>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="openEditModal({{ q.id }}, '{{ q.text|escapejs }}', '{{ q.option_a|escapejs }}', '{{ q.option_b|escapejs }}', '{{ q.option_c|escapejs }}', '{{ q.option_d|escapejs }}', '{{ q.correct_option }}')" class="text-xs px-3 py-1 rounded-full bg-teal-soft/10 border border-teal-soft/40 text-teal-soft hover:bg-teal-soft/20">
+                        <button onclick="openEditModal({{ q.id }}, '{{ q.text|escapejs }}', '{{ q.option_a|escapejs }}', '{{ q.option_b|escapejs }}', '{{ q.option_c|escapejs }}', '{{ q.option_d|escapejs }}', '{{ q.correct_option }}')" class="text-xs px-3 py-1 rounded-full bg-teal-soft/10 border border-teal-soft/40 text-black hover:bg-teal-soft/20">
                             <i class="fas fa-edit mr-1"></i>Edit
                         </button>
                         <form method="post" onsubmit="return confirm('Are you sure you want to delete this question?');">
@@ -143,7 +143,7 @@
     <div class="bg-[#ffffff] border border-teal-soft/30 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div class="p-6 border-b border-teal-soft/10">
             <div class="flex items-center justify-between">
-                <h3 class="text-2xl font-bold">Edit Question</h3>
+                <h3 class="text-2xl font-bold text-black">Edit Question</h3>
                 <button onclick="closeEditModal()" class="text-gray-700 hover:text-white transition-colors">
                     <i class="fas fa-times text-xl"></i>
                 </button>

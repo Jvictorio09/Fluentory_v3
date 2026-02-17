@@ -4,13 +4,21 @@ from django.conf import settings
 from django.conf.urls.static import static
 from myApp import views
 from myApp import dashboard_views
+from myApp import teacher_views
 
 urlpatterns = [
     # Public-facing URLs
-    path('', views.home, name='home'),
+    path('', views.landing, name='landing'),
+    path('home/', views.home, name='home'),
     path('login/', views.login_view, name='login'),
+    path('register/', views.register_view, name='register'),
+    path('register/teacher/', views.register_teacher_view, name='register_teacher'),
     path('logout/', views.logout_view, name='logout'),
     path('courses/', views.courses, name='courses'),
+    path('tawjehi/', views.tawjehi_page, name='tawjehi_page'),
+    # Purchase and gift endpoints must come before course_detail and lesson_detail to avoid URL matching conflicts
+    path('courses/<slug:course_slug>/purchase/', views.initiate_purchase, name='initiate_purchase'),
+    path('courses/<slug:course_slug>/gift/', views.gift_course, name='gift_course'),
     path('courses/<slug:course_slug>/', views.course_detail, name='course_detail'),
     path('courses/<slug:course_slug>/<slug:lesson_slug>/', views.lesson_detail, name='lesson_detail'),
     path('courses/<slug:course_slug>/<slug:lesson_slug>/quiz/', views.lesson_quiz_view, name='lesson_quiz'),
@@ -88,6 +96,45 @@ urlpatterns = [
     
     # Course content generation webhook endpoint
     path('api/generate-course-content/', views.generate_course_content_webhook, name='generate_course_content_webhook'),
+    
+    # Purchase system endpoints (purchase URL moved above to avoid conflicts)
+    path('api/purchase/webhook/', views.purchase_webhook, name='purchase_webhook'),
+    
+    # Gift purchase endpoints (gift URL moved above to avoid conflicts)
+    path('gift/success/<str:gift_token>/', views.gift_success, name='gift_success'),
+    path('gift/redeem/<str:gift_token>/', views.redeem_gift, name='redeem_gift'),
+    
+    # Teacher URLs
+    path('teacher/', teacher_views.teacher_dashboard, name='teacher_dashboard'),
+    path('teacher/courses/', teacher_views.teacher_courses, name='teacher_courses'),
+    path('teacher/courses/add/', teacher_views.teacher_add_course, name='teacher_add_course'),
+    path('teacher/courses/<slug:course_slug>/', teacher_views.teacher_course_detail, name='teacher_course_detail'),
+    path('teacher/courses/<slug:course_slug>/delete/', teacher_views.teacher_delete_course, name='teacher_delete_course'),
+    path('teacher/courses/<slug:course_slug>/lessons/', teacher_views.teacher_course_lessons, name='teacher_course_lessons'),
+    path('teacher/sessions/', teacher_views.teacher_live_sessions, name='teacher_live_sessions'),
+    path('teacher/courses/<slug:course_slug>/sessions/create/', teacher_views.teacher_live_session_create, name='teacher_live_session_create'),
+    path('teacher/sessions/<int:session_id>/', teacher_views.teacher_live_session_detail, name='teacher_live_session_detail'),
+    path('teacher/sessions/<int:session_id>/edit/', teacher_views.teacher_live_session_edit, name='teacher_live_session_edit'),
+    path('teacher/sessions/<int:session_id>/cancel/', teacher_views.teacher_live_session_cancel, name='teacher_live_session_cancel'),
+    path('teacher/sessions/<int:session_id>/bookings/', teacher_views.teacher_session_bookings, name='teacher_session_bookings'),
+    path('teacher/bookings/<int:booking_id>/attendance/', teacher_views.teacher_mark_attendance, name='teacher_mark_attendance'),
+    
+    # CRM Lead Management
+    path('dashboard/crm/leads/', dashboard_views.dashboard_leads, name='dashboard_leads'),
+    path('dashboard/crm/leads/create/', dashboard_views.dashboard_lead_create, name='dashboard_lead_create'),
+    path('dashboard/crm/leads/<int:lead_id>/', dashboard_views.dashboard_lead_detail, name='dashboard_lead_detail'),
+    path('dashboard/crm/leads/<int:lead_id>/edit/', dashboard_views.dashboard_lead_edit, name='dashboard_lead_edit'),
+    path('dashboard/crm/leads/<int:lead_id>/add-note/', dashboard_views.dashboard_lead_add_note, name='dashboard_lead_add_note'),
+    path('dashboard/crm/leads/<int:lead_id>/link-user/', dashboard_views.dashboard_lead_link_user, name='dashboard_lead_link_user'),
+    path('dashboard/crm/leads/<int:lead_id>/link-gift/', dashboard_views.dashboard_lead_link_gift, name='dashboard_lead_link_gift'),
+    path('dashboard/crm/leads/<int:lead_id>/link-enrollment/', dashboard_views.dashboard_lead_link_enrollment, name='dashboard_lead_link_enrollment'),
+    path('dashboard/crm/analytics/', dashboard_views.dashboard_crm_analytics, name='dashboard_crm_analytics'),
+    
+    # Teacher Request Management
+    path('dashboard/teacher-requests/', dashboard_views.dashboard_teacher_requests, name='dashboard_teacher_requests'),
+    path('dashboard/teacher-requests/<int:request_id>/', dashboard_views.dashboard_teacher_request_detail, name='dashboard_teacher_request_detail'),
+    path('dashboard/teacher-requests/<int:request_id>/approve/', dashboard_views.dashboard_teacher_request_approve, name='dashboard_teacher_request_approve'),
+    path('dashboard/teacher-requests/<int:request_id>/reject/', dashboard_views.dashboard_teacher_request_reject, name='dashboard_teacher_request_reject'),
     
     # Admin (optional - can be removed if not needed)
     path('admin/', admin.site.urls),

@@ -274,14 +274,14 @@ recent_progress = UserProgress.objects.filter(
 ```html
 <div class="flex items-start gap-3">
     <!-- Icon based on activity type -->
-    <div class="w-8 h-8 rounded-lg bg-green-500/20 text-green-400">
+    <div class="w-8 h-8 rounded-lg bg-green-500/20 text-gray-700">
         <i class="fas fa-check-circle"></i>
     </div>
     
     <!-- Activity details -->
     <div>
         <span class="font-semibold text-gray-700">Student Name</span>
-        completed <span class="text-teal-soft">Lesson Title</span>
+        completed <span class="text-black">Lesson Title</span>
         <div class="text-xs text-gray-700">
             <i class="fas fa-clock"></i> 5 minutes ago
         </div>

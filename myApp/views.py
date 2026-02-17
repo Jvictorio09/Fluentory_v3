@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
@@ -26,6 +27,9 @@ from .models import (
     LessonQuiz,
     LessonQuizQuestion,
     LessonQuizAttempt,
+    CoursePurchase,
+    TeacherRequest,
+    GiftPurchase,
 )
 from django.db.models import Avg, Count, Q
 from django.db import models
@@ -34,10 +38,61 @@ from .utils.transcription import transcribe_video
 from .utils.access import has_course_access
 
 
+def landing(request):
+    """Premium landing page view"""
+    # Get featured courses for the landing page (exclude Tawjehi courses)
+    courses = Course.objects.filter(status='active', visibility='public').exclude(course_type='tawjehi')[:6]
+    return render(request, 'landing.html', {
+        'courses': courses,
+    })
+
+def tawjehi_page(request):
+    """Tawjehi exam preparation courses page"""
+    # Get only Tawjehi courses
+    tawjehi_courses = Course.objects.filter(
+        status='active',
+        course_type='tawjehi'
+    ).order_by('name')
+    
+    # Group courses by subject
+    subjects = {
+        'physics': {'name': 'Physics', 'icon': 'fa-atom', 'courses': []},
+        'mathematics': {'name': 'Mathematics', 'icon': 'fa-calculator', 'courses': []},
+        'english': {'name': 'English', 'icon': 'fa-language', 'courses': []},
+        'arabic': {'name': 'Arabic', 'icon': 'fa-book', 'courses': []},
+        'chemistry': {'name': 'Chemistry', 'icon': 'fa-flask', 'courses': []},
+        'biology': {'name': 'Biology', 'icon': 'fa-dna', 'courses': []},
+        'other': {'name': 'Other Subjects', 'icon': 'fa-graduation-cap', 'courses': []},
+    }
+    
+    # Categorize courses by subject (checking name for subject keywords)
+    for course in tawjehi_courses:
+        course_name_lower = course.name.lower()
+        categorized = False
+        
+        for subject_key, subject_info in subjects.items():
+            if subject_key == 'other':
+                continue
+            if subject_key in course_name_lower:
+                subjects[subject_key]['courses'].append(course)
+                categorized = True
+                break
+        
+        if not categorized:
+            subjects['other']['courses'].append(course)
+    
+    # Remove empty subject categories
+    subjects = {k: v for k, v in subjects.items() if v['courses']}
+    
+    return render(request, 'tawjehi/tawjehi_page.html', {
+        'subjects': subjects,
+        'all_courses': tawjehi_courses,
+    })
+
 def home(request):
     """Home page view - shows courses hub (premium landing)"""
-    # Get all active courses for the homepage
-    courses = Course.objects.filter(status='active', visibility='public')
+    # Get all active courses for the homepage (exclude Tawjehi courses)
+    courses = Course.objects.filter(status='active', visibility='public').exclude(course_type='tawjehi')
     
     # Define category mappings
     CATEGORY_MAPPING = {
@@ -280,12 +335,65 @@ def home(request):
     })
 
 
+def _is_teacher_user(user):
+    """Helper function to check if a user is a teacher (not admin)
+    
+    A user is a teacher if:
+    - They have an approved TeacherRequest, OR
+    - They teach at least one course (have taught_courses)
+    
+    Note: Superusers are always admins, not teachers.
+    """
+    if not user or not user.is_authenticated:
+        return False
+    
+    # Superusers are admins, not teachers
+    if user.is_superuser:
+        return False
+    
+    # Refresh user from database to ensure we have latest data
+    try:
+        user.refresh_from_db()
+    except:
+        pass
+    
+    # Check if user has approved TeacherRequest (this is the primary indicator)
+    from .models import TeacherRequest
+    try:
+        # Use user.id to avoid any potential caching issues
+        if TeacherRequest.objects.filter(user_id=user.id, status='approved').exists():
+            return True
+    except Exception as e:
+        # Log error but continue
+        pass
+    
+    # Check if user teaches any courses (secondary check)
+    try:
+        # Use user.id to avoid any potential caching issues
+        from .models import Course
+        if Course.objects.filter(teachers__id=user.id).exists():
+            return True
+    except Exception as e:
+        # Log error but continue
+        pass
+    
+    return False
+
+
 def login_view(request):
     """Premium login page"""
     # Allow access to login page even when logged in if ?force=true (for testing)
     force = request.GET.get('force', '').lower() == 'true'
     if request.user.is_authenticated and not force:
-        return redirect('student_dashboard')
+        # Redirect based on user role: admin → admin dashboard, teacher → teacher dashboard, student → student dashboard
+        if request.user.is_superuser:
+            return redirect('dashboard_home')
+        elif _is_teacher_user(request.user):
+            return redirect('teacher_dashboard')
+        elif request.user.is_staff:
+            return redirect('dashboard_home')  # Staff but not teacher → admin dashboard
+        else:
+            return redirect('student_dashboard')
     
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -294,12 +402,170 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            next_url = request.GET.get('next', 'student_dashboard')
+            # Determine redirect based on user role
+            if user.is_superuser:
+                next_url = request.GET.get('next', 'dashboard_home')
+            elif _is_teacher_user(user):
+                next_url = request.GET.get('next', 'teacher_dashboard')
+            elif user.is_staff:
+                next_url = request.GET.get('next', 'dashboard_home')
+            else:
+                next_url = request.GET.get('next', 'student_dashboard')
             return redirect(next_url)
         else:
             messages.error(request, 'Invalid username or password.')
     
     return render(request, 'login.html')
+
+
+def register_view(request):
+    """Premium registration page"""
+    # Redirect if already logged in
+    if request.user.is_authenticated:
+        return redirect('student_dashboard')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        password_confirm = request.POST.get('password_confirm')
+        first_name = request.POST.get('first_name', '')
+        last_name = request.POST.get('last_name', '')
+        
+        # Validation
+        errors = []
+        
+        if not username:
+            errors.append('Username is required.')
+        elif len(username) < 3:
+            errors.append('Username must be at least 3 characters.')
+        elif User.objects.filter(username=username).exists():
+            errors.append('Username already exists.')
+        
+        if not email:
+            errors.append('Email is required.')
+        elif User.objects.filter(email=email).exists():
+            errors.append('Email already registered.')
+        
+        if not password:
+            errors.append('Password is required.')
+        elif len(password) < 8:
+            errors.append('Password must be at least 8 characters.')
+        
+        if password != password_confirm:
+            errors.append('Passwords do not match.')
+        
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+        else:
+            # Create user
+            try:
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name
+                )
+                # Automatically log in the user
+                login(request, user)
+                messages.success(request, 'Account created successfully! Welcome to PrimoLearn.')
+                
+                # If registering with a gift, redirect to redeem
+                gift_token = request.GET.get('gift')
+                if gift_token:
+                    return redirect('redeem_gift', gift_token=gift_token)
+                
+                return redirect('student_dashboard')
+            except Exception as e:
+                messages.error(request, f'Error creating account: {str(e)}')
+    
+    return render(request, 'register.html')
+
+
+def register_teacher_view(request):
+    """Teacher registration view"""
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        bio = request.POST.get('bio', '').strip()
+        qualifications = request.POST.get('qualifications', '').strip()
+        languages_spoken = request.POST.get('languages_spoken', '').strip()
+        teaching_experience = request.POST.get('teaching_experience', '').strip()
+        motivation = request.POST.get('motivation', '').strip()
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '').strip()
+        password_confirm = request.POST.get('password_confirm', '').strip()
+        
+        # Validation
+        if not all([first_name, last_name, email, bio, qualifications, languages_spoken, teaching_experience, motivation, username, password]):
+            messages.error(request, 'Please fill in all required fields.')
+            return render(request, 'register_teacher.html')
+        
+        if password != password_confirm:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'register_teacher.html')
+        
+        if len(password) < 8:
+            messages.error(request, 'Password must be at least 8 characters long.')
+            return render(request, 'register_teacher.html')
+        
+        # Check if user already exists
+        if User.objects.filter(username=username).exists():
+            messages.error(request, 'Username already exists. Please choose a different one.')
+            return render(request, 'register_teacher.html')
+        
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Email already registered. Please use a different email or log in.')
+            return render(request, 'register_teacher.html')
+        
+        # Check if there's already a pending request for this email
+        if TeacherRequest.objects.filter(email=email, status='pending').exists():
+            messages.info(request, 'You already have a pending teacher registration request. We will review it shortly.')
+            return render(request, 'register_teacher.html')
+        
+        # Create user account
+        try:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name
+            )
+            
+            # Create teacher request
+            teacher_request = TeacherRequest.objects.create(
+                user=user,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                phone=phone,
+                bio=bio,
+                qualifications=qualifications,
+                languages_spoken=languages_spoken,
+                teaching_experience=teaching_experience,
+                motivation=motivation,
+                status='pending'
+            )
+            
+            # Send confirmation email
+            from .utils.email import send_teacher_request_email
+            email_result = send_teacher_request_email(teacher_request)
+            
+            # Notify admins
+            from .utils.email import notify_admin_teacher_request
+            notify_admin_teacher_request(teacher_request)
+            
+            messages.success(request, 'Your teacher registration request has been submitted! We will review your application and send you an email shortly.')
+            return redirect('login')
+        except Exception as e:
+            messages.error(request, f'Error creating account: {str(e)}')
+    
+    return render(request, 'register_teacher.html')
 
 
 def logout_view(request):
@@ -314,7 +580,8 @@ def courses(request):
     course_type = request.GET.get('type', 'all')
     search_query = request.GET.get('search', '')
     
-    courses = Course.objects.all()
+    # Exclude Tawjehi courses from main course listing
+    courses = Course.objects.all().exclude(course_type='tawjehi')
     
     if course_type != 'all':
         courses = courses.filter(course_type=course_type)
@@ -392,14 +659,36 @@ def course_detail(request, course_slug):
     # For authenticated users with access, redirect to first lesson
     if request.user.is_authenticated:
         from .utils.access import has_course_access
-        if has_course_access(request.user, course):
+        has_access, access_record, _ = has_course_access(request.user, course)
+        if has_access:
             first_lesson = course.lessons.first()
             if first_lesson:
                 return lesson_detail(request, course_slug, first_lesson.slug)
     
+    # Process preview video URL for embedding
+    preview_video_embed_url = None
+    if course.preview_video_url:
+        import re
+        # YouTube URL processing
+        youtube_match = re.search(r'(?:youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]+)', course.preview_video_url)
+        if youtube_match:
+            preview_video_embed_url = f"https://www.youtube.com/embed/{youtube_match.group(1)}"
+        # Vimeo URL processing
+        vimeo_match = re.search(r'vimeo\.com/(?:video/)?(\d+)', course.preview_video_url)
+        if vimeo_match:
+            preview_video_embed_url = f"https://player.vimeo.com/video/{vimeo_match.group(1)}"
+        # If no match, use original URL (for direct video files)
+        if not preview_video_embed_url:
+            preview_video_embed_url = course.preview_video_url
+    
     # Show premium sales page for non-authenticated or users without access
+    # Include purchase information if course is paid
     return render(request, 'course_detail.html', {
         'course': course,
+        'show_purchase': course.is_paid and course.price is not None,
+        'preview_video_embed_url': preview_video_embed_url,
+        'is_youtube': preview_video_embed_url and 'youtube.com' in preview_video_embed_url if preview_video_embed_url else False,
+        'is_vimeo': preview_video_embed_url and 'vimeo.com' in preview_video_embed_url if preview_video_embed_url else False,
     })
 
 
@@ -506,6 +795,28 @@ def lesson_detail(request, course_slug, lesson_slug):
             passed=True
         ).exists()
 
+    # Extract YouTube video ID if video_url is a YouTube URL
+    youtube_video_id = None
+    if lesson.video_url:
+        import re
+        # Match various YouTube URL formats - improved patterns
+        youtube_patterns = [
+            r'(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})',  # Standard formats: watch?v=ID or youtu.be/ID
+            r'youtube\.com\/embed\/([a-zA-Z0-9_-]{11})',  # Embed format: embed/ID
+            r'youtube\.com\/v\/([a-zA-Z0-9_-]{11})',  # Old format: v/ID
+            r'youtube\.com\/watch\?.*[&?]v=([a-zA-Z0-9_-]{11})',  # With other params: watch?param=value&v=ID
+            r'youtu\.be\/([a-zA-Z0-9_-]{11})',  # Short URL: youtu.be/ID
+        ]
+        for pattern in youtube_patterns:
+            match = re.search(pattern, lesson.video_url, re.IGNORECASE)
+            if match:
+                youtube_video_id = match.group(1)
+                # Validate it's exactly 11 characters (YouTube video IDs are always 11 chars)
+                if len(youtube_video_id) == 11:
+                    break
+                else:
+                    youtube_video_id = None
+
     return render(request, 'lesson.html', {
         'course': course,
         'lesson': lesson,
@@ -522,6 +833,7 @@ def lesson_detail(request, course_slug, lesson_slug):
         'quiz_attempts': quiz_attempts,
         'latest_quiz_attempt': latest_quiz_attempt,
         'quiz_passed': quiz_passed,
+        'youtube_video_id': youtube_video_id,
     })
 
 
@@ -727,6 +1039,45 @@ def generate_lesson_ai(request, course_slug, lesson_id):
             lesson.description = lesson.ai_full_description
             lesson.slug = generate_slug(lesson.title)
             lesson.ai_generation_status = 'approved'
+            
+            # Handle video URL updates (also save on approve)
+            vimeo_url = request.POST.get('vimeo_url', '').strip()
+            google_drive_url = request.POST.get('google_drive_url', '').strip()
+            video_url = request.POST.get('video_url', '').strip()
+            
+            if vimeo_url:
+                lesson.vimeo_url = vimeo_url
+                # Extract Vimeo ID from URL if possible
+                if 'vimeo.com/' in vimeo_url:
+                    vimeo_id = vimeo_url.split('vimeo.com/')[-1].split('?')[0].split('/')[-1]
+                    if vimeo_id.isdigit():
+                        lesson.vimeo_id = vimeo_id
+            else:
+                # Only clear if explicitly empty (don't clear if field wasn't in form)
+                if 'vimeo_url' in request.POST:
+                    lesson.vimeo_url = ''
+                    lesson.vimeo_id = ''
+            
+            if google_drive_url:
+                lesson.google_drive_url = google_drive_url
+                # Extract Google Drive ID from URL if possible
+                if '/d/' in google_drive_url:
+                    drive_id = google_drive_url.split('/d/')[1].split('/')[0]
+                    lesson.google_drive_id = drive_id
+            else:
+                # Only clear if explicitly empty (don't clear if field wasn't in form)
+                if 'google_drive_url' in request.POST:
+                    lesson.google_drive_url = ''
+                    lesson.google_drive_id = ''
+            
+            # Always update video_url if it's in the POST data
+            if 'video_url' in request.POST:
+                lesson.video_url = video_url
+                if video_url:
+                    messages.info(request, f'Video URL saved: {video_url[:50]}...')
+                else:
+                    lesson.video_url = ''
+            
             lesson.save()
             
             return redirect('course_lessons', course_slug=course_slug)
@@ -742,7 +1093,61 @@ def generate_lesson_ai(request, course_slug, lesson_id):
             if outcomes_text:
                 lesson.ai_outcomes = [o.strip() for o in outcomes_text.split('\n') if o.strip()]
             
+            # Handle content blocks update
+            import json
+            content_blocks_json = request.POST.get('content_blocks', '')
+            if content_blocks_json:
+                try:
+                    content_data = json.loads(content_blocks_json)
+                    lesson.content = content_data
+                except json.JSONDecodeError:
+                    messages.error(request, 'Invalid content blocks format.')
+            
+            # Handle video URL updates
+            vimeo_url = request.POST.get('vimeo_url', '').strip()
+            google_drive_url = request.POST.get('google_drive_url', '').strip()
+            video_url = request.POST.get('video_url', '').strip()
+            
+            # Debug: Log what we received
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Video URL POST data - vimeo_url: '{vimeo_url}', google_drive_url: '{google_drive_url}', video_url: '{video_url}'")
+            
+            if vimeo_url:
+                lesson.vimeo_url = vimeo_url
+                # Extract Vimeo ID from URL if possible
+                if 'vimeo.com/' in vimeo_url:
+                    vimeo_id = vimeo_url.split('vimeo.com/')[-1].split('?')[0].split('/')[-1]
+                    if vimeo_id.isdigit():
+                        lesson.vimeo_id = vimeo_id
+            else:
+                # Only clear if explicitly empty (don't clear if field wasn't in form)
+                if 'vimeo_url' in request.POST:
+                    lesson.vimeo_url = ''
+                    lesson.vimeo_id = ''
+            
+            if google_drive_url:
+                lesson.google_drive_url = google_drive_url
+                # Extract Google Drive ID from URL if possible
+                if '/d/' in google_drive_url:
+                    drive_id = google_drive_url.split('/d/')[1].split('/')[0]
+                    lesson.google_drive_id = drive_id
+            else:
+                # Only clear if explicitly empty (don't clear if field wasn't in form)
+                if 'google_drive_url' in request.POST:
+                    lesson.google_drive_url = ''
+                    lesson.google_drive_id = ''
+            
+            # Always update video_url if it's in the POST data
+            if 'video_url' in request.POST:
+                lesson.video_url = video_url
+                if video_url:
+                    messages.info(request, f'Video URL saved: {video_url[:50]}...')
+                else:
+                    lesson.video_url = ''
+            
             lesson.save()
+            messages.success(request, 'Lesson content updated successfully.')
     
     return render(request, 'creator/generate_lesson_ai.html', {
         'course': course,
@@ -1856,6 +2261,10 @@ def student_dashboard(request):
     """Student dashboard - overview with access control: My Courses, Available to Unlock, Not Available"""
     user = request.user
     
+    # Redirect teachers to teacher dashboard
+    if _is_teacher_user(user):
+        return redirect('teacher_dashboard')
+    
     # Use access control system to organize courses
     from .utils.access import get_courses_by_visibility, has_course_access, check_course_prerequisites
     
@@ -2037,11 +2446,20 @@ def student_dashboard(request):
         from .models import Bundle
         bundles_with_course = Bundle.objects.filter(courses=course, is_active=True)
         
+        # Check if user has any pending purchases for this course
+        from .models import CoursePurchase
+        has_pending_purchase = CoursePurchase.objects.filter(
+            user=user,
+            course=course,
+            status='pending'
+        ).exists()
+        
         available_courses_data.append({
             'course': course,
             'prereqs_met': prereqs_met,
             'missing_prereqs': missing_prereqs,
             'bundles': bundles_with_course,
+            'has_pending_purchase': has_pending_purchase,
         })
     
     # Process Not Available courses
@@ -2097,11 +2515,23 @@ def student_course_progress(request, course_slug):
     course = get_object_or_404(Course, slug=course_slug)
     user = request.user
     
-    # Check enrollment
+    # Check access using the access control system
+    from .utils.access import has_course_access
+    has_access, access_record, _ = has_course_access(user, course)
+    
+    if not has_access:
+        messages.error(request, 'You do not have access to this course.')
+        return redirect('student_dashboard')
+    
+    # Get or create enrollment (for backward compatibility)
     enrollment = CourseEnrollment.objects.filter(user=user, course=course).first()
     if not enrollment:
-        messages.error(request, 'You are not enrolled in this course.')
-        return redirect('student_dashboard')
+        # Create enrollment for backward compatibility with existing code
+        enrollment = CourseEnrollment.objects.create(
+            user=user,
+            course=course,
+            payment_type='full'
+        )
     
     # Get all lessons with progress
     lessons = course.lessons.order_by('order', 'id')
@@ -2656,7 +3086,147 @@ def generate_course_content_webhook(request):
         return JsonResponse({
             'success': False,
             'error': str(e)
-        }, status=500)
+            }, status=500)
+
+
+# ========== GIFT PURCHASE SYSTEM ==========
+
+@login_required
+def gift_course(request, course_slug):
+    """Gift purchase page - form to purchase course as gift"""
+    course = get_object_or_404(Course, slug=course_slug)
+    
+    # Check if course is paid
+    if not course.is_paid or not course.price:
+        messages.error(request, 'This course is not available for gifting.')
+        return redirect('course_detail', course_slug=course.slug)
+    
+    if request.method == 'POST':
+        recipient_email = request.POST.get('recipient_email', '').strip()
+        recipient_name = request.POST.get('recipient_name', '').strip()
+        gift_message = request.POST.get('gift_message', '').strip()
+        
+        if not recipient_email:
+            messages.error(request, 'Recipient email is required.')
+            return render(request, 'gift_course.html', {'course': course})
+        
+        # Create purchase (same as regular purchase)
+        purchase = CoursePurchase.objects.create(
+            user=request.user,
+            course=course,
+            amount=course.price,
+            currency=course.currency,
+            status='pending',
+            provider='',
+            provider_id='',
+            notes=f"Gift purchase for {recipient_email}"
+        )
+        
+        # Simulate payment (same as regular purchase)
+        from django.conf import settings
+        simulate_payment = getattr(settings, 'SIMULATE_PAYMENT', True)
+        
+        if simulate_payment:
+            purchase.status = 'paid'
+            purchase.paid_at = timezone.now()
+            purchase.provider = 'simulated'
+            purchase.provider_id = f'sim_gift_{purchase.id}_{int(timezone.now().timestamp())}'
+            purchase.save()
+        
+        # Create gift purchase record (token will be auto-generated)
+        gift = GiftPurchase.objects.create(
+            purchaser=request.user,
+            course=course,
+            course_purchase=purchase,
+            recipient_email=recipient_email,
+            recipient_name=recipient_name,
+            gift_message=gift_message,
+            status='pending' if not simulate_payment else 'sent',
+        )
+        
+        # If payment is simulated, send gift email immediately
+        if simulate_payment:
+            from .utils.email import send_gift_email
+            email_result = send_gift_email(gift)
+            
+            if email_result['success']:
+                gift.status = 'sent'
+                gift.sent_at = timezone.now()
+                gift.save()
+                messages.success(request, f'Gift purchased and sent to {recipient_email}!')
+            else:
+                messages.warning(request, f'Gift purchased but email failed to send. Gift token: {gift.gift_token}')
+        else:
+            messages.info(request, 'Gift purchase initiated. Email will be sent after payment confirmation.')
+        
+        return redirect('gift_success', gift_token=gift.gift_token)
+    
+    return render(request, 'gift_course.html', {'course': course})
+
+
+@login_required
+def gift_success(request, gift_token):
+    """Gift purchase success page"""
+    gift = get_object_or_404(GiftPurchase, gift_token=gift_token)
+    
+    # Verify purchaser
+    if gift.purchaser != request.user:
+        messages.error(request, 'You do not have permission to view this gift.')
+        return redirect('student_dashboard')
+    
+    return render(request, 'gift_success.html', {'gift': gift})
+
+
+def redeem_gift(request, gift_token):
+    """Gift redemption page - allows recipient to claim their gift"""
+    gift = get_object_or_404(GiftPurchase, gift_token=gift_token)
+    
+    # Check if already redeemed
+    if gift.recipient_user:
+        messages.info(request, 'This gift has already been redeemed.')
+        if request.user.is_authenticated and request.user == gift.recipient_user:
+            return redirect('student_dashboard')
+        return redirect('login')
+    
+    # Check if expired
+    if gift.is_expired():
+        gift.status = 'expired'
+        gift.save()
+        messages.error(request, 'This gift has expired.')
+        return render(request, 'gift_expired.html', {'gift': gift})
+    
+    # Check if gift is in valid status
+    if gift.status != 'sent':
+        messages.error(request, 'This gift is not available for redemption.')
+        return render(request, 'gift_error.html', {'gift': gift})
+    
+    # Auto-redeem if user is logged in and email matches
+    if request.user.is_authenticated:
+        if request.user.email.lower() == gift.recipient_email.lower():
+            # Auto-redeem the gift
+            from .utils.access import grant_purchase_access
+            access = grant_purchase_access(request.user, gift.course, gift.course_purchase)
+            
+            # Update gift
+            gift.recipient_user = request.user
+            gift.status = 'redeemed'
+            gift.redeemed_at = timezone.now()
+            gift.save()
+            
+            messages.success(request, f'Congratulations! You now have access to {gift.course.name}.')
+            return redirect('student_dashboard')
+        else:
+            # Email doesn't match - show warning
+            messages.warning(request, f'This gift was sent to {gift.recipient_email}. Please log in with that email address.')
+            return render(request, 'gift_redeem.html', {'gift': gift, 'email_mismatch': True})
+    
+    if request.method == 'POST':
+        # User wants to redeem but not logged in
+        messages.info(request, 'Please create an account or log in to claim your gift.')
+        return redirect(f'/register/?gift={gift_token}')
+    
+    # Show redemption page (user not logged in)
+    return render(request, 'gift_redeem.html', {'gift': gift})
 
 
 def process_course_content_response(course_type, module_name, content_data):
@@ -2793,5 +3363,213 @@ def process_course_content_response(course_type, module_name, content_data):
         result['errors'].append(f'Error processing content: {str(e)}')
     
     return result
+
+
+# ========== PURCHASE SYSTEM ==========
+
+@login_required
+@require_http_methods(["POST"])
+def initiate_purchase(request, course_slug):
+    """
+    Initiate a course purchase.
+    Creates a pending CoursePurchase record and returns purchase info for payment processing.
+    """
+    course = get_object_or_404(Course, slug=course_slug)
+    user = request.user
+    
+    # Check if course is paid
+    if not course.is_paid or not course.price:
+        return JsonResponse({
+            'success': False,
+            'error': 'This course is not available for purchase'
+        }, status=400)
+    
+    # Check if user already has access
+    from .utils.access import has_course_access
+    has_access, _, _ = has_course_access(user, course)
+    if has_access:
+        return JsonResponse({
+            'success': False,
+            'error': 'You already have access to this course'
+        }, status=400)
+    
+    # Check if there's already a pending or paid purchase
+    existing_purchase = CoursePurchase.objects.filter(
+        user=user,
+        course=course,
+        status__in=['pending', 'paid']
+    ).first()
+    
+    if existing_purchase:
+        if existing_purchase.status == 'paid':
+            return JsonResponse({
+                'success': False,
+                'error': 'You already have a paid purchase for this course'
+            }, status=400)
+        else:
+            # Return existing pending purchase
+            return JsonResponse({
+                'success': True,
+                'purchase_id': existing_purchase.id,
+                'amount': str(existing_purchase.amount),
+                'currency': existing_purchase.currency,
+                'status': existing_purchase.status,
+            })
+    
+    # Create new pending purchase
+    purchase = CoursePurchase.objects.create(
+        user=user,
+        course=course,
+        amount=course.price,
+        currency=course.currency,
+        status='pending',
+        provider='',  # Will be set by webhook
+        provider_id='',  # Will be set by webhook
+    )
+    
+    # SIMULATE PAYMENT: If no payment provider is configured, auto-approve the purchase
+    # This is for development/testing. In production, remove this and use actual payment provider.
+    from django.conf import settings
+    simulate_payment = getattr(settings, 'SIMULATE_PAYMENT', True)  # Default to True for development
+    
+    if simulate_payment:
+        # Auto-approve the purchase
+        purchase.status = 'paid'
+        purchase.paid_at = timezone.now()
+        purchase.provider = 'simulated'
+        purchase.provider_id = f'sim_{purchase.id}_{int(timezone.now().timestamp())}'
+        purchase.save()
+        
+        # Grant course access immediately
+        from .utils.access import grant_purchase_access
+        grant_purchase_access(user, course, purchase)
+        
+        return JsonResponse({
+            'success': True,
+            'purchase_id': purchase.id,
+            'amount': str(purchase.amount),
+            'currency': purchase.currency,
+            'status': 'paid',
+            'message': 'Purchase completed successfully! Access granted.',
+            'redirect': f'/courses/{course.slug}/{course.lessons.first().slug}/' if course.lessons.exists() else f'/courses/{course.slug}/'
+        })
+    
+    return JsonResponse({
+        'success': True,
+        'purchase_id': purchase.id,
+        'amount': str(purchase.amount),
+        'currency': purchase.currency,
+        'status': purchase.status,
+        'message': 'Purchase initiated. Redirecting to payment provider...'
+    })
+
+
+@require_http_methods(["POST"])
+def purchase_webhook(request):
+    """
+    Webhook endpoint to confirm payment.
+    Payment provider calls this after successful payment.
+    
+    Expected payload (JSON):
+    {
+        "purchase_id": 123,  # Our internal purchase ID
+        "provider": "stripe",  # Payment provider name
+        "provider_id": "ch_1234567890",  # Provider transaction ID
+        "status": "paid",  # or "failed", "refunded"
+        "amount": "99.00",
+        "currency": "USD"
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        
+        purchase_id = data.get('purchase_id')
+        provider = data.get('provider', 'manual')
+        provider_id = data.get('provider_id', '')
+        status = data.get('status', 'paid')
+        amount = data.get('amount')
+        currency = data.get('currency', 'USD')
+        
+        if not purchase_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'purchase_id is required'
+            }, status=400)
+        
+        # Get purchase
+        try:
+            purchase = CoursePurchase.objects.get(id=purchase_id)
+        except CoursePurchase.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': f'Purchase {purchase_id} not found'
+            }, status=404)
+        
+        # Update purchase
+        purchase.provider = provider
+        purchase.provider_id = provider_id
+        purchase.status = status
+        
+        if status == 'paid':
+            from django.utils import timezone
+            purchase.paid_at = timezone.now()
+            purchase.save()
+            
+            # Check if this is a gift purchase
+            try:
+                gift = GiftPurchase.objects.get(course_purchase=purchase)
+                # Send gift email
+                from .utils.email import send_gift_email
+                email_result = send_gift_email(gift)
+                
+                if email_result['success']:
+                    gift.status = 'sent'
+                    gift.sent_at = timezone.now()
+                    gift.save()
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Payment confirmed and gift email sent',
+                        'purchase_id': purchase.id,
+                    })
+                else:
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Payment confirmed but gift email failed to send',
+                        'warning': email_result.get('message', 'Email error'),
+                        'purchase_id': purchase.id,
+                    })
+            except GiftPurchase.DoesNotExist:
+                # Regular purchase - grant access to purchaser
+                from .utils.access import grant_purchase_access
+                access = grant_purchase_access(
+                    user=purchase.user,
+                    course=purchase.course,
+                    purchase=purchase
+                )
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Purchase confirmed and access granted',
+                    'purchase_id': purchase.id,
+                    'access_id': access.id,
+                })
+        else:
+            purchase.save()
+            return JsonResponse({
+                'success': True,
+                'message': f'Purchase status updated to {status}',
+                'purchase_id': purchase.id,
+            })
+    
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON payload'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 

@@ -19,12 +19,12 @@
             {% csrf_token %}
             
             <div>
-                <label class="block text-sm font-medium mb-2">Select Students</label>
+                <label class="block text-sm font-medium mb-2 text-black">Select Students</label>
                 <div class="bg-[#f8fafc] border border-teal-soft/20 rounded-lg p-4 max-h-64 overflow-y-auto">
                     <div class="space-y-2">
                         {% for user in users %}
                         <label class="flex items-center gap-2 cursor-pointer hover:bg-teal-soft/5 p-2 rounded">
-                            <input type="checkbox" name="user_ids[]" value="{{ user.id }}" class="rounded border-teal-soft/30 text-teal-soft focus:ring-teal-soft">
+                            <input type="checkbox" name="user_ids[]" value="{{ user.id }}" class="rounded border-teal-soft/30 text-black focus:ring-teal-soft">
                             <span class="text-sm">{{ user.get_full_name|default:user.username }} ({{ user.email }})</span>
                         </label>
                         {% endfor %}
@@ -34,12 +34,12 @@
             </div>
             
             <div>
-                <label class="block text-sm font-medium mb-2">Select Courses</label>
+                <label class="block text-sm font-medium mb-2 text-black">Select Courses</label>
                 <div class="bg-[#f8fafc] border border-teal-soft/20 rounded-lg p-4 max-h-64 overflow-y-auto">
                     <div class="space-y-2">
                         {% for course in courses %}
                         <label class="flex items-center gap-2 cursor-pointer hover:bg-teal-soft/5 p-2 rounded">
-                            <input type="checkbox" name="course_ids[]" value="{{ course.id }}" class="rounded border-teal-soft/30 text-teal-soft focus:ring-teal-soft">
+                            <input type="checkbox" name="course_ids[]" value="{{ course.id }}" class="rounded border-teal-soft/30 text-black focus:ring-teal-soft">
                             <span class="text-sm">{{ course.name }}</span>
                         </label>
                         {% endfor %}
@@ -50,20 +50,20 @@
             
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium mb-2">Access Type</label>
+                    <label class="block text-sm font-medium mb-2 text-black">Access Type</label>
                     <select name="access_type" class="w-full bg-[#f8fafc] border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
                         <option value="manual">Manual (Admin-granted)</option>
                         <option value="purchase">Purchase</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium mb-2">Expires In (days, optional)</label>
+                    <label class="block text-sm font-medium mb-2 text-black">Expires In (days, optional)</label>
                     <input type="number" name="expires_in_days" placeholder="Leave empty for lifetime" class="w-full bg-[#f8fafc] border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
                 </div>
             </div>
             
             <div>
-                <label class="block text-sm font-medium mb-2">Notes (optional)</label>
+                <label class="block text-sm font-medium mb-2 text-black">Notes (optional)</label>
                 <textarea name="notes" rows="3" placeholder="e.g., Black Friday promo, VIP group" class="w-full bg-[#f8fafc] border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50"></textarea>
             </div>
             
@@ -80,7 +80,7 @@
             {% csrf_token %}
             
             <div>
-                <label class="block text-sm font-medium mb-2">Select Students</label>
+                <label class="block text-sm font-medium mb-2 text-black">Select Students</label>
                 <div class="bg-[#f8fafc] border border-blue-soft/20 rounded-lg p-4 max-h-64 overflow-y-auto">
                     <div class="space-y-2">
                         {% for user in users %}
@@ -94,7 +94,7 @@
             </div>
             
             <div>
-                <label class="block text-sm font-medium mb-2">Select Bundle</label>
+                <label class="block text-sm font-medium mb-2 text-black">Select Bundle</label>
                 <select name="bundle_id" required class="w-full bg-[#f8fafc] border border-blue-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-soft/50">
                     <option value="">-- Select Bundle --</option>
                     {% for bundle in bundles %}
@@ -104,12 +104,12 @@
             </div>
             
             <div>
-                <label class="block text-sm font-medium mb-2">Purchase ID (optional)</label>
+                <label class="block text-sm font-medium mb-2 text-black">Purchase ID (optional)</label>
                 <input type="text" name="purchase_id" placeholder="External order ID" class="w-full bg-[#f8fafc] border border-blue-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-soft/50">
             </div>
             
             <div>
-                <label class="block text-sm font-medium mb-2">Notes (optional)</label>
+                <label class="block text-sm font-medium mb-2 text-black">Notes (optional)</label>
                 <textarea name="notes" rows="2" class="w-full bg-[#f8fafc] border border-blue-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-soft/50"></textarea>
             </div>
             
@@ -126,12 +126,12 @@
             {% csrf_token %}
             
             <div>
-                <label class="block text-sm font-medium mb-2">Select Students</label>
+                <label class="block text-sm font-medium mb-2 text-black">Select Students</label>
                 <div class="bg-[#f8fafc] border border-teal-soft/20 rounded-lg p-4 max-h-64 overflow-y-auto">
                     <div class="space-y-2">
                         {% for user in users %}
                         <label class="flex items-center gap-2 cursor-pointer hover:bg-teal-soft/5 p-2 rounded">
-                            <input type="checkbox" name="user_ids[]" value="{{ user.id }}" class="rounded border-teal-soft/30 text-teal-soft focus:ring-teal-soft">
+                            <input type="checkbox" name="user_ids[]" value="{{ user.id }}" class="rounded border-teal-soft/30 text-black focus:ring-teal-soft">
                             <span class="text-sm">{{ user.get_full_name|default:user.username }} ({{ user.email }})</span>
                         </label>
                         {% endfor %}
@@ -140,7 +140,7 @@
             </div>
             
             <div>
-                <label class="block text-sm font-medium mb-2">Select Cohort</label>
+                <label class="block text-sm font-medium mb-2 text-black">Select Cohort</label>
                 <select name="cohort_id" required class="w-full bg-[#f8fafc] border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
                     <option value="">-- Select Cohort --</option>
                     {% for cohort in cohorts %}
@@ -149,7 +149,7 @@
                 </select>
             </div>
             
-            <button type="submit" class="w-full px-6 py-3 bg-teal-soft/10 hover:bg-teal-soft/20 border border-teal-soft/30 text-teal-soft font-semibold text-gray-700 rounded-lg transition-all">
+            <button type="submit" class="w-full px-6 py-3 bg-teal-soft/10 hover:bg-teal-soft/20 border border-teal-soft/30 text-black font-semibold text-gray-700 rounded-lg transition-all">
                 <i class="fas fa-users mr-2"></i>Add Selected to Cohort
             </button>
         </form>

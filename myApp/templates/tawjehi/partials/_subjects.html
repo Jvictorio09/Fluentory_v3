@@ -1,0 +1,68 @@
+<!-- Subjects Section -->
+<section id="subjects" class="bg-white py-20 lg:py-28">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl sm:text-5xl font-bold text-[#0c1b2a] mb-4">Available Subjects</h2>
+            <p class="text-xl text-slate-600 max-w-2xl mx-auto">
+                Choose from our comprehensive Tawjehi exam preparation courses
+            </p>
+        </div>
+
+        {% if subjects %}
+        <div class="space-y-16">
+            {% for subject_key, subject_info in subjects.items %}
+            <div class="bg-gradient-to-br from-slate-50 to-white rounded-2xl p-8 lg:p-10 shadow-md border border-slate-100">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-16 h-16 bg-gradient-to-br from-teal-soft to-blue-soft rounded-xl flex items-center justify-center">
+                        <i class="fas {{ subject_info.icon }} text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-[#0c1b2a]">{{ subject_info.name }}</h3>
+                </div>
+                
+                {% if subject_info.courses %}
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for course in subject_info.courses %}
+                    <div class="group bg-white rounded-xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border border-slate-100">
+                        {% if course.thumbnail %}
+                        <div class="h-40 bg-gradient-to-br from-teal-soft/20 to-blue-soft/20 rounded-lg overflow-hidden mb-4">
+                            <img src="{{ course.thumbnail.url }}" alt="{{ course.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        </div>
+                        {% else %}
+                        <div class="h-40 bg-gradient-to-br from-teal-soft/30 to-blue-soft/30 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fas fa-book text-5xl text-white/30"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <h4 class="text-xl font-bold text-[#0c1b2a] mb-2">{{ course.name }}</h4>
+                        <p class="text-slate-600 text-sm mb-4 line-clamp-2">{{ course.short_description|default:course.description|truncatewords:15 }}</p>
+                        
+                        <div class="flex items-center justify-between">
+                            {% if course.is_paid and course.price %}
+                            <span class="text-lg font-bold text-[#c9a227]">{{ course.currency }} {{ course.price }}</span>
+                            {% else %}
+                            <span class="text-sm font-semibold text-teal-soft">Free</span>
+                            {% endif %}
+                            
+                            <a href="{% url 'course_detail' course.slug %}" class="px-4 py-2 bg-teal-soft text-white rounded-lg text-sm font-semibold hover:bg-teal-soft/90 transition-colors">
+                                View Course
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-slate-500 text-center py-8">Courses coming soon for this subject.</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-16">
+            <i class="fas fa-book-open text-6xl text-slate-300 mb-4"></i>
+            <h3 class="text-2xl font-semibold text-slate-600 mb-2">No Courses Available Yet</h3>
+            <p class="text-slate-500">Tawjehi courses will be available soon. Check back later!</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
