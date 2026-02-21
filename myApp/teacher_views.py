@@ -154,6 +154,8 @@ def teacher_add_course(request):
         price = request.POST.get('price', '') or None
         currency = request.POST.get('currency', 'USD')
         
+        preview_video_url = request.POST.get('preview_video_url', '').strip()
+        
         course = Course.objects.create(
             name=name,
             slug=slug,
@@ -166,6 +168,7 @@ def teacher_add_course(request):
             is_paid=is_paid,
             price=float(price) if price else None,
             currency=currency,
+            preview_video_url=preview_video_url if preview_video_url else None,
         )
         
         # Assign teacher to course (always assign creator, and additional teachers if live)
@@ -207,6 +210,8 @@ def teacher_course_detail(request, course_slug):
         course.status = request.POST.get('status', course.status)
         course.course_type = request.POST.get('course_type', course.course_type)
         course.coach_name = request.POST.get('coach_name', course.coach_name)
+        preview_video_url = request.POST.get('preview_video_url', '').strip()
+        course.preview_video_url = preview_video_url if preview_video_url else None
         
         # Delivery type and pricing
         course.delivery_type = request.POST.get('delivery_type', course.delivery_type)
@@ -244,6 +249,8 @@ def teacher_course_detail(request, course_slug):
     return render(request, 'teacher/course_detail.html', {
         'course': course,
         'potential_teachers': potential_teachers,
+        'course_types': Course.COURSE_TYPES,
+        'delivery_types': Course.DELIVERY_TYPE_CHOICES,
     })
 
 

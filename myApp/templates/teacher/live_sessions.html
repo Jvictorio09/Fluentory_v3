@@ -16,7 +16,7 @@
     <form method="GET" class="flex flex-wrap gap-4 items-end">
         <div class="flex-1 min-w-[200px]">
             <label class="block text-sm font-semibold text-gray-700 mb-2">Course</label>
-            <select name="course" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-soft/50 text-gray-800">
+            <select name="course" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-soft/50 text-black text-gray-800">
                 <option value="">All Courses</option>
                 {% for course in courses %}
                 <option value="{{ course.id }}" {% if course_filter == course.id|stringformat:"s" %}selected{% endif %}>{{ course.name }}</option>
@@ -25,7 +25,7 @@
         </div>
         <div class="flex-1 min-w-[200px]">
             <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
-            <select name="status" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-soft/50 text-gray-800">
+            <select name="status" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-soft/50 text-black text-gray-800">
                 <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
                 <option value="scheduled" {% if status_filter == 'scheduled' %}selected{% endif %}>Scheduled</option>
                 <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>

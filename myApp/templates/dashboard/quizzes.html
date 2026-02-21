@@ -21,7 +21,7 @@
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-4">
         <form method="GET" class="flex gap-4">
             <div class="flex-1">
-                <select name="course" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-soft/50 text-gray-800">
+                <select name="course" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-soft/50 text-black text-gray-800">
                     <option value="" class="text-gray-500">All Courses</option>
                     {% for course in courses %}
                     <option value="{{ course.id }}" {% if course_filter == course.id|stringformat:"s" %}selected{% endif %} class="text-gray-800">{{ course.name }}</option>
@@ -30,7 +30,7 @@
             </div>
             <div class="flex-1">
                 <input type="text" name="search" value="{{ search_query }}" placeholder="Search quizzes, lessons, or courses..." 
-                    class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-soft/50 text-gray-800 placeholder-gray-500">
+                    class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-soft/50 text-black text-gray-800 placeholder-gray-500">
             </div>
             <button type="submit" class="px-6 py-2 bg-teal-soft text-[#ffffff] rounded-lg font-semibold text-gray-700 hover:bg-teal-soft/90 transition-all">
                 <i class="fas fa-filter mr-2"></i>Filter

@@ -667,19 +667,67 @@ def course_detail(request, course_slug):
     
     # Process preview video URL for embedding
     preview_video_embed_url = None
+    video_type = None
     if course.preview_video_url:
         import re
-        # YouTube URL processing
-        youtube_match = re.search(r'(?:youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]+)', course.preview_video_url)
-        if youtube_match:
-            preview_video_embed_url = f"https://www.youtube.com/embed/{youtube_match.group(1)}"
+        url = course.preview_video_url.strip()
+        
+        # YouTube URL processing - handle multiple formats (order matters!)
+        youtube_video_id = None
+        
+        # Try to extract video ID from various YouTube URL formats
+        # Pattern 1: youtu.be/VIDEO_ID (short URL - check first as it's most reliable)
+        short_match = re.search(r'youtu\.be/([a-zA-Z0-9_-]{11})', url, re.IGNORECASE)
+        if short_match:
+            youtube_video_id = short_match.group(1)
+        
+        # Pattern 2: youtube.com/embed/VIDEO_ID
+        if not youtube_video_id:
+            embed_match = re.search(r'youtube\.com/embed/([a-zA-Z0-9_-]{11})', url, re.IGNORECASE)
+            if embed_match:
+                youtube_video_id = embed_match.group(1)
+        
+        # Pattern 3: youtube.com/watch?v=VIDEO_ID (with or without additional params)
+        if not youtube_video_id:
+            watch_match = re.search(r'youtube\.com/watch\?[^&]*v=([a-zA-Z0-9_-]{11})', url, re.IGNORECASE)
+            if watch_match:
+                youtube_video_id = watch_match.group(1)
+        
+        # Pattern 4: youtube.com/v/VIDEO_ID (old format)
+        if not youtube_video_id:
+            v_match = re.search(r'youtube\.com/v/([a-zA-Z0-9_-]{11})', url, re.IGNORECASE)
+            if v_match:
+                youtube_video_id = v_match.group(1)
+        
+        # Validate video ID is exactly 11 characters
+        if youtube_video_id and len(youtube_video_id) == 11:
+            # Clean YouTube embed URL - simple format
+            preview_video_embed_url = f"https://www.youtube.com/embed/{youtube_video_id}"
+            video_type = 'youtube'
+        elif youtube_video_id:
+            # Invalid video ID length - don't treat as YouTube
+            youtube_video_id = None
         # Vimeo URL processing
-        vimeo_match = re.search(r'vimeo\.com/(?:video/)?(\d+)', course.preview_video_url)
-        if vimeo_match:
-            preview_video_embed_url = f"https://player.vimeo.com/video/{vimeo_match.group(1)}"
-        # If no match, use original URL (for direct video files)
+        elif re.search(r'vimeo\.com', url, re.IGNORECASE):
+            vimeo_match = re.search(r'vimeo\.com/(?:video/)?(\d+)', url)
+            if vimeo_match:
+                preview_video_embed_url = f"https://player.vimeo.com/video/{vimeo_match.group(1)}"
+                video_type = 'vimeo'
+        # Google Drive URL processing
+        elif re.search(r'drive\.google\.com', url, re.IGNORECASE):
+            drive_match = re.search(r'drive\.google\.com/file/d/([a-zA-Z0-9_-]+)', url)
+            if drive_match:
+                preview_video_embed_url = f"https://drive.google.com/file/d/{drive_match.group(1)}/preview"
+                video_type = 'google_drive'
+        # Cloudinary URL processing (direct video URLs)
+        elif re.search(r'cloudinary\.com', url, re.IGNORECASE):
+            # Cloudinary URLs can be used directly, but we can add .mp4 extension if needed
+            preview_video_embed_url = url
+            video_type = 'cloudinary'
+        # If no match, use original URL (for direct video files or other platforms)
         if not preview_video_embed_url:
-            preview_video_embed_url = course.preview_video_url
+            preview_video_embed_url = url
+            video_type = 'direct'
     
     # Show premium sales page for non-authenticated or users without access
     # Include purchase information if course is paid
@@ -687,8 +735,12 @@ def course_detail(request, course_slug):
         'course': course,
         'show_purchase': course.is_paid and course.price is not None,
         'preview_video_embed_url': preview_video_embed_url,
-        'is_youtube': preview_video_embed_url and 'youtube.com' in preview_video_embed_url if preview_video_embed_url else False,
-        'is_vimeo': preview_video_embed_url and 'vimeo.com' in preview_video_embed_url if preview_video_embed_url else False,
+        'video_type': video_type,
+        'is_youtube': video_type == 'youtube',
+        'is_vimeo': video_type == 'vimeo',
+        'is_google_drive': video_type == 'google_drive',
+        'is_cloudinary': video_type == 'cloudinary',
+        'is_direct': video_type == 'direct',
     })
 
 

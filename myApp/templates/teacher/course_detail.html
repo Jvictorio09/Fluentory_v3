@@ -35,7 +35,7 @@
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Course Type</label>
                         <select name="course_type" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50">
-                            {% for value, label in course.course_type.field.choices %}
+                            {% for value, label in course_types %}
                             <option value="{{ value }}" {% if course.course_type == value %}selected{% endif %}>{{ label }}</option>
                             {% endfor %}
                         </select>
@@ -44,9 +44,9 @@
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
                         <select name="status" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50">
-                            {% for value, label in course.status.field.choices %}
-                            <option value="{{ value }}" {% if course.status == value %}selected{% endif %}>{{ label }}</option>
-                            {% endfor %}
+                            <option value="active" {% if course.status == 'active' %}selected{% endif %}>Active</option>
+                            <option value="locked" {% if course.status == 'locked' %}selected{% endif %}>Locked</option>
+                            <option value="coming_soon" {% if course.status == 'coming_soon' %}selected{% endif %}>Coming Soon</option>
                         </select>
                     </div>
                 </div>
@@ -55,7 +55,7 @@
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Delivery Type *</label>
                     <select name="delivery_type" id="delivery_type" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" required>
-                        {% for value, label in course.delivery_type.field.choices %}
+                        {% for value, label in delivery_types %}
                         <option value="{{ value }}" {% if course.delivery_type == value %}selected{% endif %}>{{ label }}</option>
                         {% endfor %}
                     </select>
@@ -108,6 +108,16 @@
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Coach Name</label>
                     <input type="text" name="coach_name" value="{{ course.coach_name }}" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50">
+                </div>
+                
+                <!-- Preview Video URL -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Preview Video URL (Optional)</label>
+                    <input type="url" name="preview_video_url" value="{{ course.preview_video_url|default:'' }}" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" placeholder="YouTube, Vimeo, Google Drive, or Cloudinary link">
+                    <p class="text-xs text-gray-600 mt-1">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Supports YouTube, Vimeo, Google Drive, or Cloudinary links. This will be shown as a 30-minute preview on the course detail page.
+                    </p>
                 </div>
                 
                 <div class="flex gap-4 pt-4">

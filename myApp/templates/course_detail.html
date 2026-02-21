@@ -6,9 +6,9 @@
 {% block content %}
 <div class="max-w-6xl mx-auto">
     <!-- Course Header -->
-    <div class="text-center mb-8">
-        <h1 class="text-4xl md:text-5xl font-bold mb-4 text-gray-800">{{ course.name }}</h1>
-        <p class="text-xl text-gray-700 max-w-3xl mx-auto">{{ course.short_description }}</p>
+    <div class="mb-8">
+        <h1 class="text-4xl md:text-5xl font-semibold mb-4 text-gray-800">{{ course.name }}</h1>
+        <p class="text-xl text-gray-700 max-w-3xl">{{ course.short_description }}</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
@@ -18,13 +18,33 @@
             {% if preview_video_embed_url %}
             <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl overflow-hidden shadow-lg">
                 <div class="aspect-video bg-gray-900 relative">
-                    {% if is_youtube or is_vimeo %}
-                    <iframe class="w-full h-full" src="{{ preview_video_embed_url }}{% if is_youtube %}?rel=0&modestbranding=1{% endif %}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                    {% else %}
+                    {% if is_youtube %}
+                    <iframe 
+                        id="youtube-preview" 
+                        class="w-full h-full" 
+                        src="{{ preview_video_embed_url }}" 
+                        title="YouTube video player" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        referrerpolicy="strict-origin-when-cross-origin"
+                        allowfullscreen>
+                    </iframe>
+                    <div id="youtube-error" class="hidden absolute inset-0 flex items-center justify-center bg-gray-900 text-white p-4">
+                        <div class="text-center">
+                            <p class="text-lg font-semibold mb-2">Video cannot be embedded</p>
+                            <p class="text-sm mb-4">Please check that the video allows embedding in its privacy settings.</p>
+                            <a href="{{ course.preview_video_url }}" target="_blank" class="text-teal-soft hover:text-teal-400 underline">Watch on YouTube</a>
+                        </div>
+                    </div>
+                    {% elif is_vimeo or is_google_drive %}
+                    <iframe class="w-full h-full" src="{{ preview_video_embed_url }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    {% elif is_cloudinary or is_direct %}
                     <video class="w-full h-full" controls>
                         <source src="{{ preview_video_embed_url }}" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
+                    {% else %}
+                    <iframe class="w-full h-full" src="{{ preview_video_embed_url }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                     {% endif %}
                 </div>
             </div>
@@ -36,7 +56,7 @@
 
             <!-- Course Description -->
             <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-8">
-                <h2 class="text-2xl font-bold mb-4 text-gray-800">About This Course</h2>
+                <h2 class="text-2xl font-bold mb-4 text-black text-gray-800">About This Course</h2>
                 <div class="prose prose-gray max-w-none">
                     <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ course.description }}</p>
                 </div>
@@ -193,6 +213,32 @@
         </div>
     </div>
 </div>
+
+{% if is_youtube %}
+<script>
+// Detect YouTube embed errors
+document.addEventListener('DOMContentLoaded', function() {
+    const iframe = document.getElementById('youtube-preview');
+    if (iframe) {
+        // Check if iframe loaded successfully after a delay
+        setTimeout(function() {
+            try {
+                // Try to access iframe content (will fail if error occurred)
+                iframe.contentWindow;
+            } catch (e) {
+                // Cross-origin error is normal, but if we can't access it at all, might be an issue
+                console.log('YouTube iframe loaded');
+            }
+        }, 2000);
+        
+        // Listen for iframe load errors (limited browser support)
+        iframe.addEventListener('error', function() {
+            document.getElementById('youtube-error').classList.remove('hidden');
+        });
+    }
+});
+</script>
+{% endif %}
 
 {% if show_purchase and user.is_authenticated %}
 <script>
