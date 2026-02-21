@@ -24,15 +24,15 @@
                         {% csrf_token %}
                         
                         <!-- STEP 1: Video Input (Optional) -->
-                        <div class="mb-8">
+                        <div class="mb-8" id="video-input-section">
                             <div class="flex items-center gap-3 mb-6">
                                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-soft to-blue-soft text-[#ffffff] flex items-center justify-center font-bold text-lg">1</div>
                                 <h2 class="text-2xl font-bold text-slate-900">Video Input <span class="text-sm font-normal text-gray-500">(Optional)</span></h2>
                             </div>
                             
-                            <div class="space-y-6">
+                            <div class="space-y-6" id="video-input-content">
                                 <!-- Video File Upload -->
-                                <div>
+                                <div id="video-upload-section">
                                     <label class="block text-sm text-black font-semibold text-gray-700 mb-3 uppercase tracking-wider text-black/70">
                                         <i class="fas fa-upload mr-2"></i>Upload MP4 Video File
                                     </label>
@@ -69,7 +69,7 @@
                                 </div>
                                 
                                 <!-- OR Divider -->
-                                <div class="relative my-6">
+                                <div class="relative my-6" id="video-divider">
                                     <div class="absolute inset-0 flex items-center">
                                         <div class="w-full border-t border-teal-soft/10"></div>
                                     </div>
@@ -79,7 +79,7 @@
                                 </div>
                                 
                                 <!-- Vimeo URL Input -->
-                                <div>
+                                <div id="vimeo-input-section">
                                     <label class="block text-sm text-black font-semibold text-gray-700 mb-3 uppercase tracking-wider text-black/70">
                                         <i class="fab fa-vimeo mr-2"></i>Paste Vimeo video link
                                     </label>
@@ -96,17 +96,30 @@
                                 </div>
                                 
                                 <!-- Skip Video Option -->
-                                <div class="pt-4 border-t border-teal-soft/10">
+                                <div class="pt-4 border-t border-teal-soft/10" id="skip-video-section">
                                     <p class="text-sm text-gray-600 mb-3 text-center">
                                         Don't have a video for this lesson?
                                     </p>
                                     <button 
                                         type="button" 
                                         id="skip-video-btn"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all text-sm font-medium"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all text-sm font-medium cursor-pointer"
                                     >
                                         <i class="fas fa-forward mr-2"></i>Skip Video Step
                                     </button>
+                                </div>
+                                
+                                <!-- Video Skipped Confirmation (hidden initially) -->
+                                <div id="video-skipped-message" class="hidden pt-4 border-t border-teal-soft/10">
+                                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                        <div class="flex items-center gap-3">
+                                            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                                            <div>
+                                                <p class="text-sm font-semibold text-green-900">Video Step Skipped</p>
+                                                <p class="text-xs text-green-700 mt-1">You can proceed to add lesson content below. The form can be submitted without a video.</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 
                                 <!-- Video Preview (hidden initially) -->
@@ -164,6 +177,44 @@
                                         If you don't add anything, the AI still handles the description based on the video title — but notes improve accuracy.
                                     </p>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- STEP 2.5: Lesson Content Blocks (Optional - for lessons without video) -->
+                        <div class="mb-8 border-t border-teal-soft/10 pt-8">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-soft to-blue-soft text-[#ffffff] flex items-center justify-center font-bold text-lg">2.5</div>
+                                <h2 class="text-2xl font-bold text-black">Lesson Content <span class="text-sm font-normal text-gray-500">(Optional)</span></h2>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <p class="text-sm text-gray-600 mb-4">
+                                    Add structured content blocks (headers, paragraphs, images) for lessons without videos. This content will be displayed to students.
+                                </p>
+                                
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex gap-2">
+                                        <button type="button" id="add-paragraph-btn" class="px-3 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-xs font-medium hover:bg-teal-soft/20 transition-all text-black">
+                                            <i class="fas fa-paragraph mr-1"></i> Add Paragraph
+                                        </button>
+                                        <button type="button" id="add-header-btn" class="px-3 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-xs font-medium hover:bg-teal-soft/20 transition-all text-black">
+                                            <i class="fas fa-heading mr-1"></i> Add Header
+                                        </button>
+                                        <button type="button" id="add-image-btn" class="px-3 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-xs font-medium hover:bg-teal-soft/20 transition-all text-black">
+                                            <i class="fas fa-image mr-1"></i> Add Image
+                                        </button>
+                                        <button type="button" id="add-list-btn" class="px-3 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-xs font-medium hover:bg-teal-soft/20 transition-all text-black">
+                                            <i class="fas fa-list mr-1"></i> Add List
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div id="content-blocks-container" class="space-y-4">
+                                    <p class="text-gray-500 text-sm italic text-center py-4">No content blocks yet. Click the buttons above to add content.</p>
+                                </div>
+                                
+                                <!-- Hidden input to store JSON data -->
+                                <input type="hidden" name="content_blocks" id="content-blocks-json" value="">
                             </div>
                         </div>
 
@@ -462,33 +513,296 @@
         transcriptionInput.value = this.value;
     });
     
-    // Handle skip video button
-    if (skipVideoBtn) {
-        skipVideoBtn.addEventListener('click', function() {
-            // Clear video file input
-            if (videoFileInput) {
-                videoFileInput.value = '';
-            }
-            // Clear Vimeo URL
-            if (vimeoUrlInput) {
-                vimeoUrlInput.value = '';
-            }
-            // Hide video preview
-            if (videoPreview) {
-                videoPreview.classList.add('hidden');
-            }
-            // Reset transcription status
+    // Handle skip video button - use event delegation to ensure it works
+    function handleSkipVideo(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('Skip video button clicked');
+        
+        // Get elements fresh in case they weren't available before
+        const videoFileInputEl = document.getElementById('video-file');
+        const vimeoUrlInputEl = document.getElementById('vimeo-url');
+        const videoPreviewEl = document.getElementById('video-preview');
+        const generateBtnEl = document.getElementById('generate-btn');
+        
+        // Hide video input sections
+        const videoUploadSection = document.getElementById('video-upload-section');
+        const videoDivider = document.getElementById('video-divider');
+        const vimeoInputSection = document.getElementById('vimeo-input-section');
+        const skipVideoSection = document.getElementById('skip-video-section');
+        const videoSkippedMessage = document.getElementById('video-skipped-message');
+        
+        // Hide all video input elements
+        if (videoUploadSection) videoUploadSection.style.display = 'none';
+        if (videoDivider) videoDivider.style.display = 'none';
+        if (vimeoInputSection) vimeoInputSection.style.display = 'none';
+        if (skipVideoSection) skipVideoSection.style.display = 'none';
+        
+        // Show confirmation message
+        if (videoSkippedMessage) {
+            videoSkippedMessage.classList.remove('hidden');
+        }
+        
+        // Clear video file input
+        if (videoFileInputEl) {
+            videoFileInputEl.value = '';
+        }
+        // Clear Vimeo URL
+        if (vimeoUrlInputEl) {
+            vimeoUrlInputEl.value = '';
+        }
+        // Hide video preview
+        if (videoPreviewEl) {
+            videoPreviewEl.classList.add('hidden');
+        }
+        // Reset transcription status
+        if (typeof showStatus === 'function') {
             showStatus('pending');
-            // Clear any video-related data
+        }
+        // Clear any video-related data
+        if (typeof currentVideoFile !== 'undefined') {
             currentVideoFile = null;
+        }
+        if (typeof vimeoVerified !== 'undefined') {
             vimeoVerified = false;
+        }
+        if (typeof transcriptionData !== 'undefined') {
             transcriptionData = '';
-            // Enable generate button (form can be submitted without video)
-            if (generateBtn) {
-                generateBtn.disabled = false;
+        }
+        // Enable generate button (form can be submitted without video)
+        if (generateBtnEl) {
+            generateBtnEl.disabled = false;
+        }
+    }
+    
+    // Try to attach to button directly
+    if (skipVideoBtn) {
+        skipVideoBtn.addEventListener('click', handleSkipVideo);
+    }
+    
+    // Also use event delegation as backup
+    document.addEventListener('click', function(e) {
+        if (e.target && (e.target.id === 'skip-video-btn' || e.target.closest('#skip-video-btn'))) {
+            handleSkipVideo(e);
+        }
+    });
+    
+    // Content Blocks Management
+    const contentBlocksContainer = document.getElementById('content-blocks-container');
+    const contentBlocksJson = document.getElementById('content-blocks-json');
+    const addParagraphBtn = document.getElementById('add-paragraph-btn');
+    const addHeaderBtn = document.getElementById('add-header-btn');
+    const addImageBtn = document.getElementById('add-image-btn');
+    const addListBtn = document.getElementById('add-list-btn');
+    
+    let blockIndex = 0;
+    
+    function createContentBlock(type, data = {}) {
+        const blockDiv = document.createElement('div');
+        blockDiv.className = 'content-block-item border border-teal-soft/20 rounded-lg p-4 bg-[#ffffff]/40';
+        blockDiv.dataset.blockIndex = blockIndex++;
+        
+        let contentHTML = '';
+        
+        if (type === 'paragraph') {
+            contentHTML = `
+                <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black resize-none" rows="3" data-field="text" placeholder="Enter paragraph text...">${data.text || ''}</textarea>
+            `;
+        } else if (type === 'header') {
+            contentHTML = `
+                <div class="flex gap-2">
+                    <select class="block-input bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="level">
+                        <option value="1" ${data.level == 1 ? 'selected' : ''}>H1</option>
+                        <option value="2" ${data.level == 2 ? 'selected' : 'selected'}>H2</option>
+                        <option value="3" ${data.level == 3 ? 'selected' : ''}>H3</option>
+                        <option value="4" ${data.level == 4 ? 'selected' : ''}>H4</option>
+                    </select>
+                    <input type="text" class="block-input flex-1 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="text" value="${data.text || ''}" placeholder="Enter header text...">
+                </div>
+            `;
+        } else if (type === 'image') {
+            contentHTML = `
+                <div class="space-y-2">
+                    <input type="url" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="url" value="${data.url || ''}" placeholder="Enter image URL...">
+                    <input type="text" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="caption" value="${data.caption || ''}" placeholder="Enter image caption (optional)...">
+                    ${data.url ? `<div class="mt-2"><img src="${data.url}" alt="${data.caption || 'Image'}" class="max-w-xs rounded-lg border border-teal-soft/20"></div>` : ''}
+                </div>
+            `;
+        } else if (type === 'list') {
+            const items = data.items ? (Array.isArray(data.items) ? data.items.join('\n') : data.items) : '';
+            contentHTML = `
+                <div class="space-y-2">
+                    <select class="block-input mb-2 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="style">
+                        <option value="unordered" ${data.style !== 'ordered' ? 'selected' : ''}>Unordered List</option>
+                        <option value="ordered" ${data.style === 'ordered' ? 'selected' : ''}>Ordered List</option>
+                    </select>
+                    <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black resize-none" rows="4" data-field="items" placeholder="Enter list items, one per line...">${items}</textarea>
+                </div>
+            `;
+        }
+        
+        blockDiv.innerHTML = `
+            <div class="flex items-start justify-between mb-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold text-teal-soft bg-teal-soft/10 px-2 py-1 rounded">${type.charAt(0).toUpperCase() + type.slice(1)}</span>
+                    <button type="button" class="move-block-up text-xs text-gray-600 hover:text-teal-soft" title="Move up">
+                        <i class="fas fa-arrow-up"></i>
+                    </button>
+                    <button type="button" class="move-block-down text-xs text-gray-600 hover:text-teal-soft" title="Move down">
+                        <i class="fas fa-arrow-down"></i>
+                    </button>
+                </div>
+                <button type="button" class="delete-block text-xs text-red-600 hover:text-red-700" title="Delete block">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <div class="block-content">${contentHTML}</div>
+        `;
+        
+        // Handle image URL preview
+        if (type === 'image') {
+            const urlInput = blockDiv.querySelector('input[data-field="url"]');
+            urlInput.addEventListener('input', function() {
+                const img = blockDiv.querySelector('img');
+                const imgContainer = blockDiv.querySelector('.mt-2');
+                if (this.value && this.value.trim()) {
+                    if (!img) {
+                        const newImgContainer = document.createElement('div');
+                        newImgContainer.className = 'mt-2';
+                        newImgContainer.innerHTML = `<img src="${this.value}" alt="Preview" class="max-w-xs rounded-lg border border-teal-soft/20">`;
+                        blockDiv.querySelector('.block-content').appendChild(newImgContainer);
+                    } else {
+                        img.src = this.value;
+                    }
+                } else if (imgContainer) {
+                    imgContainer.remove();
+                }
+            });
+        }
+        
+        return blockDiv;
+    }
+    
+    function serializeContentBlocks() {
+        const blocks = contentBlocksContainer.querySelectorAll('.content-block-item');
+        const blocksArray = [];
+        
+        blocks.forEach(block => {
+            const type = block.querySelector('.text-teal-soft').textContent.toLowerCase();
+            const data = {};
+            
+            block.querySelectorAll('.block-input').forEach(input => {
+                const field = input.dataset.field;
+                if (field === 'items') {
+                    data[field] = input.value.split('\n').filter(item => item.trim());
+                } else {
+                    data[field] = input.value;
+                }
+            });
+            
+            blocksArray.push({
+                type: type,
+                data: data
+            });
+        });
+        
+        if (contentBlocksJson) {
+            contentBlocksJson.value = JSON.stringify(blocksArray);
+        }
+    }
+    
+    function updateBlockIndices() {
+        const blocks = contentBlocksContainer.querySelectorAll('.content-block-item');
+        blocks.forEach((block, index) => {
+            block.dataset.blockIndex = index;
+        });
+        serializeContentBlocks();
+    }
+    
+    // Add block buttons
+    if (addParagraphBtn) {
+        addParagraphBtn.addEventListener('click', function() {
+            const emptyMsg = contentBlocksContainer.querySelector('p.text-gray-500');
+            if (emptyMsg) emptyMsg.remove();
+            
+            const block = createContentBlock('paragraph', {});
+            contentBlocksContainer.appendChild(block);
+            updateBlockIndices();
+        });
+    }
+    
+    if (addHeaderBtn) {
+        addHeaderBtn.addEventListener('click', function() {
+            const emptyMsg = contentBlocksContainer.querySelector('p.text-gray-500');
+            if (emptyMsg) emptyMsg.remove();
+            
+            const block = createContentBlock('header', { level: 2 });
+            contentBlocksContainer.appendChild(block);
+            updateBlockIndices();
+        });
+    }
+    
+    if (addImageBtn) {
+        addImageBtn.addEventListener('click', function() {
+            const emptyMsg = contentBlocksContainer.querySelector('p.text-gray-500');
+            if (emptyMsg) emptyMsg.remove();
+            
+            const block = createContentBlock('image', {});
+            contentBlocksContainer.appendChild(block);
+            updateBlockIndices();
+        });
+    }
+    
+    if (addListBtn) {
+        addListBtn.addEventListener('click', function() {
+            const emptyMsg = contentBlocksContainer.querySelector('p.text-gray-500');
+            if (emptyMsg) emptyMsg.remove();
+            
+            const block = createContentBlock('list', { style: 'unordered' });
+            contentBlocksContainer.appendChild(block);
+            updateBlockIndices();
+        });
+    }
+    
+    // Handle block actions
+    if (contentBlocksContainer) {
+        contentBlocksContainer.addEventListener('click', function(e) {
+            // Delete block
+            if (e.target.closest('.delete-block')) {
+                if (confirm('Delete this content block?')) {
+                    e.target.closest('.content-block-item').remove();
+                    if (contentBlocksContainer.children.length === 0) {
+                        contentBlocksContainer.innerHTML = '<p class="text-gray-500 text-sm italic text-center py-4">No content blocks yet. Click the buttons above to add content.</p>';
+                    }
+                    updateBlockIndices();
+                }
             }
-            // Show confirmation message
-            showGlobalLessonModal('Video step skipped. You can proceed to add lesson context and create the lesson without a video.', 'Video Skipped');
+            
+            // Move up
+            if (e.target.closest('.move-block-up')) {
+                const block = e.target.closest('.content-block-item');
+                const prev = block.previousElementSibling;
+                if (prev) {
+                    block.parentNode.insertBefore(block, prev);
+                    updateBlockIndices();
+                }
+            }
+            
+            // Move down
+            if (e.target.closest('.move-block-down')) {
+                const block = e.target.closest('.content-block-item');
+                const next = block.nextElementSibling;
+                if (next) {
+                    block.parentNode.insertBefore(next, block);
+                    updateBlockIndices();
+                }
+            }
+        });
+        
+        // Serialize on input changes
+        contentBlocksContainer.addEventListener('input', function() {
+            serializeContentBlocks();
         });
     }
     
@@ -544,8 +858,11 @@
     // Enable generate button if either vimeo or transcription is available
     function checkFormReady() {
         if (vimeoVerified || transcriptionData) {
-            generateBtn.disabled = false;
+            if (generateBtn) {
+                generateBtn.disabled = false;
+            }
         }
     }
+    
 </script>
 {% endblock %}

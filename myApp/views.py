@@ -990,6 +990,16 @@ def add_lesson(request, course_slug):
         # Extract Vimeo ID
         vimeo_id = extract_vimeo_id(vimeo_url) if vimeo_url else None
         
+        # Handle content blocks if provided
+        content_blocks_data = None
+        content_blocks_json = request.POST.get('content_blocks', '')
+        if content_blocks_json:
+            try:
+                import json
+                content_blocks_data = json.loads(content_blocks_json)
+            except json.JSONDecodeError:
+                pass
+        
         # Create lesson draft
         lesson = Lesson.objects.create(
             course=course,
@@ -999,6 +1009,55 @@ def add_lesson(request, course_slug):
             slug=generate_slug(working_title),
             description='',  # Will be AI-generated
         )
+        
+        # Handle content blocks if provided
+        if content_blocks_data:
+            # Convert to Editor.js format
+            editorjs_blocks = []
+            for block in content_blocks_data:
+                if block.get('type') == 'paragraph':
+                    editorjs_blocks.append({
+                        'type': 'paragraph',
+                        'data': {
+                            'text': block.get('data', {}).get('text', '')
+                        }
+                    })
+                elif block.get('type') == 'header':
+                    editorjs_blocks.append({
+                        'type': 'header',
+                        'data': {
+                            'text': block.get('data', {}).get('text', ''),
+                            'level': int(block.get('data', {}).get('level', 2))
+                        }
+                    })
+                elif block.get('type') == 'image':
+                    editorjs_blocks.append({
+                        'type': 'image',
+                        'data': {
+                            'file': {
+                                'url': block.get('data', {}).get('url', '')
+                            },
+                            'caption': block.get('data', {}).get('caption', ''),
+                            'withBorder': False,
+                            'withBackground': False,
+                            'stretched': False
+                        }
+                    })
+                elif block.get('type') == 'list':
+                    items = block.get('data', {}).get('items', [])
+                    if isinstance(items, str):
+                        items = [item.strip() for item in items.split('\n') if item.strip()]
+                    editorjs_blocks.append({
+                        'type': 'list',
+                        'data': {
+                            'style': block.get('data', {}).get('style', 'unordered'),
+                            'items': items
+                        }
+                    })
+            
+            lesson.content = {
+                'blocks': editorjs_blocks
+            }
         
         # Handle Vimeo URL if provided
         if vimeo_id:
@@ -1057,6 +1116,9 @@ def add_lesson(request, course_slug):
             lesson.transcription_status = 'completed'
         
         lesson.save()
+        
+        # If content blocks were added, they're already saved in the lesson.content field
+        # Redirect to AI generation page (which will show the content blocks)
         return redirect('generate_lesson_ai', course_slug=course_slug, lesson_id=lesson.id)
     
     return render(request, 'creator/add_lesson.html', {
