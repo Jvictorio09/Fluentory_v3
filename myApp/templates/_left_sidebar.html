@@ -31,7 +31,7 @@
         <div>
           <!-- Module Header -->
           <button class="w-full flex items-center justify-between text-left 
-                         font-semibold text-slate-700 text-sm mb-3 
+                         font-semibold text-slate-700 text-sm text-black mb-3 
                          hover:text-slate-900 transition-colors module-toggle"
                   data-module="{{ module.id }}">
   
@@ -65,7 +65,7 @@
               </div>
   
               <!-- Title -->
-              <span class="flex-1 text-sm
+              <span class="flex-1 text-sm text-black
                            {% if module_lesson.id == lesson.id %}
                              font-semibold text-teal-600
                            {% else %}
@@ -76,7 +76,7 @@
   
               <!-- Completed Icon -->
               {% if module_lesson.id in completed_lessons %}
-              <i class="fas fa-check-circle text-emerald-500 text-sm"></i>
+              <i class="fas fa-check-circle text-emerald-500 text-sm text-black"></i>
               {% endif %}
             </a>
   
@@ -89,7 +89,7 @@
                 {{ forloop.counter }}
               </div>
   
-              <span class="flex-1 text-sm text-slate-400">
+              <span class="flex-1 text-sm text-black text-slate-400">
                 {{ module_lesson.title }}
               </span>
   

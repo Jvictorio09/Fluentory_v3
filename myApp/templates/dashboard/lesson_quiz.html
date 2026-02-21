@@ -7,7 +7,7 @@
 <div class="space-y-6">
     <!-- Back Button -->
     <div class="mb-4">
-        <a href="{% url 'dashboard_quizzes' %}" class="text-teal-700 hover:text-teal-800 text-sm inline-flex items-center gap-2">
+        <a href="{% url 'dashboard_quizzes' %}" class="text-teal-700 hover:text-teal-800 text-sm text-black inline-flex items-center gap-2">
             <i class="fas fa-arrow-left"></i> Back to Quizzes
         </a>
     </div>
@@ -18,7 +18,7 @@
             <h2 class="text-xl font-bold text-black">Quiz Settings</h2>
             <form method="POST" action="{% url 'dashboard_delete_quiz' lesson.id %}" class="inline" onsubmit="return confirm('Are you sure you want to delete this quiz? This will delete all questions and cannot be undone.');">
                 {% csrf_token %}
-                <button type="submit" class="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-sm font-medium hover:bg-red-500/20 transition-all text-red-400">
+                <button type="submit" class="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-black font-medium hover:bg-red-500/20 transition-all text-red-400">
                     <i class="fas fa-trash mr-2"></i>Delete Quiz
                 </button>
             </form>
@@ -27,24 +27,24 @@
             {% csrf_token %}
             <input type="hidden" name="action" value="save_quiz">
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1 text-gray-700">Title</label>
-                <input type="text" name="title" value="{{ quiz.title }}" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
+                <label class="block text-sm text-black font-semibold text-gray-700 mb-1 text-gray-700">Title</label>
+                <input type="text" name="title" value="{{ quiz.title }}" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50">
             </div>
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1 text-gray-700">Description</label>
-                <textarea name="description" rows="3" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-soft/50">{{ quiz.description }}</textarea>
+                <label class="block text-sm text-black font-semibold text-gray-700 mb-1 text-gray-700">Description</label>
+                <textarea name="description" rows="3" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50">{{ quiz.description }}</textarea>
             </div>
             <div class="flex gap-4 items-center">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1 text-gray-700">Passing Score (%)</label>
-                    <input type="number" name="passing_score" value="{{ quiz.passing_score }}" min="0" max="100" class="w-24 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-1 text-gray-700">Passing Score (%)</label>
+                    <input type="number" name="passing_score" value="{{ quiz.passing_score }}" min="0" max="100" class="w-24 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50">
                 </div>
                 <label class="inline-flex items-center gap-2 mt-6">
                     <input type="checkbox" name="is_required" {% if quiz.is_required %}checked{% endif %} class="text-black">
-                    <span class="text-sm text-gray-700">Show as recommended after lesson</span>
+                    <span class="text-sm text-black text-gray-700">Show as recommended after lesson</span>
                 </label>
             </div>
-            <button type="submit" class="px-5 py-2 bg-teal-soft text-[#ffffff] rounded-lg text-sm font-semibold text-gray-700 hover:bg-teal-soft/90 transition-all">
+            <button type="submit" class="px-5 py-2 bg-teal-soft text-[#ffffff] rounded-lg text-sm text-black font-semibold text-gray-700 hover:bg-teal-soft/90 transition-all">
                 Save Quiz
             </button>
         </form>
@@ -54,7 +54,7 @@
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-xl font-bold text-black">Questions</h2>
-            <span class="text-sm text-gray-700">{{ questions|length }} question{{ questions|length|pluralize }}</span>
+            <span class="text-sm text-black text-gray-700">{{ questions|length }} question{{ questions|length|pluralize }}</span>
         </div>
         <div class="space-y-4">
             {% for q in questions %}
@@ -62,7 +62,7 @@
                 <div class="flex items-start justify-between">
                     <div>
                         <div class="font-semibold text-gray-700 text-gray-100 mb-2">Q{{ forloop.counter }}. {{ q.text }}</div>
-                        <ul class="text-sm text-gray-700 space-y-1">
+                        <ul class="text-sm text-black text-gray-700 space-y-1">
                             <li><strong>A.</strong> {{ q.option_a }}{% if q.correct_option == 'A' %} <span class="text-gray-700 font-semibold text-gray-700">(correct)</span>{% endif %}</li>
                             <li><strong>B.</strong> {{ q.option_b }}{% if q.correct_option == 'B' %} <span class="text-gray-700 font-semibold text-gray-700">(correct)</span>{% endif %}</li>
                             {% if q.option_c %}
@@ -89,7 +89,7 @@
                 </div>
             </div>
             {% empty %}
-            <p class="text-sm text-gray-700">No questions yet. Add your first question below.</p>
+            <p class="text-sm text-black text-gray-700">No questions yet. Add your first question below.</p>
             {% endfor %}
         </div>
     </div>
@@ -101,37 +101,37 @@
             {% csrf_token %}
             <input type="hidden" name="action" value="add_question">
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1 text-gray-700">Question text</label>
-                <textarea name="q_text" rows="2" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-soft/50"></textarea>
+                <label class="block text-sm text-black font-semibold text-gray-700 mb-1 text-gray-700">Question text</label>
+                <textarea name="q_text" rows="2" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50"></textarea>
             </div>
             <div class="grid md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1 text-gray-700">Option A</label>
-                    <input type="text" name="q_option_a" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
+                    <input type="text" name="q_option_a" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1 text-gray-700">Option B</label>
-                    <input type="text" name="q_option_b" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
+                    <input type="text" name="q_option_b" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1 text-gray-700">Option C (optional)</label>
-                    <input type="text" name="q_option_c" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
+                    <input type="text" name="q_option_c" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1 text-gray-700">Option D (optional)</label>
-                    <input type="text" name="q_option_d" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
+                    <input type="text" name="q_option_d" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50">
                 </div>
             </div>
             <div>
                 <label class="block text-xs font-semibold text-gray-700 mb-1 text-gray-700">Correct option</label>
-                <select name="q_correct_option" class="w-32 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
+                <select name="q_correct_option" class="w-32 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50">
                     <option value="A">A</option>
                     <option value="B">B</option>
                     <option value="C">C</option>
                     <option value="D">D</option>
                 </select>
             </div>
-            <button type="submit" class="px-5 py-2 bg-blue-soft text-white rounded-lg text-sm font-semibold text-gray-700 hover:bg-blue-soft/90 transition-all">
+            <button type="submit" class="px-5 py-2 bg-blue-soft text-white rounded-lg text-sm text-black font-semibold text-gray-700 hover:bg-blue-soft/90 transition-all">
                 Add Question
             </button>
         </form>
@@ -156,32 +156,32 @@
             <input type="hidden" name="question_id" id="edit-question-id">
             
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1 text-gray-700">Question text</label>
-                <textarea name="q_text" id="edit-q-text" rows="2" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-soft/50"></textarea>
+                <label class="block text-sm text-black font-semibold text-gray-700 mb-1 text-gray-700">Question text</label>
+                <textarea name="q_text" id="edit-q-text" rows="2" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50"></textarea>
             </div>
             
             <div class="grid md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1 text-gray-700">Option A</label>
-                    <input type="text" name="q_option_a" id="edit-q-option-a" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
+                    <input type="text" name="q_option_a" id="edit-q-option-a" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1 text-gray-700">Option B</label>
-                    <input type="text" name="q_option_b" id="edit-q-option-b" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
+                    <input type="text" name="q_option_b" id="edit-q-option-b" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1 text-gray-700">Option C (optional)</label>
-                    <input type="text" name="q_option_c" id="edit-q-option-c" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
+                    <input type="text" name="q_option_c" id="edit-q-option-c" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-700 mb-1 text-gray-700">Option D (optional)</label>
-                    <input type="text" name="q_option_d" id="edit-q-option-d" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
+                    <input type="text" name="q_option_d" id="edit-q-option-d" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50">
                 </div>
             </div>
             
             <div>
                 <label class="block text-xs font-semibold text-gray-700 mb-1 text-gray-700">Correct option</label>
-                <select name="q_correct_option" id="edit-q-correct-option" class="w-32 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-soft/50">
+                <select name="q_correct_option" id="edit-q-correct-option" class="w-32 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50">
                     <option value="A">A</option>
                     <option value="B">B</option>
                     <option value="C">C</option>
@@ -190,10 +190,10 @@
             </div>
             
             <div class="flex gap-4 pt-4">
-                <button type="submit" class="flex-1 px-5 py-2 bg-teal-soft text-[#ffffff] rounded-lg text-sm font-semibold text-gray-700 hover:bg-teal-soft/90 transition-all">
+                <button type="submit" class="flex-1 px-5 py-2 bg-teal-soft text-[#ffffff] rounded-lg text-sm text-black font-semibold text-gray-700 hover:bg-teal-soft/90 transition-all">
                     <i class="fas fa-save mr-2"></i>Save Changes
                 </button>
-                <button type="button" onclick="closeEditModal()" class="px-5 py-2 border border-teal-soft/30 rounded-lg text-sm font-medium hover:bg-teal-soft/10 transition-all text-gray-700">
+                <button type="button" onclick="closeEditModal()" class="px-5 py-2 border border-teal-soft/30 rounded-lg text-sm text-black font-medium hover:bg-teal-soft/10 transition-all text-gray-700">
                     Cancel
                 </button>
             </div>

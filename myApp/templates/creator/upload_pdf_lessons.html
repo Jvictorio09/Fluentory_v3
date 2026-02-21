@@ -16,7 +16,7 @@
       <div class="w-full bg-slate-200 rounded-full h-2.5 mb-2">
         <div id="progress-bar" class="bg-gradient-to-r from-teal-600 to-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
       </div>
-      <p id="progress-text" class="text-sm text-black">Initializing...</p>
+      <p id="progress-text" class="text-sm text-black text-black">Initializing...</p>
     </div>
   </div>
 </div>
@@ -27,7 +27,7 @@
     <div class="mb-8">
       <div class="flex items-start justify-between mb-4">
         <div class="flex-1">
-          <a href="{% url 'course_lessons' course.slug %}" class="text-black hover:text-gray-700 text-sm mb-4 inline-flex items-center gap-2">
+          <a href="{% url 'course_lessons' course.slug %}" class="text-black hover:text-gray-700 text-sm text-black mb-4 inline-flex items-center gap-2">
             <i class="fas fa-arrow-left"></i> Back to {{ course.name }}
           </a>
           <h1 class="text-4xl font-bold mb-2 text-black">Upload PDF Lessons</h1>
@@ -36,7 +36,7 @@
         <div class="ml-4">
           <form method="POST" action="{% url 'clear_course_lessons' course.slug %}" id="clear-lessons-form" onsubmit="return confirm('Are you sure you want to clear all lessons from this course? This action cannot be undone.');">
             {% csrf_token %}
-            <button type="submit" class="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-sm font-medium hover:bg-red-500/20 transition-all text-red-600">
+            <button type="submit" class="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-black font-medium hover:bg-red-500/20 transition-all text-red-600">
               <i class="fas fa-trash mr-2"></i>Clear All Lessons
             </button>
           </form>
@@ -61,7 +61,7 @@
 
               <div class="space-y-4">
                 <div>
-                  <label class="block text-sm font-semibold text-black mb-2">Course</label>
+                  <label class="block text-sm text-black font-semibold text-black mb-2">Course</label>
                   <input
                     type="text"
                     value="{{ course.name }}"
@@ -73,7 +73,7 @@
 
                 <div>
                   <div class="flex items-center justify-between mb-2">
-                    <label class="block text-sm font-semibold text-black">Module Name *</label>
+                    <label class="block text-sm text-black font-semibold text-black">Module Name *</label>
                     <button 
                       type="button" 
                       id="clear-module-btn"
@@ -123,7 +123,7 @@
                     <label for="pdf-files" id="drop-zone" class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 cursor-pointer hover:border-teal-400 hover:bg-slate-100 transition-all group">
                       <div class="flex flex-col items-center justify-center pt-5 pb-6">
                         <i class="fas fa-file-pdf text-5xl text-slate-400 mb-4 group-hover:text-teal-600 transition-colors" id="drop-icon"></i>
-                        <p class="mb-2 text-sm text-black">
+                        <p class="mb-2 text-sm text-black text-black">
                           <span class="font-semibold text-black">Click to upload</span> or drag and drop
                         </p>
                         <p class="text-xs text-black">PDF files only (Multiple files supported)</p>
@@ -136,7 +136,7 @@
 
                 <!-- Processing Options -->
                 <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                  <h3 class="text-sm font-semibold text-black mb-3">Processing Options</h3>
+                  <h3 class="text-sm text-black font-semibold text-black mb-3">Processing Options</h3>
 
                   <div class="space-y-3">
                     <label class="flex items-start gap-3 cursor-pointer">
@@ -147,7 +147,7 @@
                         checked
                         class="mt-0.5 w-5 h-5 rounded border-slate-300 text-teal-600 focus:ring-teal-500/20"
                       >
-                      <span class="text-sm text-black">
+                      <span class="text-sm text-black text-black">
                         Use AI to generate lesson titles, descriptions, and content structure
                       </span>
                     </label>
@@ -160,7 +160,7 @@
                         id="split-pages"
                         min="0"
                         placeholder="0"
-                        class="w-32 px-3 py-2 rounded-lg bg-white border border-slate-200 text-black placeholder:text-gray-700 text-sm focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10"
+                        class="w-32 px-3 py-2 rounded-lg bg-white border border-slate-200 text-black placeholder:text-gray-700 text-sm text-black focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10"
                       >
                       <p class="text-xs text-black mt-1">Leave empty or 0 to process each PDF as one lesson</p>
                     </div>
@@ -195,7 +195,7 @@
             How It Works
           </h3>
 
-          <div class="space-y-4 text-sm text-black">
+          <div class="space-y-4 text-sm text-black text-black">
             <div>
               <h4 class="font-semibold mb-2 flex items-center gap-2 text-black">
                 <span class="w-6 h-6 rounded-full bg-teal-50 text-black border border-teal-100 flex items-center justify-center text-xs">1</span>
@@ -261,7 +261,7 @@ function displayFiles(files) {
       fileItem.innerHTML = `
         <div class="flex items-center gap-3 min-w-0">
           <i class="fas fa-file-pdf text-teal-600"></i>
-          <span class="text-sm text-black truncate">${file.name}</span>
+          <span class="text-sm text-black text-black truncate">${file.name}</span>
           <span class="text-xs text-black whitespace-nowrap">(${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
         </div>
       `;

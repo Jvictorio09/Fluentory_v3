@@ -157,7 +157,7 @@
                                     <blockquote class="border-l-4 border-teal-soft/50 pl-4 py-2 my-4 italic text-slate-700">
                                         <p class="mb-2">{{ block.data.text }}</p>
                                         {% if block.data.caption %}
-                                            <cite class="text-sm text-slate-600 not-italic">— {{ block.data.caption }}</cite>
+                                            <cite class="text-sm text-black text-slate-600 not-italic">— {{ block.data.caption }}</cite>
                                         {% endif %}
                                     </blockquote>
                                 {% elif block.type == 'image' %}
@@ -218,9 +218,9 @@
                                 </div>
                             </div>
                             {% if lesson_quiz.description %}
-                            <p class="text-slate-700 text-sm mb-4">{{ lesson_quiz.description }}</p>
+                            <p class="text-slate-700 text-sm text-black mb-4">{{ lesson_quiz.description }}</p>
                             {% endif %}
-                            <p class="text-amber-600 text-sm mb-4">
+                            <p class="text-amber-600 text-sm text-black mb-4">
                                 <i class="fas fa-exclamation-circle mr-1"></i>
                                 You must pass this quiz to complete the lesson.
                             </p>
@@ -241,7 +241,7 @@
                                             Quiz Score: {{ latest_quiz_attempt.score|floatformat:0 }}%
                                         {% endif %}
                                     </div>
-                                    <div class="text-sm text-slate-700">
+                                    <div class="text-sm text-black text-slate-700">
                                         {% if latest_quiz_attempt.passed %}
                                             Score: {{ latest_quiz_attempt.score|floatformat:0 }}% (Passing: {{ lesson_quiz.passing_score }}%)
                                         {% else %}
@@ -264,7 +264,7 @@
                     </a>
                     
                     {% if quiz_attempts %}
-                    <div class="mt-4 text-sm text-slate-700">
+                    <div class="mt-4 text-sm text-black text-slate-700">
                         <i class="fas fa-history mr-2"></i>
                         {{ quiz_attempts|length }} attempt{{ quiz_attempts|length|pluralize }} total
                     </div>
@@ -288,7 +288,7 @@
                             <i class="fas fa-lock text-amber-600 text-xl"></i>
                             <div>
                                 <div class="font-semibold text-slate-700 text-amber-600 mb-1">Quiz Required</div>
-                                <div class="text-sm text-slate-700">You must pass the lesson quiz before you can complete this lesson.</div>
+                                <div class="text-sm text-black text-slate-700">You must pass the lesson quiz before you can complete this lesson.</div>
                             </div>
                         </div>
                     </div>
@@ -324,14 +324,14 @@
                         </div>
                         <div>
                             <h3 class="text-lg font-semibold text-slate-900 mb-1">Almost there!</h3>
-                            <p id="lesson-error-message" class="text-sm text-slate-700 leading-relaxed"></p>
+                            <p id="lesson-error-message" class="text-sm text-black text-slate-700 leading-relaxed"></p>
                         </div>
                     </div>
                     <div class="flex justify-end">
                         <button 
                             type="button"
                             id="lesson-error-close"
-                            class="px-5 py-2 rounded-full bg-gradient-to-r from-teal-soft to-blue-soft text-[#ffffff] font-semibold text-slate-700 text-sm hover:from-teal-soft/90 hover:to-blue-soft/90 focus:outline-none focus:ring-2 focus:ring-teal-soft/60"
+                            class="px-5 py-2 rounded-full bg-gradient-to-r from-teal-soft to-blue-soft text-[#ffffff] font-semibold text-slate-700 text-sm text-black hover:from-teal-soft/90 hover:to-blue-soft/90 focus:outline-none focus:ring-2 focus:ring-teal-soft/60"
                         >
                             Got it
                         </button>
@@ -550,7 +550,7 @@
                 <div class="flex-1 min-w-0 flex justify-end">
                     <div class="max-w-[85%]">
                         <div class="bg-gradient-to-br from-teal-soft to-blue-soft rounded-2xl rounded-tr-sm px-4 py-3">
-                            <p class="text-sm text-[#ffffff] font-medium leading-relaxed">${escapeHtml(message)}</p>
+                            <p class="text-sm text-black text-[#ffffff] font-medium leading-relaxed">${escapeHtml(message)}</p>
                         </div>
                         <div class="text-xs text-gray-500 mt-1.5 mr-1 text-right">Just now</div>
                     </div>
@@ -579,7 +579,7 @@
         messageDiv.className = 'chat-message ai-message';
         const content = isThinking 
             ? '<div class="flex items-center gap-2"><div class="animate-spin rounded-full h-4 w-4 border-b-2 border-teal-soft"></div><span class="text-slate-700">Thinking...</span></div>'
-            : `<p class="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">${escapeHtml(message)}</p>`;
+            : `<p class="text-sm text-black text-slate-800 leading-relaxed whitespace-pre-wrap">${escapeHtml(message)}</p>`;
         
         messageDiv.innerHTML = `
             <div class="flex items-start gap-3">
@@ -605,7 +605,7 @@
         if (contentDiv) {
             contentDiv.innerHTML = `
                 <div class="flex items-start justify-between gap-2">
-                    <p class="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap flex-1">${escapeHtml(message)}</p>
+                    <p class="text-sm text-black text-slate-800 leading-relaxed whitespace-pre-wrap flex-1">${escapeHtml(message)}</p>
                     <button class="copy-message-btn flex-shrink-0 text-black/50 hover:text-black transition-colors" title="Copy message">
                         <i class="fas fa-copy text-xs"></i>
                     </button>
@@ -949,7 +949,7 @@
                                     <div class="text-center">
                                         <h3 class="text-2xl font-bold text-yellow-600 mb-2">🎉 Congratulations! 🎉</h3>
                                         <p class="text-green-600 font-semibold">You've completed all lessons!</p>
-                                        <p class="text-sm text-gray-700 mt-2">Redirecting to your certificate...</p>
+                                        <p class="text-sm text-black text-gray-700 mt-2">Redirecting to your certificate...</p>
                                     </div>
                                 </div>
                             `;

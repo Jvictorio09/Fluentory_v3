@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="mb-6">
-    <a href="{% url 'teacher_course_detail' course.slug %}" class="text-teal-700 hover:text-teal-800 text-sm mb-4 inline-block">
+    <a href="{% url 'teacher_course_detail' course.slug %}" class="text-teal-700 hover:text-teal-800 text-sm text-black mb-4 inline-block">
         <i class="fas fa-arrow-left mr-2"></i> Back to Course
     </a>
 </div>
@@ -20,7 +20,7 @@
             <div class="flex items-center justify-between">
                 <div class="flex-1">
                     <h3 class="font-semibold text-gray-800">{{ lesson.title }}</h3>
-                    <p class="text-sm text-gray-700 mt-1">{{ lesson.description|truncatewords:20 }}</p>
+                    <p class="text-sm text-black text-gray-700 mt-1">{{ lesson.description|truncatewords:20 }}</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="text-xs text-gray-600">Order: {{ lesson.order }}</span>
@@ -33,7 +33,7 @@
     <div class="text-center py-12">
         <i class="fas fa-video text-4xl text-gray-600 mb-4"></i>
         <p class="text-gray-700 mb-4">No lessons yet for this course.</p>
-        <p class="text-sm text-gray-600">Lessons can be added through the admin dashboard.</p>
+        <p class="text-sm text-black text-gray-600">Lessons can be added through the admin dashboard.</p>
     </div>
     {% endif %}
 </div>

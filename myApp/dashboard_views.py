@@ -428,7 +428,18 @@ def dashboard_courses(request):
 @staff_member_required
 def dashboard_course_detail(request, course_slug):
     """Edit course details"""
-    course = get_object_or_404(Course, slug=course_slug)
+    from django.db import OperationalError, ProgrammingError
+    
+    # Try to get course normally
+    try:
+        course = get_object_or_404(Course, slug=course_slug)
+    except (OperationalError, ProgrammingError) as e:
+        # Check if it's because certificate_field_positions doesn't exist
+        if 'certificate_field_positions' in str(e):
+            messages.error(request, 'Database migration required. Please run: python manage.py migrate')
+            return redirect('dashboard_courses')
+        else:
+            raise
     
     if request.method == 'POST':
         course.name = request.POST.get('name', course.name)
@@ -439,6 +450,10 @@ def dashboard_course_detail(request, course_slug):
         course.coach_name = request.POST.get('coach_name', course.coach_name)
         preview_video_url = request.POST.get('preview_video_url', '').strip()
         course.preview_video_url = preview_video_url if preview_video_url else None
+        
+        # Handle certificate template upload
+        if 'certificate_template' in request.FILES:
+            course.certificate_template = request.FILES['certificate_template']
         
         # Delivery type and pricing
         course.delivery_type = request.POST.get('delivery_type', course.delivery_type)
@@ -683,6 +698,11 @@ def dashboard_add_course(request):
             currency=currency,
             preview_video_url=preview_video_url if preview_video_url else None,
         )
+        
+        # Handle certificate template upload
+        if 'certificate_template' in request.FILES:
+            course.certificate_template = request.FILES['certificate_template']
+            course.save()
         
         # Assign teacher if live course
         if delivery_type == 'live':
@@ -2655,4 +2675,185 @@ def dashboard_teacher_request_reject(request, request_id):
     
     messages.success(request, f'Teacher request rejected. Email sent to {teacher_request.email}.')
     return redirect('dashboard_teacher_request_detail', request_id=request_id)
+
+
+@staff_member_required
+def dashboard_edit_certificate_template(request, course_slug):
+    """Edit certificate template field positions"""
+    from django.db import OperationalError, ProgrammingError
+    try:
+        course = get_object_or_404(Course, slug=course_slug)
+    except (OperationalError, ProgrammingError) as e:
+        if 'certificate_field_positions' in str(e):
+            # Field doesn't exist yet - use only() to exclude it
+            course = Course.objects.only('id', 'slug', 'name', 'certificate_template').get(slug=course_slug)
+        else:
+            raise
+    
+    if not course.certificate_template:
+        messages.error(request, 'Please upload a certificate template first.')
+        return redirect('dashboard_course_detail', course_slug=course.slug)
+    
+    if request.method == 'POST':
+        # Save field positions from JSON
+        import json
+        from django.db import OperationalError, ProgrammingError
+        try:
+            positions_json = request.POST.get('field_positions', '{}')
+            positions = json.loads(positions_json)
+            try:
+                course.certificate_field_positions = positions
+                course.save()
+                messages.success(request, 'Certificate field positions saved successfully.')
+            except (OperationalError, ProgrammingError) as e:
+                if 'certificate_field_positions' in str(e):
+                    messages.error(request, 'Please run migrations first: python manage.py migrate')
+                else:
+                    raise
+            return redirect('dashboard_edit_certificate_template', course_slug=course.slug)
+        except json.JSONDecodeError:
+            messages.error(request, 'Invalid JSON format for field positions.')
+    
+    # Get template URL
+    template_url = course.certificate_template.url
+    
+    # Get current positions or use defaults
+    import json
+    try:
+        field_positions = course.certificate_field_positions or {}
+    except (AttributeError, KeyError):
+        field_positions = {}
+    field_positions_json = json.dumps(field_positions)
+    
+    return render(request, 'dashboard/edit_certificate_template.html', {
+        'course': course,
+        'template_url': template_url,
+        'field_positions': field_positions_json,
+    })
+
+
+@staff_member_required
+def dashboard_sample_certificate(request, course_slug=None):
+    """Preview a sample certificate for a course"""
+    from django.http import HttpResponse
+    from django.utils import timezone
+    from datetime import datetime
+    
+    # Get course if provided, otherwise use first course
+    if course_slug:
+        course = get_object_or_404(Course, slug=course_slug)
+    else:
+        course = Course.objects.first()
+        if not course:
+            messages.error(request, 'No courses available. Please create a course first.')
+            return redirect('dashboard_courses')
+    
+    # Generate sample certificate with sample data
+    from .utils.certificate_generator import generate_certificate_pdf
+    
+    sample_user_name = "John Doe"
+    sample_certificate_id = f"SAMPLE-{course.slug.upper()}-{datetime.now().strftime('%Y%m%d')}"
+    
+    # Get course modules for the certificate
+    modules = []
+    try:
+        course_modules = course.modules.all().order_by('order', 'id')
+        modules = [f"Module {i+1} - {module.name}" for i, module in enumerate(course_modules)]
+    except Exception:
+        pass
+    
+    # Check if course has a certificate template, otherwise use default
+    template_path = None
+    temp_template_path = None  # Track temp files for cleanup
+    
+    # First, try to use course-specific template
+    if course.certificate_template:
+        # Try to get local path first
+        try:
+            import os
+            template_path = course.certificate_template.path
+            # Verify file exists
+            if not os.path.exists(template_path):
+                template_path = None
+        except (ValueError, NotImplementedError):
+            # File might be in Cloudinary or remote storage
+            # Download it temporarily
+            try:
+                import tempfile
+                import requests
+                template_url = course.certificate_template.url
+                response = requests.get(template_url, timeout=10)
+                if response.status_code == 200:
+                    # Save to temporary file
+                    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+                    temp_file.write(response.content)
+                    temp_file.close()
+                    template_path = temp_file.name
+                    temp_template_path = template_path  # Track for cleanup
+            except Exception as e:
+                print(f"Could not download template: {e}")
+                template_path = None
+    
+    # If no course-specific template, try to use default template from Google Drive
+    if not template_path:
+        # Hardcoded default template URL from Google Drive
+        default_template_url = "https://drive.google.com/uc?export=download&id=1I4GenyMIbXN4f8Rq2g_samATrDicvMcG"
+        
+        try:
+            import tempfile
+            import requests
+            import os
+            print(f"Downloading default certificate template from Google Drive: {default_template_url}")
+            response = requests.get(default_template_url, timeout=15)
+            if response.status_code == 200:
+                # Save to temporary file
+                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+                temp_file.write(response.content)
+                temp_file.close()
+                template_path = temp_file.name
+                temp_template_path = template_path  # Track for cleanup
+                print(f"✓ Downloaded default certificate template from Google Drive")
+            else:
+                print(f"✗ Failed to download default template from Google Drive (status: {response.status_code})")
+        except Exception as e:
+            print(f"✗ Error downloading default template from Google Drive: {e}")
+    
+    # Build verification URL for QR code
+    verification_url = None
+    try:
+        from django.conf import settings
+        from django.urls import reverse
+        domain = settings.ALLOWED_HOSTS[0] if settings.ALLOWED_HOSTS else 'localhost:8000'
+        if not domain.startswith('http'):
+            protocol = 'https' if not settings.DEBUG else 'http'
+            domain = f"{protocol}://{domain}"
+        verification_url = f"{domain}/verify-certificate/{sample_certificate_id}/"
+    except Exception as e:
+        print(f"Could not build verification URL: {e}")
+    
+    # Generate PDF (will use template if available)
+    try:
+        pdf_buffer = generate_certificate_pdf(
+            user_name=sample_user_name,
+            course_name=course.name,
+            issued_date=timezone.now(),
+            certificate_id=sample_certificate_id,
+            modules=modules,
+            template_path=template_path,
+            verification_url=verification_url
+        )
+    finally:
+        # Clean up temporary template file if it was downloaded
+        if temp_template_path and os.path.exists(temp_template_path):
+            try:
+                os.remove(temp_template_path)
+            except Exception as e:
+                print(f"Could not clean up temporary template file: {e}")
+    
+    response = HttpResponse(
+        pdf_buffer.getvalue(),
+        content_type='application/pdf'
+    )
+    response['Content-Disposition'] = 'inline; filename="sample_certificate.pdf"'
+    return response
 

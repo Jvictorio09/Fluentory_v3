@@ -12,16 +12,16 @@
 
             <!-- Navigation Links (Desktop) -->
             <nav class="hidden md:flex items-center gap-6">
-                <a href="{% url 'courses' %}" class="text-sm font-medium text-slate-700 hover:text-teal-soft transition-colors">
+                <a href="{% url 'courses' %}" class="text-sm text-black font-medium text-slate-700 hover:text-teal-soft transition-colors">
                     Language Courses
                 </a>
-                <a href="{% url 'tawjehi_page' %}" class="text-sm font-medium text-slate-700 hover:text-teal-soft transition-colors">
+                <a href="{% url 'tawjehi_page' %}" class="text-sm text-black font-medium text-slate-700 hover:text-teal-soft transition-colors">
                     Tawjehi
                 </a>
-                <a href="#about" class="text-sm font-medium text-slate-700 hover:text-teal-soft transition-colors">
+                <a href="#about" class="text-sm text-black font-medium text-slate-700 hover:text-teal-soft transition-colors">
                     About
                 </a>
-                <a href="#contact" class="text-sm font-medium text-slate-700 hover:text-teal-soft transition-colors">
+                <a href="#contact" class="text-sm text-black font-medium text-slate-700 hover:text-teal-soft transition-colors">
                     Contact
                 </a>
             </nav>
@@ -29,12 +29,12 @@
             <!-- Action Buttons -->
             <div class="flex items-center gap-3">
                 {% if user.is_authenticated %}
-                    <a href="{% url 'student_dashboard' %}" class="inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-gradient-to-r from-teal-soft to-blue-soft hover:from-teal-soft/90 hover:to-blue-soft/90 transition-all shadow-md shadow-teal-soft/30 hover:shadow-lg hover:-translate-y-0.5">
+                    <a href="{% url 'student_dashboard' %}" class="inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm text-black font-semibold text-white bg-gradient-to-r from-teal-soft to-blue-soft hover:from-teal-soft/90 hover:to-blue-soft/90 transition-all shadow-md shadow-teal-soft/30 hover:shadow-lg hover:-translate-y-0.5">
                         <i class="fas fa-tachometer-alt mr-2"></i>
                         Dashboard
                     </a>
                 {% else %}
-                    <a href="{% url 'login' %}" class="inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all">
+                    <a href="{% url 'login' %}" class="inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm text-black font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all">
                         <i class="fas fa-sign-in-alt mr-2"></i>
                         Login
                     </a>
@@ -42,7 +42,7 @@
 
                 <!-- Mobile menu button -->
                 <button id="mobile-menu-btn" class="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 transition-colors">
-                    <i id="mobile-menu-icon" class="fas fa-bars text-sm"></i>
+                    <i id="mobile-menu-icon" class="fas fa-bars text-sm text-black"></i>
                 </button>
             </div>
         </div>
@@ -50,26 +50,26 @@
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="md:hidden hidden border-t border-slate-200 py-4">
             <nav class="flex flex-col gap-2">
-                <a href="{% url 'courses' %}" class="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors">
+                <a href="{% url 'courses' %}" class="px-4 py-2 text-sm text-black font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors">
                     Language Courses
                 </a>
-                <a href="{% url 'tawjehi_page' %}" class="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors">
+                <a href="{% url 'tawjehi_page' %}" class="px-4 py-2 text-sm text-black font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors">
                     Tawjehi
                 </a>
-                <a href="#about" class="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors">
+                <a href="#about" class="px-4 py-2 text-sm text-black font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors">
                     About
                 </a>
-                <a href="#contact" class="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors">
+                <a href="#contact" class="px-4 py-2 text-sm text-black font-medium text-slate-700 hover:bg-slate-50 rounded-lg transition-colors">
                     Contact
                 </a>
                 <div class="h-px bg-slate-200 my-2"></div>
                 {% if user.is_authenticated %}
-                    <a href="{% url 'student_dashboard' %}" class="px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-teal-soft to-blue-soft rounded-lg text-center hover:from-teal-soft/90 hover:to-blue-soft/90 transition-all">
+                    <a href="{% url 'student_dashboard' %}" class="px-4 py-2.5 text-sm text-black font-semibold text-white bg-gradient-to-r from-teal-soft to-blue-soft rounded-lg text-center hover:from-teal-soft/90 hover:to-blue-soft/90 transition-all">
                         <i class="fas fa-tachometer-alt mr-2"></i>
                         Dashboard
                     </a>
                 {% else %}
-                    <a href="{% url 'login' %}" class="px-4 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg text-center hover:bg-slate-50 transition-all">
+                    <a href="{% url 'login' %}" class="px-4 py-2.5 text-sm text-black font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg text-center hover:bg-slate-50 transition-all">
                         <i class="fas fa-sign-in-alt mr-2"></i>
                         Login
                     </a>

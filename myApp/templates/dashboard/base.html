@@ -57,7 +57,7 @@
                     </div>
                     <div>
                         <div class="text-[10px] uppercase tracking-widest text-black/70 font-semibold text-gray-700">Dashboard</div>
-                        <div class="text-sm font-bold text-gray-700">Fluentory</div>
+                        <div class="text-sm text-black font-bold text-gray-700">Fluentory</div>
                     </div>
                 </div>
                 <button id="close-sidebar" class="md:hidden p-2 text-gray-700 hover:text-white">
@@ -123,11 +123,11 @@
                     <h1 class="text-xl sm:text-2xl font-bold text-black">{% block page_title %}Dashboard{% endblock %}</h1>
                 </div>
                 <div class="flex items-center gap-2 sm:gap-4">
-                    <div class="text-xs sm:text-sm text-gray-700 hidden sm:block">
+                    <div class="text-xs sm:text-sm text-black text-gray-700 hidden sm:block">
                         <i class="fas fa-user-circle mr-2"></i>
                         {{ user.get_full_name|default:user.username }}
                     </div>
-                    <a href="{% url 'logout' %}" class="px-3 sm:px-4 py-2 rounded-full border border-teal-soft/30 text-xs sm:text-sm font-medium hover:bg-teal-soft/10 hover:border-teal-soft/50 transition-all text-gray-700">
+                    <a href="{% url 'logout' %}" class="px-3 sm:px-4 py-2 rounded-full border border-teal-soft/30 text-xs sm:text-sm text-black font-medium hover:bg-teal-soft/10 hover:border-teal-soft/50 transition-all text-gray-700">
                         <span class="hidden sm:inline">Log Out</span>
                         <i class="fas fa-sign-out-alt sm:hidden"></i>
                     </a>

@@ -8,7 +8,7 @@
     <div class="max-w-[1600px] mx-auto px-6">
         <!-- Header -->
         <div class="mb-8">
-            <a href="{% url 'course_lessons' course.slug %}" class="text-teal-700 hover:text-teal-800 text-sm mb-4 inline-flex items-center gap-2">
+            <a href="{% url 'course_lessons' course.slug %}" class="text-teal-700 hover:text-teal-800 text-sm text-black mb-4 inline-flex items-center gap-2">
                 <i class="fas fa-arrow-left"></i> Back to {{ course.name }}
             </a>
             <h1 class="text-4xl font-bold mb-2 text-slate-900">Add New Lesson</h1>
@@ -23,17 +23,17 @@
                     <form method="POST" id="lesson-form" enctype="multipart/form-data">
                         {% csrf_token %}
                         
-                        <!-- STEP 1: Video Input -->
+                        <!-- STEP 1: Video Input (Optional) -->
                         <div class="mb-8">
                             <div class="flex items-center gap-3 mb-6">
                                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-teal-soft to-blue-soft text-[#ffffff] flex items-center justify-center font-bold text-lg">1</div>
-                                <h2 class="text-2xl font-bold text-slate-900">Video Input</h2>
+                                <h2 class="text-2xl font-bold text-slate-900">Video Input <span class="text-sm font-normal text-gray-500">(Optional)</span></h2>
                             </div>
                             
                             <div class="space-y-6">
                                 <!-- Video File Upload -->
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider text-black/70">
+                                    <label class="block text-sm text-black font-semibold text-gray-700 mb-3 uppercase tracking-wider text-black/70">
                                         <i class="fas fa-upload mr-2"></i>Upload MP4 Video File
                                     </label>
                                     <div class="relative">
@@ -47,7 +47,7 @@
                                         <label for="video-file" class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-teal-soft/30 rounded-xl bg-[#ffffff]/40 cursor-pointer hover:border-teal-soft/50 hover:bg-[#ffffff]/60 transition-all group">
                                             <div class="flex flex-col items-center justify-center pt-5 pb-6">
                                                 <i class="fas fa-cloud-upload-alt text-5xl text-black/50 mb-4 group-hover:text-black transition-colors"></i>
-                                                <p class="mb-2 text-sm text-gray-700">
+                                                <p class="mb-2 text-sm text-black text-gray-700">
                                                     <span class="font-semibold text-gray-700 text-black">Click to upload</span> or drag and drop
                                                 </p>
                                                 <p class="text-xs text-gray-500">MP4 video file (MAX. 500MB)</p>
@@ -55,7 +55,7 @@
                                         </label>
                                     </div>
                                     <p class="text-xs text-gray-700 mt-2">
-                                        <i class="fas fa-info-circle mr-1"></i> Video will be automatically transcribed after upload.
+                                        <i class="fas fa-info-circle mr-1"></i> Video will be automatically transcribed after upload. <span class="text-gray-500">(Optional - you can skip this step if your lesson doesn't have a video)</span>
                                     </p>
                                     <!-- Upload Progress -->
                                     <div id="upload-progress" class="hidden mt-4">
@@ -73,14 +73,14 @@
                                     <div class="absolute inset-0 flex items-center">
                                         <div class="w-full border-t border-teal-soft/10"></div>
                                     </div>
-                                    <div class="relative flex justify-center text-sm">
+                                    <div class="relative flex justify-center text-sm text-black">
                                         <span class="px-4 bg-white text-slate-500 uppercase tracking-wider">OR</span>
                                     </div>
                                 </div>
                                 
                                 <!-- Vimeo URL Input -->
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider text-black/70">
+                                    <label class="block text-sm text-black font-semibold text-gray-700 mb-3 uppercase tracking-wider text-black/70">
                                         <i class="fab fa-vimeo mr-2"></i>Paste Vimeo video link
                                     </label>
                                     <input 
@@ -88,11 +88,25 @@
                                         name="vimeo_url" 
                                         id="vimeo-url"
                                         placeholder="https://vimeo.com/xxxxxxxxx"
-                                        class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all"
+                                        class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-black text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all"
                                     >
                                     <p class="text-xs text-gray-700 mt-2">
-                                        We'll automatically detect metadata, duration, and thumbnail.
+                                        We'll automatically detect metadata, duration, and thumbnail. <span class="text-gray-500">(Optional)</span>
                                     </p>
+                                </div>
+                                
+                                <!-- Skip Video Option -->
+                                <div class="pt-4 border-t border-teal-soft/10">
+                                    <p class="text-sm text-gray-600 mb-3 text-center">
+                                        Don't have a video for this lesson?
+                                    </p>
+                                    <button 
+                                        type="button" 
+                                        id="skip-video-btn"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all text-sm font-medium"
+                                    >
+                                        <i class="fas fa-forward mr-2"></i>Skip Video Step
+                                    </button>
                                 </div>
                                 
                                 <!-- Video Preview (hidden initially) -->
@@ -101,11 +115,11 @@
                                         <img id="preview-thumbnail" src="" alt="Video thumbnail" class="w-40 h-24 object-cover rounded-lg">
                                         <div class="flex-1">
                                             <div id="preview-title" class="font-semibold text-slate-900 mb-2"></div>
-                                            <div class="text-sm text-gray-700 mb-2">
+                                            <div class="text-sm text-black text-gray-700 mb-2">
                                                 <i class="fas fa-clock mr-2"></i>
                                                 <span id="preview-duration"></span>
                                             </div>
-                                            <div class="text-sm text-gray-700 flex items-center gap-2">
+                                            <div class="text-sm text-black text-gray-700 flex items-center gap-2">
                                                 <i class="fas fa-check-circle"></i>
                                                 <span>Video successfully recognized</span>
                                             </div>
@@ -124,27 +138,27 @@
                             
                             <div class="space-y-6">
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                    <label class="block text-sm text-black font-semibold text-gray-700 mb-3">
                                         Working Lesson Title
                                     </label>
                                     <input 
                                         type="text" 
                                         name="working_title" 
                                         placeholder="Sprint 8.0 – Session 1: Orientation"
-                                        class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all"
+                                        class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-black text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 transition-all"
                                         required
                                     >
                                 </div>
                                 
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                    <label class="block text-sm text-black font-semibold text-gray-700 mb-3">
                                         Optional: Notes or rough outline for AI
                                     </label>
                                     <textarea 
                                         name="rough_notes" 
                                         rows="6"
                                         placeholder="Drop session notes, bullets, workshop outline, or even messy copy here. The AI will use this to generate better descriptions and outcomes."
-                                        class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-teal-soft/50 focus:bg-[#ffffff]/80 resize-none transition-all"
+                                        class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-xl px-4 py-3 text-sm text-black focus:outline-none focus:border-teal-soft/50 focus:bg-[#ffffff]/80 resize-none transition-all"
                                     ></textarea>
                                     <p class="text-xs text-gray-700 mt-2">
                                         If you don't add anything, the AI still handles the description based on the video title — but notes improve accuracy.
@@ -191,14 +205,14 @@
                     <div id="transcription-status" class="mb-4">
                         <div id="status-pending" class="text-center py-8">
                             <i class="fas fa-file-video text-4xl text-gray-600 mb-3"></i>
-                            <p class="text-sm text-gray-700">Upload a video to generate transcription</p>
+                            <p class="text-sm text-black text-gray-700">Upload a video to generate transcription</p>
                         </div>
                         
                         <div id="status-processing" class="hidden text-center py-8">
                             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-soft/10 mb-4">
                                 <i class="fas fa-spinner fa-spin text-2xl text-black"></i>
                             </div>
-                            <p class="text-sm font-semibold text-gray-700 text-black mb-1">Generating transcription...</p>
+                            <p class="text-sm text-black font-semibold text-gray-700 text-black mb-1">Generating transcription...</p>
                             <p class="text-xs text-gray-700">This may take a moment</p>
                         </div>
                         
@@ -206,7 +220,7 @@
                             <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-500/10 mb-3">
                                 <i class="fas fa-exclamation-triangle text-xl text-red-400"></i>
                             </div>
-                            <p class="text-sm text-red-400 mb-2" id="error-message">Transcription failed</p>
+                            <p class="text-sm text-black text-red-400 mb-2" id="error-message">Transcription failed</p>
                             <button id="retry-transcription" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-xs text-black hover:bg-teal-soft/20 transition-colors">
                                 <i class="fas fa-redo mr-1"></i> Retry Transcription
                             </button>
@@ -218,7 +232,7 @@
                         <textarea 
                             id="transcription-textarea"
                             rows="20"
-                            class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-xl px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-teal-soft/50 focus:bg-[#ffffff]/80 resize-none transition-all font-mono leading-relaxed"
+                            class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-xl px-4 py-3 text-sm text-black text-gray-700 focus:outline-none focus:border-teal-soft/50 focus:bg-[#ffffff]/80 resize-none transition-all font-mono leading-relaxed"
                             placeholder="Transcription will appear here..."
                         ></textarea>
                         
@@ -255,14 +269,14 @@
             </div>
             <div>
                 <h3 class="text-lg font-semibold text-slate-900 mb-1" id="global-lesson-modal-title">Heads up</h3>
-                <p id="global-lesson-modal-message" class="text-sm text-gray-700 leading-relaxed"></p>
+                <p id="global-lesson-modal-message" class="text-sm text-black text-gray-700 leading-relaxed"></p>
             </div>
         </div>
         <div class="flex justify-end">
             <button 
                 type="button"
                 id="global-lesson-modal-close"
-                class="px-5 py-2 rounded-full bg-gradient-to-r from-teal-soft to-blue-soft text-[#ffffff] font-semibold text-gray-700 text-sm hover:from-teal-soft/90 hover:to-blue-soft/90 focus:outline-none focus:ring-2 focus:ring-teal-soft/60"
+                class="px-5 py-2 rounded-full bg-gradient-to-r from-teal-soft to-blue-soft text-[#ffffff] font-semibold text-gray-700 text-sm text-black hover:from-teal-soft/90 hover:to-blue-soft/90 focus:outline-none focus:ring-2 focus:ring-teal-soft/60"
             >
                 Got it
             </button>
@@ -305,6 +319,7 @@
     const videoFileInput = document.getElementById('video-file');
     const vimeoUrlInput = document.getElementById('vimeo-url');
     const videoPreview = document.getElementById('video-preview');
+    const skipVideoBtn = document.getElementById('skip-video-btn');
     const generateBtn = document.getElementById('generate-btn');
     const transcriptionInput = document.getElementById('transcription-input');
     const transcriptionTextarea = document.getElementById('transcription-textarea');
@@ -446,6 +461,36 @@
         transcriptionData = this.value;
         transcriptionInput.value = this.value;
     });
+    
+    // Handle skip video button
+    if (skipVideoBtn) {
+        skipVideoBtn.addEventListener('click', function() {
+            // Clear video file input
+            if (videoFileInput) {
+                videoFileInput.value = '';
+            }
+            // Clear Vimeo URL
+            if (vimeoUrlInput) {
+                vimeoUrlInput.value = '';
+            }
+            // Hide video preview
+            if (videoPreview) {
+                videoPreview.classList.add('hidden');
+            }
+            // Reset transcription status
+            showStatus('pending');
+            // Clear any video-related data
+            currentVideoFile = null;
+            vimeoVerified = false;
+            transcriptionData = '';
+            // Enable generate button (form can be submitted without video)
+            if (generateBtn) {
+                generateBtn.disabled = false;
+            }
+            // Show confirmation message
+            showGlobalLessonModal('Video step skipped. You can proceed to add lesson context and create the lesson without a video.', 'Video Skipped');
+        });
+    }
     
     // Verify Vimeo URL on blur
     vimeoUrlInput.addEventListener('blur', function() {

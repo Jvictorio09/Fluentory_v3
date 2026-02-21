@@ -6,7 +6,7 @@
 {% block content %}
 <div class="max-w-3xl mx-auto">
     <div class="mb-6">
-        <a href="{% url 'teacher_courses' %}" class="text-teal-700 hover:text-teal-800 text-sm mb-4 inline-block">
+        <a href="{% url 'teacher_courses' %}" class="text-teal-700 hover:text-teal-800 text-sm text-black mb-4 inline-block">
             <i class="fas fa-arrow-left mr-2"></i> Back to Courses
         </a>
     </div>
@@ -17,23 +17,23 @@
             {% csrf_token %}
             <div class="space-y-6">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Course Name *</label>
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Course Name *</label>
                     <input type="text" name="name" required class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" placeholder="e.g., Advanced NLP Techniques">
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Short Description *</label>
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Short Description *</label>
                     <input type="text" name="short_description" required class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" placeholder="One-line description for course cards">
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Full Description *</label>
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Full Description *</label>
                     <textarea name="description" rows="6" required class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50 resize-none" placeholder="Detailed course description"></textarea>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Course Type</label>
+                        <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Course Type</label>
                         <select name="course_type" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50">
                             {% for value, label in course_types %}
                             <option value="{{ value }}">{{ label }}</option>
@@ -42,7 +42,7 @@
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                        <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Status</label>
                         <select name="status" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50">
                             <option value="active">Active</option>
                             <option value="locked">Locked</option>
@@ -53,7 +53,7 @@
                 
                 <!-- Delivery Type -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Delivery Type *</label>
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Delivery Type *</label>
                     <select name="delivery_type" id="delivery_type" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" required>
                         <option value="pre_recorded">Pre-Recorded</option>
                         <option value="live">Live Course</option>
@@ -62,7 +62,7 @@
                 
                 <!-- Teacher Assignment (only for live courses) -->
                 <div id="teacher_assignment" class="hidden">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Assign Additional Teacher(s) (optional)</label>
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Assign Additional Teacher(s) (optional)</label>
                     <select name="teachers" multiple class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" size="5">
                         {% for teacher in potential_teachers %}
                         {% if teacher.id != user.id %}
@@ -80,18 +80,18 @@
                     <div class="mb-4">
                         <label class="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" name="is_paid" id="is_paid" class="w-5 h-5 rounded border-teal-soft/30 text-black focus:ring-teal-soft">
-                            <span class="text-sm font-semibold text-gray-700">This course requires payment</span>
+                            <span class="text-sm text-black font-semibold text-gray-700">This course requires payment</span>
                         </label>
                     </div>
                     
                     <div id="pricing_fields" class="hidden grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Price *</label>
+                            <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Price *</label>
                             <input type="number" name="price" step="0.01" min="0" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" placeholder="0.00">
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Currency</label>
+                            <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Currency</label>
                             <select name="currency" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50">
                                 <option value="USD">USD ($)</option>
                                 <option value="EUR">EUR (€)</option>
@@ -103,13 +103,13 @@
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Coach Name</label>
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Coach Name</label>
                     <input type="text" name="coach_name" value="Sprint Coach" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" placeholder="e.g., Sprint Coach">
                 </div>
                 
                 <!-- Preview Video URL -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Preview Video URL (Optional)</label>
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Preview Video URL (Optional)</label>
                     <input type="url" name="preview_video_url" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" placeholder="YouTube, Vimeo, Google Drive, or Cloudinary link">
                     <p class="text-xs text-gray-600 mt-1">
                         <i class="fas fa-info-circle mr-1"></i>

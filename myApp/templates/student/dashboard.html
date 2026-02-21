@@ -28,7 +28,7 @@
           <h1 class="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight text-ink-deep">
             Your learning — at a glance
           </h1>
-          <p class="mt-3 text-sm md:text-base text-slate-600">
+          <p class="mt-3 text-sm text-black md:text-base text-slate-600">
             Track progress, continue where you left off, and access your certificates.
           </p>
 
@@ -48,13 +48,13 @@
 
         <div class="flex flex-wrap items-center gap-3">
           <a href="{% url 'student_certifications' %}"
-             class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/25 transition hover:-translate-y-0.5">
+             class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-5 py-3 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/25 transition hover:-translate-y-0.5">
             <i class="fas fa-certificate mr-2"></i>
             View certifications
           </a>
 
           <a href="{% url 'courses' %}"
-             class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/80 px-5 py-3 text-sm font-semibold text-gray-700 text-ink-deep backdrop-blur transition hover:bg-white">
+             class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/80 px-5 py-3 text-sm text-black font-semibold text-gray-700 text-ink-deep backdrop-blur transition hover:bg-white">
             <i class="fas fa-compass mr-2 text-blue-soft"></i>
             Browse courses
           </a>
@@ -73,7 +73,7 @@
         <span class="text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-400">Enrolled</span>
       </div>
       <div class="mt-4 text-3xl font-extrabold text-ink-deep">{{ total_courses }}</div>
-      <p class="mt-1 text-sm text-slate-600">Courses</p>
+      <p class="mt-1 text-sm text-black text-slate-600">Courses</p>
     </div>
 
     <div class="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm shadow-slate-900/5 backdrop-blur">
@@ -84,7 +84,7 @@
         <span class="text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-400">Completed</span>
       </div>
       <div class="mt-4 text-3xl font-extrabold text-ink-deep">{{ completed_courses }}</div>
-      <p class="mt-1 text-sm text-slate-600">Courses</p>
+      <p class="mt-1 text-sm text-black text-slate-600">Courses</p>
     </div>
 
     <div class="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm shadow-slate-900/5 backdrop-blur">
@@ -95,7 +95,7 @@
         <span class="text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-400">Lessons</span>
       </div>
       <div class="mt-4 text-3xl font-extrabold text-ink-deep">{{ completed_lessons_all }}<span class="text-slate-400">/</span>{{ total_lessons_all }}</div>
-      <p class="mt-1 text-sm text-slate-600">Completed</p>
+      <p class="mt-1 text-sm text-black text-slate-600">Completed</p>
     </div>
 
     <div class="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm shadow-slate-900/5 backdrop-blur">
@@ -106,7 +106,7 @@
         <span class="text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-400">Overall</span>
       </div>
       <div class="mt-4 text-3xl font-extrabold text-ink-deep">{{ overall_progress }}%</div>
-      <p class="mt-1 text-sm text-slate-600">Progress</p>
+      <p class="mt-1 text-sm text-black text-slate-600">Progress</p>
     </div>
   </section>
 
@@ -114,10 +114,10 @@
   <section class="rounded-3xl border border-slate-200/70 bg-white/80 p-6 md:p-7 shadow-sm shadow-slate-900/5 backdrop-blur">
     <div class="flex items-center justify-between">
       <div>
-        <p class="text-sm font-semibold text-gray-700 text-ink-deep">Overall learning progress</p>
+        <p class="text-sm text-black font-semibold text-gray-700 text-ink-deep">Overall learning progress</p>
         <p class="mt-1 text-[12px] text-slate-500">A roll-up of your course completion.</p>
       </div>
-      <div class="inline-flex items-center gap-2 rounded-full bg-blue-soft/10 px-4 py-1.5 text-sm font-extrabold text-blue-soft">
+      <div class="inline-flex items-center gap-2 rounded-full bg-blue-soft/10 px-4 py-1.5 text-sm text-black font-extrabold text-blue-soft">
         <i class="fas fa-sparkles text-[12px]"></i>
         {{ overall_progress }}%
       </div>
@@ -134,13 +134,13 @@
     <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div>
         <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-ink-deep">My courses</h2>
-        <p class="mt-1 text-sm text-slate-600">Pick up right where you left off.</p>
+        <p class="mt-1 text-sm text-black text-slate-600">Pick up right where you left off.</p>
       </div>
 
       <!-- Controls (chips + select, modern style) -->
       <div class="flex flex-wrap items-center gap-3">
         <a href="?favorites=true&sort={{ sort_by }}"
-           class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold text-gray-700 transition
+           class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm text-black font-semibold text-gray-700 transition
            {% if filter_favorites == 'true' %}
              border-amber-200 bg-amber-50 text-amber-700
            {% else %}
@@ -150,7 +150,7 @@
         </a>
 
         <a href="?sort={{ sort_by }}"
-           class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold text-gray-700 transition
+           class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm text-black font-semibold text-gray-700 transition
            {% if filter_favorites != 'true' %}
              border-blue-soft/30 bg-blue-soft/10 text-blue-soft
            {% else %}
@@ -163,7 +163,7 @@
           <i class="fas fa-sort-amount-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
           <select id="sortSelect"
                   onchange="window.location.href='?sort=' + this.value + '&favorites={{ filter_favorites }}'"
-                  class="appearance-none rounded-full border border-slate-200 bg-white/80 py-2 pl-9 pr-9 text-sm font-semibold text-gray-700 text-slate-700 backdrop-blur transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-teal-soft/20">
+                  class="appearance-none rounded-full border border-slate-200 bg-white/80 py-2 pl-9 pr-9 text-sm text-black font-semibold text-gray-700 text-slate-700 backdrop-blur transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-teal-soft/20">
             <option value="progress" {% if sort_by == 'progress' %}selected{% endif %}>Sort: Progress</option>
             <option value="favorites" {% if sort_by == 'favorites' %}selected{% endif %}>Sort: Favorites</option>
             <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Sort: Name</option>
@@ -198,13 +198,13 @@
                   </button>
                 </div>
 
-                <p class="mt-2 text-sm text-slate-600">
+                <p class="mt-2 text-sm text-black text-slate-600">
                   {{ data.course.short_description|truncatewords:20 }}
                 </p>
               </div>
 
               <!-- progress badge -->
-              <div class="shrink-0 inline-flex items-center gap-2 rounded-full bg-teal-soft/10 px-4 py-1.5 text-sm font-extrabold text-black">
+              <div class="shrink-0 inline-flex items-center gap-2 rounded-full bg-teal-soft/10 px-4 py-1.5 text-sm text-black font-extrabold text-black">
                 <i class="fas fa-chart-line text-[12px]"></i>
                 {{ data.progress_percentage }}%
               </div>
@@ -222,7 +222,7 @@
                      style="width: {{ data.progress_percentage }}%"></div>
               </div>
 
-              <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-600">
+              <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-black text-slate-600">
                 {% if data.avg_watch_percentage > 0 %}
                   <span class="inline-flex items-center gap-2">
                     <i class="fas fa-eye text-blue-soft"></i>
@@ -270,13 +270,13 @@
             <div class="mt-6 flex items-center gap-3">
               {% if data.has_any_progress %}
                 <a href="{% url 'student_course_progress' data.course.slug %}"
-                   class="flex-1 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/70 px-4 py-2.5 text-sm font-semibold text-gray-700 text-ink-deep transition hover:bg-white">
+                   class="flex-1 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/70 px-4 py-2.5 text-sm text-black font-semibold text-gray-700 text-ink-deep transition hover:bg-white">
                   View progress
                 </a>
 
                 {% if data.course.lessons.first %}
                   <a href="{% url 'lesson_detail' data.course.slug data.course.lessons.first.slug %}"
-                     class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
+                     class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
                     Continue
                     <i class="fas fa-arrow-right ml-2 text-xs"></i>
                   </a>
@@ -284,13 +284,13 @@
               {% else %}
                 {% if data.course.lessons.first %}
                   <a href="{% url 'lesson_detail' data.course.slug data.course.lessons.first.slug %}"
-                     class="flex-1 inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
+                     class="flex-1 inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
                     Start course
                     <i class="fas fa-arrow-right ml-2 text-xs"></i>
                   </a>
                 {% else %}
                   <a href="{% url 'student_course_progress' data.course.slug %}"
-                     class="flex-1 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/70 px-4 py-2.5 text-sm font-semibold text-gray-700 text-ink-deep transition hover:bg-white">
+                     class="flex-1 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/70 px-4 py-2.5 text-sm text-black font-semibold text-gray-700 text-ink-deep transition hover:bg-white">
                     View details
                   </a>
                 {% endif %}
@@ -305,12 +305,12 @@
           <i class="fas fa-book-open text-2xl text-blue-soft"></i>
         </div>
         <h3 class="mt-5 text-xl font-extrabold text-ink-deep">No courses yet</h3>
-        <p class="mt-2 text-sm text-slate-600">
+        <p class="mt-2 text-sm text-black text-slate-600">
           You don’t have access to any courses yet. Browse the catalog or contact support.
         </p>
         <div class="mt-6">
           <a href="{% url 'courses' %}"
-             class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
+             class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-5 py-3 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
             Browse courses
             <i class="fas fa-arrow-right ml-2 text-xs"></i>
           </a>
@@ -324,7 +324,7 @@
     <section class="space-y-5">
       <div>
         <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-ink-deep">Available to unlock</h2>
-        <p class="mt-1 text-sm text-slate-600">Courses you can access via bundles, purchase, or after prerequisites.</p>
+        <p class="mt-1 text-sm text-black text-slate-600">Courses you can access via bundles, purchase, or after prerequisites.</p>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -333,7 +333,7 @@
             <div class="flex items-start justify-between gap-4">
               <div class="min-w-0 flex-1">
                 <h3 class="text-lg md:text-xl font-extrabold text-ink-deep truncate">{{ data.course.name }}</h3>
-                <p class="mt-2 text-sm text-slate-700">
+                <p class="mt-2 text-sm text-black text-slate-700">
                   {{ data.course.short_description|truncatewords:20 }}
                 </p>
               </div>
@@ -360,7 +360,7 @@
                       </span>
                     {% else %}
                       <a href="{% url 'course_detail' data.course.slug %}" 
-                         class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
+                         class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
                         Buy Now
                         <i class="fas fa-arrow-right ml-2 text-xs"></i>
                       </a>
@@ -373,7 +373,7 @@
             {% if data.bundles %}
               <div class="mt-4 rounded-2xl border border-amber-200/60 bg-white/60 p-4">
                 <p class="text-[11px] font-semibold text-gray-700 tracking-[0.18em] uppercase text-amber-700/80">Available in bundles</p>
-                <div class="mt-3 space-y-2 text-sm">
+                <div class="mt-3 space-y-2 text-sm text-black">
                   {% for bundle in data.bundles %}
                     <div class="flex items-center justify-between gap-3">
                       <div class="min-w-0 text-slate-800">
@@ -394,7 +394,7 @@
                 <p class="text-xs font-extrabold text-amber-800 mb-2">
                   <i class="fas fa-lock mr-2"></i>Prerequisites required
                 </p>
-                <ul class="text-sm text-slate-700 space-y-1">
+                <ul class="text-sm text-black text-slate-700 space-y-1">
                   {% for prereq in data.missing_prereqs %}
                     <li class="flex items-start gap-2">
                       <i class="fas fa-circle-minus text-amber-700 mt-1 text-xs"></i>
@@ -407,18 +407,18 @@
 
             <div class="mt-5 flex items-center gap-3">
               <a href="{% url 'course_detail' data.course.slug %}"
-                 class="flex-1 inline-flex items-center justify-center rounded-2xl border border-amber-200 bg-white/70 px-4 py-2.5 text-sm font-semibold text-gray-700 text-amber-800 transition hover:bg-white">
+                 class="flex-1 inline-flex items-center justify-center rounded-2xl border border-amber-200 bg-white/70 px-4 py-2.5 text-sm text-black font-semibold text-gray-700 text-amber-800 transition hover:bg-white">
                 View details
               </a>
               {% if data.bundles %}
                 <a href="{% url 'courses' %}"
-                   class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
+                   class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
                   View bundles
                   <i class="fas fa-arrow-right ml-2 text-xs"></i>
                 </a>
               {% elif not data.course.is_paid %}
                 <a href="{% url 'courses' %}"
-                   class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
+                   class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
                   Browse all
                   <i class="fas fa-arrow-right ml-2 text-xs"></i>
                 </a>

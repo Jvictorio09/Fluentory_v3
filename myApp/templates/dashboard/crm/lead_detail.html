@@ -6,7 +6,7 @@
 {% block content %}
 <div class="p-6">
     <div class="mb-6">
-        <a href="{% url 'dashboard_leads' %}" class="text-black hover:text-black-800 text-sm mb-4 inline-flex items-center gap-2">
+        <a href="{% url 'dashboard_leads' %}" class="text-black hover:text-black-800 text-sm text-black mb-4 inline-flex items-center gap-2">
             <i class="fas fa-arrow-left"></i> Back to Leads
         </a>
         <div class="flex items-center justify-between">
@@ -28,8 +28,8 @@
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Lead Information</h2>
                 <div class="grid md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-500 mb-1">Status</label>
-                        <span class="px-3 py-1 rounded-full text-sm font-semibold
+                        <label class="block text-sm text-black font-semibold text-gray-500 mb-1">Status</label>
+                        <span class="px-3 py-1 rounded-full text-sm text-black font-semibold
                             {% if lead.status == 'enrolled' %}bg-green-100 text-green-800
                             {% elif lead.status == 'qualified' %}bg-blue-100 text-blue-800
                             {% elif lead.status == 'new' %}bg-gray-100 text-gray-800
@@ -39,30 +39,30 @@
                         </span>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-500 mb-1">Source</label>
+                        <label class="block text-sm text-black font-semibold text-gray-500 mb-1">Source</label>
                         <p class="text-gray-800">{{ lead.get_source_display }}</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-500 mb-1">Phone</label>
+                        <label class="block text-sm text-black font-semibold text-gray-500 mb-1">Phone</label>
                         <p class="text-gray-800">{{ lead.phone|default:"—" }}</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-500 mb-1">Owner</label>
+                        <label class="block text-sm text-black font-semibold text-gray-500 mb-1">Owner</label>
                         <p class="text-gray-800">{{ lead.owner.username|default:"Unassigned" }}</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-500 mb-1">Created</label>
+                        <label class="block text-sm text-black font-semibold text-gray-500 mb-1">Created</label>
                         <p class="text-gray-800">{{ lead.created_at|date:"M d, Y" }}</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-500 mb-1">Last Contact</label>
+                        <label class="block text-sm text-black font-semibold text-gray-500 mb-1">Last Contact</label>
                         <p class="text-gray-800">{{ lead.last_contact_date|date:"M d, Y"|default:"Never" }}</p>
                     </div>
                 </div>
                 
                 {% if lead.notes %}
                 <div class="mt-6 pt-6 border-t border-gray-200">
-                    <label class="block text-sm font-semibold text-gray-500 mb-2">Notes</label>
+                    <label class="block text-sm text-black font-semibold text-gray-500 mb-2">Notes</label>
                     <div class="bg-gray-50 rounded-lg p-4 text-gray-700 whitespace-pre-wrap">{{ lead.notes }}</div>
                 </div>
                 {% endif %}
@@ -76,7 +76,7 @@
                     <form method="POST" action="{% url 'dashboard_lead_link_user' lead.id %}" class="inline">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="unlink">
-                        <button type="submit" class="text-sm text-red-600 hover:text-red-800 font-semibold">
+                        <button type="submit" class="text-sm text-black text-red-600 hover:text-red-800 font-semibold">
                             Unlink
                         </button>
                     </form>
@@ -89,9 +89,9 @@
                     </div>
                     <div>
                         <p class="font-semibold text-gray-800">{{ lead.linked_user.get_full_name|default:lead.linked_user.username }}</p>
-                        <p class="text-sm text-gray-600">{{ lead.linked_user.email }}</p>
+                        <p class="text-sm text-black text-gray-600">{{ lead.linked_user.email }}</p>
                     </div>
-                    <a href="{% url 'dashboard_student_detail' lead.linked_user.id %}" class="ml-auto px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm font-medium hover:bg-teal-soft/20 transition-all text-teal-700">
+                    <a href="{% url 'dashboard_student_detail' lead.linked_user.id %}" class="ml-auto px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm text-black font-medium hover:bg-teal-soft/20 transition-all text-teal-700">
                         View Profile
                     </a>
                 </div>
@@ -100,7 +100,7 @@
                     {% csrf_token %}
                     <input type="hidden" name="action" value="link">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Link User Account</label>
+                        <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Link User Account</label>
                         <select name="user_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-soft text-gray-800 bg-white">
                             <option value="">Select a user...</option>
                             {% for user in owners %}
@@ -124,13 +124,13 @@
                     <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div>
                             <p class="font-semibold text-gray-800">{{ link.enrollment.course.name }}</p>
-                            <p class="text-sm text-gray-600">Enrolled: {{ link.enrollment.enrolled_at|date:"M d, Y" }}</p>
+                            <p class="text-sm text-black text-gray-600">Enrolled: {{ link.enrollment.enrolled_at|date:"M d, Y" }}</p>
                         </div>
                         <form method="POST" action="{% url 'dashboard_lead_link_enrollment' lead.id %}" class="inline">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="unlink">
                             <input type="hidden" name="enrollment_id" value="{{ link.enrollment.id }}">
-                            <button type="submit" class="text-sm text-red-600 hover:text-red-800">
+                            <button type="submit" class="text-sm text-black text-red-600 hover:text-red-800">
                                 <i class="fas fa-unlink"></i>
                             </button>
                         </form>
@@ -151,14 +151,14 @@
                     <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div>
                             <p class="font-semibold text-gray-800">{{ link.gift.course.name }}</p>
-                            <p class="text-sm text-gray-600">Recipient: {{ link.gift.recipient_email }}</p>
+                            <p class="text-sm text-black text-gray-600">Recipient: {{ link.gift.recipient_email }}</p>
                             <p class="text-xs text-gray-500">Status: {{ link.gift.get_status_display }}</p>
                         </div>
                         <form method="POST" action="{% url 'dashboard_lead_link_gift' lead.id %}" class="inline">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="unlink">
                             <input type="hidden" name="gift_id" value="{{ link.gift.id }}">
-                            <button type="submit" class="text-sm text-red-600 hover:text-red-800">
+                            <button type="submit" class="text-sm text-black text-red-600 hover:text-red-800">
                                 <i class="fas fa-unlink"></i>
                             </button>
                         </form>
@@ -202,7 +202,7 @@
                                 <i class="fas fa-circle text-xs text-teal-soft"></i>
                             </div>
                             <div class="flex-1">
-                                <p class="text-sm font-semibold text-gray-800">{{ event.get_event_type_display }}</p>
+                                <p class="text-sm text-black font-semibold text-gray-800">{{ event.get_event_type_display }}</p>
                                 <p class="text-xs text-gray-600">{{ event.description }}</p>
                                 <p class="text-xs text-gray-500 mt-1">{{ event.created_at|date:"M d, Y H:i" }}</p>
                                 {% if event.actor %}
@@ -212,7 +212,7 @@
                         </div>
                     </div>
                     {% empty %}
-                    <p class="text-gray-600 text-center py-4 text-sm">No timeline events yet</p>
+                    <p class="text-gray-600 text-center py-4 text-sm text-black">No timeline events yet</p>
                     {% endfor %}
                 </div>
             </div>

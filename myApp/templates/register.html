@@ -105,7 +105,7 @@
             />
           </div>
 
-          <p class="mt-4 text-sm text-slate-600">
+          <p class="mt-4 text-sm text-black text-slate-600">
             Join thousands of learners. Start your journey today.
           </p>
 
@@ -126,7 +126,7 @@
             {% if messages %}
               <div class="mb-5 space-y-2">
                 {% for message in messages %}
-                  <div class="rounded-2xl border {% if message.tags == 'error' %}border-red-200 bg-red-50 text-red-700{% else %}border-green-200 bg-green-50 text-green-700{% endif %} px-4 py-3 text-sm flex items-start gap-3">
+                  <div class="rounded-2xl border {% if message.tags == 'error' %}border-red-200 bg-red-50 text-red-700{% else %}border-green-200 bg-green-50 text-green-700{% endif %} px-4 py-3 text-sm text-black flex items-start gap-3">
                     <i class="fas {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %} mt-0.5"></i>
                     <span>{{ message }}</span>
                   </div>
@@ -153,7 +153,7 @@
                       id="first_name"
                       name="first_name"
                       placeholder="John"
-                      class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                      class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
                     />
                   </div>
                 </div>
@@ -171,7 +171,7 @@
                       id="last_name"
                       name="last_name"
                       placeholder="Doe"
-                      class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                      class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
                     />
                   </div>
                 </div>
@@ -194,7 +194,7 @@
                     autofocus
                     placeholder="johndoe"
                     minlength="3"
-                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
                   />
                 </div>
                 <p class="mt-1 text-xs text-slate-500">At least 3 characters</p>
@@ -215,7 +215,7 @@
                     name="email"
                     required
                     placeholder="john@example.com"
-                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
                   />
                 </div>
               </div>
@@ -236,7 +236,7 @@
                     required
                     placeholder="At least 8 characters"
                     minlength="8"
-                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-12 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-12 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
                   />
                   <button type="button" id="togglePw"
                     class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 transition"
@@ -262,7 +262,7 @@
                     required
                     placeholder="Re-enter your password"
                     minlength="8"
-                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-12 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-12 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
                   />
                   <button type="button" id="togglePwConfirm"
                     class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 transition"
@@ -276,7 +276,7 @@
               <button
                 type="submit"
                 id="submitBtn"
-                class="group relative w-full overflow-hidden rounded-2xl bg-coral-cta px-5 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/25 transition hover:-translate-y-0.5 hover:shadow-lift focus:outline-none"
+                class="group relative w-full overflow-hidden rounded-2xl bg-coral-cta px-5 py-3.5 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/25 transition hover:-translate-y-0.5 hover:shadow-lift focus:outline-none"
               >
                 <span class="relative z-10 inline-flex items-center justify-center gap-2">
                   <span id="btnText">Create Account</span>
@@ -300,7 +300,7 @@
 
             <!-- Sign in link -->
             <div class="text-center">
-              <a href="{% url 'login' %}" class="group inline-flex items-center gap-2 rounded-2xl border border-teal-soft/30 bg-teal-soft/10 px-6 py-3 text-sm font-extrabold text-teal-soft transition hover:bg-teal-soft/20 hover:border-teal-soft/50 hover:-translate-y-0.5 hover:shadow-lg">
+              <a href="{% url 'login' %}" class="group inline-flex items-center gap-2 rounded-2xl border border-teal-soft/30 bg-teal-soft/10 px-6 py-3 text-sm text-black font-extrabold text-teal-soft transition hover:bg-teal-soft/20 hover:border-teal-soft/50 hover:-translate-y-0.5 hover:shadow-lg">
                 <i class="fas fa-sign-in-alt text-xs"></i>
                 Sign in to your account
                 <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>

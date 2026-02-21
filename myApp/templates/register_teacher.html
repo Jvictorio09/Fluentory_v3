@@ -79,7 +79,7 @@
               loading="eager"
             />
           </div>
-          <p class="mt-4 text-sm text-slate-600">
+          <p class="mt-4 text-sm text-black text-slate-600">
             Register as a Teacher
           </p>
         </div>
@@ -93,7 +93,7 @@
             {% if messages %}
               <div class="mb-5 space-y-2">
                 {% for message in messages %}
-                  <div class="rounded-2xl border {% if message.tags == 'error' %}border-red-200 bg-red-50 text-red-700{% elif message.tags == 'success' %}border-green-200 bg-green-50 text-green-700{% else %}border-blue-200 bg-blue-50 text-blue-700{% endif %} px-4 py-3 text-sm flex items-start gap-3">
+                  <div class="rounded-2xl border {% if message.tags == 'error' %}border-red-200 bg-red-50 text-red-700{% elif message.tags == 'success' %}border-green-200 bg-green-50 text-green-700{% else %}border-blue-200 bg-blue-50 text-blue-700{% endif %} px-4 py-3 text-sm text-black flex items-start gap-3">
                     <i class="fas {% if message.tags == 'error' %}fa-circle-exclamation{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %} mt-0.5"></i>
                     <span>{{ message }}</span>
                   </div>
@@ -116,7 +116,7 @@
                     id="first_name"
                     name="first_name"
                     required
-                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
                     placeholder="Enter your first name"
                   />
                 </div>
@@ -130,7 +130,7 @@
                     id="last_name"
                     name="last_name"
                     required
-                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
                     placeholder="Enter your last name"
                   />
                 </div>
@@ -146,7 +146,7 @@
                     id="email"
                     name="email"
                     required
-                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
                     placeholder="your.email@example.com"
                   />
                 </div>
@@ -159,7 +159,7 @@
                     type="text"
                     id="phone"
                     name="phone"
-                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
                     placeholder="+962 77 500 3006"
                   />
                 </div>
@@ -176,7 +176,7 @@
                     id="username"
                     name="username"
                     required
-                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
                     placeholder="Choose a username"
                   />
                 </div>
@@ -190,7 +190,7 @@
                     id="languages_spoken"
                     name="languages_spoken"
                     required
-                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
                     placeholder="e.g., English, Spanish, French"
                   />
                 </div>
@@ -207,7 +207,7 @@
                     name="password"
                     required
                     minlength="8"
-                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
                     placeholder="At least 8 characters"
                   />
                 </div>
@@ -222,7 +222,7 @@
                     name="password_confirm"
                     required
                     minlength="8"
-                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
                     placeholder="Confirm your password"
                   />
                 </div>
@@ -238,7 +238,7 @@
                   name="bio"
                   required
                   rows="3"
-                  class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring resize-none"
+                  class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring resize-none"
                   placeholder="Tell us about yourself..."
                 ></textarea>
               </div>
@@ -252,7 +252,7 @@
                   name="qualifications"
                   required
                   rows="3"
-                  class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring resize-none"
+                  class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring resize-none"
                   placeholder="List your educational background and certifications..."
                 ></textarea>
               </div>
@@ -266,7 +266,7 @@
                   name="teaching_experience"
                   required
                   rows="3"
-                  class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring resize-none"
+                  class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring resize-none"
                   placeholder="Years of experience and areas of expertise..."
                 ></textarea>
               </div>
@@ -280,13 +280,13 @@
                   name="motivation"
                   required
                   rows="3"
-                  class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring resize-none"
+                  class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 px-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring resize-none"
                   placeholder="Share your motivation for teaching on this platform..."
                 ></textarea>
               </div>
 
               <!-- Info Box -->
-              <div class="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+              <div class="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-black text-blue-700">
                 <p class="flex items-start gap-2">
                   <i class="fas fa-info-circle mt-0.5"></i>
                   <span>We will review your application and send you an email with our decision shortly. Thank you for your interest!</span>
@@ -297,7 +297,7 @@
               <button
                 type="submit"
                 id="submitBtn"
-                class="group relative w-full overflow-hidden rounded-2xl bg-teal-soft px-5 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-teal-soft/25 transition hover:-translate-y-0.5 hover:shadow-lift focus:outline-none"
+                class="group relative w-full overflow-hidden rounded-2xl bg-teal-soft px-5 py-3.5 text-sm text-black font-extrabold text-white shadow-lg shadow-teal-soft/25 transition hover:-translate-y-0.5 hover:shadow-lift focus:outline-none"
               >
                 <span class="relative z-10 inline-flex items-center justify-center gap-2">
                   <span id="btnText">Submit Application</span>
@@ -308,7 +308,7 @@
 
               <!-- Back to Login -->
               <div class="text-center">
-                <a href="{% url 'login' %}" class="text-sm text-slate-600 hover:text-slate-800 transition">
+                <a href="{% url 'login' %}" class="text-sm text-black text-slate-600 hover:text-slate-800 transition">
                   <i class="fas fa-arrow-left mr-2"></i>Back to Login
                 </a>
               </div>

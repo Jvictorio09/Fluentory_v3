@@ -15,7 +15,7 @@
             <span class="text-xs px-2 py-1 rounded bg-green-500/20 text-gray-700">{{ active_students }} active</span>
         </div>
         <div class="text-3xl font-bold mb-1 text-gray-700">{{ total_students }}</div>
-        <div class="text-sm text-gray-700">Total Students</div>
+        <div class="text-sm text-black text-gray-700">Total Students</div>
         <div class="text-xs text-gray-500 mt-2">+{{ new_students_30d }} new (30d)</div>
     </div>
     
@@ -28,7 +28,7 @@
             <span class="text-xs px-2 py-1 rounded bg-blue-soft/20 text-blue-soft">+{{ enrollments_7d }} (7d)</span>
         </div>
         <div class="text-3xl font-bold mb-1 text-gray-700">{{ total_enrollments }}</div>
-        <div class="text-sm text-gray-700">Total Enrollments</div>
+        <div class="text-sm text-black text-gray-700">Total Enrollments</div>
         <div class="text-xs text-gray-500 mt-2">{{ enrollments_30d }} this month</div>
     </div>
     
@@ -41,7 +41,7 @@
             <span class="text-xs px-2 py-1 rounded bg-yellow-500/20 text-black">+{{ certifications_7d }} (7d)</span>
         </div>
         <div class="text-3xl font-bold mb-1 text-gray-700">{{ total_certifications }}</div>
-        <div class="text-sm text-gray-700">Certifications Issued</div>
+        <div class="text-sm text-black text-gray-700">Certifications Issued</div>
         <div class="text-xs text-gray-500 mt-2">{{ certifications_30d }} this month</div>
     </div>
     
@@ -53,7 +53,7 @@
             </div>
         </div>
         <div class="text-3xl font-bold mb-1 text-gray-700">{{ completion_rate }}%</div>
-        <div class="text-sm text-gray-700">Completion Rate</div>
+        <div class="text-sm text-black text-gray-700">Completion Rate</div>
         <div class="text-xs text-gray-500 mt-2">{{ completed_lessons }}/{{ total_progress }} completed</div>
     </div>
 </div>
@@ -62,23 +62,23 @@
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <div class="text-2xl font-bold mb-1 text-gray-700">{{ new_students_7d }}</div>
-        <div class="text-sm text-gray-700">New Students (7d)</div>
+        <div class="text-sm text-black text-gray-700">New Students (7d)</div>
     </div>
     
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <div class="text-2xl font-bold mb-1 text-gray-700">{{ inactive_students }}</div>
-        <div class="text-sm text-gray-700">Inactive Students (90d+)</div>
+        <div class="text-sm text-black text-gray-700">Inactive Students (90d+)</div>
     </div>
     
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <div class="text-2xl font-bold mb-1 text-gray-700">{{ total_accesses }}</div>
-        <div class="text-sm text-gray-700">Active Access Grants</div>
+        <div class="text-sm text-black text-gray-700">Active Access Grants</div>
         <div class="text-xs text-gray-500 mt-1">{{ expired_accesses }} expired</div>
     </div>
     
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <div class="text-2xl font-bold mb-1 text-gray-700">{{ progress_7d }}</div>
-        <div class="text-sm text-gray-700">Progress Updates (7d)</div>
+        <div class="text-sm text-black text-gray-700">Progress Updates (7d)</div>
     </div>
 </div>
 
@@ -99,7 +99,7 @@
             </div>
             {% endfor %}
         </div>
-        <div class="mt-4 flex items-center justify-center gap-6 text-sm text-gray-700">
+        <div class="mt-4 flex items-center justify-center gap-6 text-sm text-black text-gray-700">
             <div class="flex items-center gap-2">
                 <div class="w-4 h-4 bg-gradient-to-r from-teal-soft to-blue-soft rounded"></div>
                 <span>Daily Enrollments</span>
@@ -128,7 +128,7 @@
             <p>No certification data available yet</p>
         </div>
         {% endif %}
-        <div class="mt-4 flex items-center justify-center gap-6 text-sm text-gray-700">
+        <div class="mt-4 flex items-center justify-center gap-6 text-sm text-black text-gray-700">
             <div class="flex items-center gap-2">
                 <div class="w-4 h-4 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded"></div>
                 <span>Daily Certifications</span>
@@ -141,7 +141,7 @@
 <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6 mb-8">
     <div class="flex items-center justify-between mb-6">
         <h2 class="text-xl font-bold text-black">Course Performance Overview</h2>
-        <a href="{% url 'dashboard_courses' %}" class="text-teal-700 hover:text-teal-800 text-sm font-medium">
+        <a href="{% url 'dashboard_courses' %}" class="text-teal-700 hover:text-teal-800 text-sm text-black font-medium">
             View All Courses <i class="fas fa-arrow-right ml-1"></i>
         </a>
     </div>
@@ -150,13 +150,13 @@
         <table class="w-full">
             <thead>
                 <tr class="border-b border-teal-soft/10">
-                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700 text-gray-700">Course</th>
-                    <th class="text-center py-3 px-4 text-sm font-semibold text-gray-700 text-gray-700">Students</th>
-                    <th class="text-center py-3 px-4 text-sm font-semibold text-gray-700 text-gray-700">Lessons</th>
-                    <th class="text-center py-3 px-4 text-sm font-semibold text-gray-700 text-gray-700">Completed</th>
-                    <th class="text-center py-3 px-4 text-sm font-semibold text-gray-700 text-gray-700">Completion Rate</th>
-                    <th class="text-center py-3 px-4 text-sm font-semibold text-gray-700 text-gray-700">Certifications</th>
-                    <th class="text-center py-3 px-4 text-sm font-semibold text-gray-700 text-gray-700">Recent (7d)</th>
+                    <th class="text-left py-3 px-4 text-sm text-black font-semibold text-gray-700 text-gray-700">Course</th>
+                    <th class="text-center py-3 px-4 text-sm text-black font-semibold text-gray-700 text-gray-700">Students</th>
+                    <th class="text-center py-3 px-4 text-sm text-black font-semibold text-gray-700 text-gray-700">Lessons</th>
+                    <th class="text-center py-3 px-4 text-sm text-black font-semibold text-gray-700 text-gray-700">Completed</th>
+                    <th class="text-center py-3 px-4 text-sm text-black font-semibold text-gray-700 text-gray-700">Completion Rate</th>
+                    <th class="text-center py-3 px-4 text-sm text-black font-semibold text-gray-700 text-gray-700">Certifications</th>
+                    <th class="text-center py-3 px-4 text-sm text-black font-semibold text-gray-700 text-gray-700">Recent (7d)</th>
                 </tr>
             </thead>
             <tbody>
@@ -181,7 +181,7 @@
                                 <div class="bg-gradient-to-r from-teal-soft to-blue-soft h-2 rounded-full" 
                                      style="width: {{ perf.completion_rate }}%"></div>
                             </div>
-                            <span class="text-sm font-medium text-black">{{ perf.completion_rate|floatformat:1 }}%</span>
+                            <span class="text-sm text-black font-medium text-black">{{ perf.completion_rate|floatformat:1 }}%</span>
                         </div>
                     </td>
                     <td class="py-3 px-4 text-center">
@@ -190,7 +190,7 @@
                         </span>
                     </td>
                     <td class="py-3 px-4 text-center">
-                        <span class="text-sm {% if perf.recent_enrollments > 0 %}text-gray-700{% else %}text-gray-500{% endif %}">
+                        <span class="text-sm text-black {% if perf.recent_enrollments > 0 %}text-gray-700{% else %}text-gray-500{% endif %}">
                             +{{ perf.recent_enrollments }}
                         </span>
                     </td>
@@ -223,7 +223,7 @@
                 </div>
             </div>
             {% empty %}
-            <p class="text-gray-700 text-sm">No course data available</p>
+            <p class="text-gray-700 text-sm text-black">No course data available</p>
             {% endfor %}
         </div>
     </div>
@@ -232,7 +232,7 @@
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-black">Most Active Students (7d)</h2>
-            <a href="{% url 'dashboard_students' %}" class="text-teal-700 hover:text-teal-800 text-sm font-medium">
+            <a href="{% url 'dashboard_students' %}" class="text-teal-700 hover:text-teal-800 text-sm text-black font-medium">
                 View All <i class="fas fa-arrow-right ml-1"></i>
             </a>
         </div>
@@ -244,17 +244,17 @@
                         <i class="fas fa-user text-black"></i>
                     </div>
                     <div>
-                        <div class="font-semibold text-gray-700 text-sm">{{ student.get_full_name|default:student.username }}</div>
+                        <div class="font-semibold text-gray-700 text-sm text-black">{{ student.get_full_name|default:student.username }}</div>
                         <div class="text-xs text-gray-700">{{ student.email|default:"No email" }}</div>
                     </div>
                 </div>
                 <div class="text-right">
-                    <div class="text-sm font-bold text-gray-700 text-gray-700">{{ student.progress_count }}</div>
+                    <div class="text-sm text-black font-bold text-gray-700 text-gray-700">{{ student.progress_count }}</div>
                     <div class="text-xs text-gray-500">updates</div>
                 </div>
             </div>
             {% empty %}
-            <p class="text-gray-700 text-sm">No active students in the last 7 days</p>
+            <p class="text-gray-700 text-sm text-black">No active students in the last 7 days</p>
             {% endfor %}
         </div>
     </div>
@@ -266,22 +266,22 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div class="p-4 bg-[#ffffff]/40 rounded-lg">
             <div class="text-2xl font-bold text-black mb-1">{{ students_with_completions }}</div>
-            <div class="text-sm text-gray-700">Students with Completions</div>
+            <div class="text-sm text-black text-gray-700">Students with Completions</div>
             <div class="text-xs text-gray-500 mt-1">Completed at least one course</div>
         </div>
         <div class="p-4 bg-[#ffffff]/40 rounded-lg">
             <div class="text-2xl font-bold text-orange-400 mb-1">{{ students_zero_progress }}</div>
-            <div class="text-sm text-gray-700">Zero Progress Students</div>
+            <div class="text-sm text-black text-gray-700">Zero Progress Students</div>
             <div class="text-xs text-gray-500 mt-1">Need attention</div>
         </div>
         <div class="p-4 bg-[#ffffff]/40 rounded-lg">
             <div class="text-2xl font-bold text-blue-soft mb-1">{{ avg_lessons_per_student }}</div>
-            <div class="text-sm text-gray-700">Avg Lessons/Student</div>
+            <div class="text-sm text-black text-gray-700">Avg Lessons/Student</div>
             <div class="text-xs text-gray-500 mt-1">Average completion</div>
         </div>
         <div class="p-4 bg-[#ffffff]/40 rounded-lg">
             <div class="text-2xl font-bold text-red-400 mb-1">{{ drop_off_rate }}%</div>
-            <div class="text-sm text-gray-700">Drop-off Rate</div>
+            <div class="text-sm text-black text-gray-700">Drop-off Rate</div>
             <div class="text-xs text-gray-500 mt-1">{{ drop_off_count }} students</div>
         </div>
     </div>
@@ -293,22 +293,22 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <div class="p-4 bg-[#ffffff]/40 rounded-lg">
             <div class="text-2xl font-bold text-black-400 mb-1">{{ certification_rate }}%</div>
-            <div class="text-sm text-gray-700">Certification Rate</div>
+            <div class="text-sm text-black text-gray-700">Certification Rate</div>
             <div class="text-xs text-gray-500 mt-1">{{ total_certifications }}/{{ eligible_students_count }} eligible</div>
         </div>
         <div class="p-4 bg-[#ffffff]/40 rounded-lg">
             <div class="text-2xl font-bold text-black-400 mb-1">{{ total_certifications }}</div>
-            <div class="text-sm text-gray-700">Total Certifications</div>
+            <div class="text-sm text-black text-gray-700">Total Certifications</div>
             <div class="text-xs text-gray-500 mt-1">{{ certifications_30d }} this month</div>
         </div>
         <div class="p-4 bg-[#ffffff]/40 rounded-lg">
             <div class="text-2xl font-bold text-black-400 mb-1">{{ eligible_students_count }}</div>
-            <div class="text-sm text-gray-700">Eligible Students</div>
+            <div class="text-sm text-black text-gray-700">Eligible Students</div>
             <div class="text-xs text-gray-500 mt-1">Completed all lessons</div>
         </div>
         <div class="p-4 bg-[#ffffff]/40 rounded-lg">
             <div class="text-2xl font-bold text-black-400 mb-1">{{ certifications_7d }}</div>
-            <div class="text-sm text-gray-700">Certifications (7d)</div>
+            <div class="text-sm text-black text-gray-700">Certifications (7d)</div>
             <div class="text-xs text-gray-500 mt-1">Recent activity</div>
         </div>
     </div>
@@ -416,10 +416,10 @@
         <table class="w-full">
             <thead>
                 <tr class="border-b border-teal-soft/10">
-                    <th class="text-left py-3 px-4 text-sm font-semibold text-gray-700 text-gray-700">Course Type</th>
-                    <th class="text-center py-3 px-4 text-sm font-semibold text-gray-700 text-gray-700">Total Courses</th>
-                    <th class="text-center py-3 px-4 text-sm font-semibold text-gray-700 text-gray-700">Total Students</th>
-                    <th class="text-center py-3 px-4 text-sm font-semibold text-gray-700 text-gray-700">Completion Rate</th>
+                    <th class="text-left py-3 px-4 text-sm text-black font-semibold text-gray-700 text-gray-700">Course Type</th>
+                    <th class="text-center py-3 px-4 text-sm text-black font-semibold text-gray-700 text-gray-700">Total Courses</th>
+                    <th class="text-center py-3 px-4 text-sm text-black font-semibold text-gray-700 text-gray-700">Total Students</th>
+                    <th class="text-center py-3 px-4 text-sm text-black font-semibold text-gray-700 text-gray-700">Completion Rate</th>
                 </tr>
             </thead>
             <tbody>
@@ -440,7 +440,7 @@
                                 <div class="bg-gradient-to-r from-teal-soft to-blue-soft h-2 rounded-full" 
                                      style="width: {{ stats.completion_rate }}%"></div>
                             </div>
-                            <span class="text-sm font-medium text-black">{{ stats.completion_rate|floatformat:1 }}%</span>
+                            <span class="text-sm text-black font-medium text-black">{{ stats.completion_rate|floatformat:1 }}%</span>
                         </div>
                     </td>
                 </tr>
@@ -463,28 +463,28 @@
                 <i class="fas fa-user-plus text-black"></i>
                 <span class="text-2xl font-bold text-black">{{ access_by_method.enrollment }}</span>
             </div>
-            <div class="text-sm text-gray-700">Direct Enrollments</div>
+            <div class="text-sm text-black text-gray-700">Direct Enrollments</div>
         </div>
         <div class="p-4 bg-[#ffffff]/40 rounded-lg">
             <div class="flex items-center justify-between mb-2">
                 <i class="fas fa-unlock text-blue-soft"></i>
                 <span class="text-2xl font-bold text-black">{{ access_by_method.course_access }}</span>
             </div>
-            <div class="text-sm text-gray-700">Course Access Grants</div>
+            <div class="text-sm text-black text-gray-700">Course Access Grants</div>
         </div>
         <div class="p-4 bg-[#ffffff]/40 rounded-lg">
             <div class="flex items-center justify-between mb-2">
                 <i class="fas fa-box text-black-400"></i>
                 <span class="text-2xl font-bold text-black">{{ access_by_method.bundle }}</span>
             </div>
-            <div class="text-sm text-gray-700">Bundle Purchases</div>
+            <div class="text-sm text-black text-gray-700">Bundle Purchases</div>
         </div>
         <div class="p-4 bg-[#ffffff]/40 rounded-lg">
             <div class="flex items-center justify-between mb-2">
                 <i class="fas fa-users text-gray-700"></i>
                 <span class="text-2xl font-bold text-black">{{ access_by_method.cohort }}</span>
             </div>
-            <div class="text-sm text-gray-700">Cohort Memberships</div>
+            <div class="text-sm text-black text-gray-700">Cohort Memberships</div>
         </div>
     </div>
 </div>

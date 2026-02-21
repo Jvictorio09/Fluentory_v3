@@ -108,7 +108,7 @@
             />
           </div>
 
-          <p class="mt-4 text-sm text-slate-600">
+          <p class="mt-4 text-sm text-black text-slate-600">
             Welcome back. Sign in to continue learning.
           </p>
 
@@ -129,7 +129,7 @@
             {% if messages %}
               <div class="mb-5 space-y-2">
                 {% for message in messages %}
-                  <div class="rounded-2xl border {% if message.tags == 'error' %}border-red-200 bg-red-50 text-red-700{% elif message.tags == 'success' %}border-green-200 bg-green-50 text-green-700{% else %}border-blue-200 bg-blue-50 text-blue-700{% endif %} px-4 py-3 text-sm flex items-start gap-3">
+                  <div class="rounded-2xl border {% if message.tags == 'error' %}border-red-200 bg-red-50 text-red-700{% elif message.tags == 'success' %}border-green-200 bg-green-50 text-green-700{% else %}border-blue-200 bg-blue-50 text-blue-700{% endif %} px-4 py-3 text-sm text-black flex items-start gap-3">
                     <i class="fas {% if message.tags == 'error' %}fa-circle-exclamation{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %} mt-0.5"></i>
                     <span>{{ message }}</span>
                   </div>
@@ -158,7 +158,7 @@
                     required
                     autofocus
                     placeholder="Enter your username"
-                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-4 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
                   />
                 </div>
               </div>
@@ -178,7 +178,7 @@
                     name="password"
                     required
                     placeholder="Enter your password"
-                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-12 text-sm text-ink-deep placeholder:text-slate-400 transition focus-ring"
+                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-12 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
                   />
                   <!-- optional: toggle visibility (no extra libs) -->
                   <button type="button" id="togglePw"
@@ -191,7 +191,7 @@
 
               <!-- Remember / Forgot -->
               <div class="flex items-center justify-between pt-1">
-                <label class="inline-flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                <label class="inline-flex items-center gap-2 text-sm text-black text-slate-600 cursor-pointer">
                   <input
                     type="checkbox"
                     name="remember"
@@ -199,7 +199,7 @@
                   />
                   Remember me
                 </label>
-                <a href="#" class="text-sm font-semibold text-gray-700 text-blue-soft hover:text-black transition">
+                <a href="#" class="text-sm text-black font-semibold text-gray-700 text-blue-soft hover:text-black transition">
                   Forgot password?
                 </a>
               </div>
@@ -208,7 +208,7 @@
               <button
                 type="submit"
                 id="submitBtn"
-                class="group relative w-full overflow-hidden rounded-2xl bg-coral-cta px-5 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/25 transition hover:-translate-y-0.5 hover:shadow-lift focus:outline-none"
+                class="group relative w-full overflow-hidden rounded-2xl bg-coral-cta px-5 py-3.5 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/25 transition hover:-translate-y-0.5 hover:shadow-lift focus:outline-none"
               >
                 <span class="relative z-10 inline-flex items-center justify-center gap-2">
                   <span id="btnText">Sign in</span>
@@ -232,7 +232,7 @@
 
             <!-- Create account -->
             <div class="text-center">
-              <a href="{% url 'register' %}" class="group inline-flex items-center gap-2 rounded-2xl border border-teal-soft/30 bg-teal-soft/10 px-6 py-3 text-sm font-extrabold text-teal-soft transition hover:bg-teal-soft/20 hover:border-teal-soft/50 hover:-translate-y-0.5 hover:shadow-lg">
+              <a href="{% url 'register' %}" class="group inline-flex items-center gap-2 rounded-2xl border border-teal-soft/30 bg-teal-soft/10 px-6 py-3 text-sm text-black font-extrabold text-teal-soft transition hover:bg-teal-soft/20 hover:border-teal-soft/50 hover:-translate-y-0.5 hover:shadow-lg">
                 <i class="fas fa-user-plus text-xs"></i>
                 Create an account
                 <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
@@ -240,7 +240,7 @@
               
               <!-- Register as Teacher Link -->
               <div class="mt-4">
-                <a href="{% url 'register_teacher' %}" class="text-sm text-slate-600 hover:text-slate-800 transition inline-flex items-center gap-2">
+                <a href="{% url 'register_teacher' %}" class="text-sm text-black text-slate-600 hover:text-slate-800 transition inline-flex items-center gap-2">
                   <i class="fas fa-chalkboard-teacher text-xs"></i>
                   Register as a Teacher
                   <i class="fas fa-arrow-right text-xs"></i>

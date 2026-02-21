@@ -11,15 +11,15 @@
         <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <!-- Search -->
             <div>
-                <label class="block text-sm font-medium mb-2 text-black">Search Students</label>
+                <label class="block text-sm text-black font-medium mb-2 text-black">Search Students</label>
                 <input type="text" name="search" value="{{ search_query }}" placeholder="Name, email..." 
-                    class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50 text-gray-800 placeholder-gray-500">
+                    class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50 text-gray-800 placeholder-gray-500">
             </div>
             
             <!-- Course Filter -->
             <div>
-                <label class="block text-sm font-medium mb-2 text-black">Filter by Course</label>
-                <select name="course" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50 text-gray-800">
+                <label class="block text-sm text-black font-medium mb-2 text-black">Filter by Course</label>
+                <select name="course" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50 text-gray-800">
                     <option value="" class="text-gray-500">All Courses</option>
                     {% for course in courses %}
                     <option value="{{ course.id }}" {% if course_filter == course.id|stringformat:"s" %}selected{% endif %} class="text-gray-800">{{ course.name }}</option>
@@ -29,8 +29,8 @@
             
             <!-- Status Filter -->
             <div>
-                <label class="block text-sm font-medium mb-2 text-black">Status</label>
-                <select name="status" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50 text-gray-800">
+                <label class="block text-sm text-black font-medium mb-2 text-black">Status</label>
+                <select name="status" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50 text-gray-800">
                     <option value="all" {% if status_filter == 'all' %}selected{% endif %} class="text-gray-800">All Students</option>
                     <option value="active" {% if status_filter == 'active' %}selected{% endif %} class="text-gray-800">Active</option>
                     <option value="completed" {% if status_filter == 'completed' %}selected{% endif %} class="text-gray-800">Completed</option>
@@ -40,8 +40,8 @@
             
             <!-- Sort -->
             <div>
-                <label class="block text-sm font-medium mb-2 text-black">Sort By</label>
-                <select name="sort" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50 text-gray-800">
+                <label class="block text-sm text-black font-medium mb-2 text-black">Sort By</label>
+                <select name="sort" class="w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50 text-gray-800">
                     <option value="recent" {% if sort_by == 'recent' %}selected{% endif %} class="text-gray-800">Most Recent Activity</option>
                     <option value="progress" {% if sort_by == 'progress' %}selected{% endif %} class="text-gray-800">Progress %</option>
                     <option value="name" {% if sort_by == 'name' %}selected{% endif %} class="text-gray-800">Name (A-Z)</option>
@@ -63,7 +63,7 @@
         <div class="lg:col-span-2 space-y-4">
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-bold text-black">Students ({{ students_data|length }})</h2>
-                <a href="{% url 'dashboard_student_progress' %}" class="text-sm text-black hover:text-black/80">
+                <a href="{% url 'dashboard_student_progress' %}" class="text-sm text-black text-black hover:text-black/80">
                     Detailed View <i class="fas fa-arrow-right ml-1"></i>
                 </a>
             </div>
@@ -91,7 +91,7 @@
                                         {{ data.status|title }}
                                     </span>
                                 </div>
-                                <p class="text-sm text-gray-700 mb-2">{{ data.student.email }}</p>
+                                <p class="text-sm text-black text-gray-700 mb-2">{{ data.student.email }}</p>
                                 
                                 <!-- Progress Bar -->
                                 <div class="mb-2">
@@ -134,10 +134,10 @@
                     
                     <!-- Action Buttons -->
                     <div class="flex items-center gap-2 pt-3 border-t border-teal-soft/10">
-                        <a href="{% url 'dashboard_student_detail' data.student.id %}" class="flex-1 px-3 py-2 bg-teal-soft/10 hover:bg-teal-soft/20 border border-teal-soft/20 rounded-lg text-sm font-medium text-center transition-all text-black">
+                        <a href="{% url 'dashboard_student_detail' data.student.id %}" class="flex-1 px-3 py-2 bg-teal-soft/10 hover:bg-teal-soft/20 border border-teal-soft/20 rounded-lg text-sm text-black font-medium text-center transition-all text-black">
                             View Details
                         </a>
-                        <a href="mailto:{{ data.student.email }}" class="px-3 py-2 bg-blue-soft/10 hover:bg-blue-soft/20 border border-blue-soft/20 rounded-lg text-sm transition-all text-blue-700 hover:text-blue-800">
+                        <a href="mailto:{{ data.student.email }}" class="px-3 py-2 bg-blue-soft/10 hover:bg-blue-soft/20 border border-blue-soft/20 rounded-lg text-sm text-black transition-all text-blue-700 hover:text-blue-800">
                             <i class="fas fa-envelope"></i>
                         </a>
                     </div>
@@ -157,7 +157,7 @@
         <div class="space-y-4">
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-bold text-black">Activity Feed</h2>
-                <button onclick="refreshActivity()" class="text-sm text-black hover:text-black/80">
+                <button onclick="refreshActivity()" class="text-sm text-black text-black hover:text-black/80">
                     <i class="fas fa-sync-alt"></i> Refresh
                 </button>
             </div>
@@ -175,19 +175,19 @@
                                 {% elif activity.type == 'certification_issued' %}bg-yellow-500/20 text-black-400
                                 {% else %}bg-teal-soft/20 text-black{% endif %}">
                                 {% if activity.type == 'lesson_completed' %}
-                                <i class="fas fa-check-circle text-sm"></i>
+                                <i class="fas fa-check-circle text-sm text-black"></i>
                                 {% elif activity.type == 'exam_attempt' %}
-                                <i class="fas fa-clipboard-check text-sm"></i>
+                                <i class="fas fa-clipboard-check text-sm text-black"></i>
                                 {% elif activity.type == 'certification_issued' %}
-                                <i class="fas fa-certificate text-sm"></i>
+                                <i class="fas fa-certificate text-sm text-black"></i>
                                 {% else %}
-                                <i class="fas fa-chart-line text-sm"></i>
+                                <i class="fas fa-chart-line text-sm text-black"></i>
                                 {% endif %}
                             </div>
                             
                             <!-- Activity Content -->
                             <div class="flex-1 min-w-0">
-                                <div class="text-sm mb-1">
+                                <div class="text-sm text-black mb-1">
                                     <span class="font-semibold text-gray-700">{{ activity.user.get_full_name|default:activity.user.username }}</span>
                                     {% if activity.type == 'lesson_completed' %}
                                     completed <span class="font-medium text-black">{{ activity.lesson.title }}</span>
@@ -231,7 +231,7 @@
                 {% else %}
                 <div class="text-center py-8">
                     <i class="fas fa-inbox text-4xl text-gray-600 mb-3"></i>
-                    <p class="text-gray-700 text-sm">No recent activity</p>
+                    <p class="text-gray-700 text-sm text-black">No recent activity</p>
                 </div>
                 {% endif %}
             </div>

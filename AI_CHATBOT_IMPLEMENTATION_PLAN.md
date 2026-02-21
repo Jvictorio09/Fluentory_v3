@@ -71,12 +71,12 @@ Add a new section after the video preview section:
     <div class="space-y-4">
         <!-- Transcript Input Options -->
         <div>
-            <label class="block text-sm font-medium mb-2 text-black">Lesson Transcript</label>
+            <label class="block text-sm text-black font-medium mb-2 text-black">Lesson Transcript</label>
             <div class="flex gap-2 mb-2">
-                <button type="button" id="use-existing-transcript" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm hover:bg-teal-soft/20">
+                <button type="button" id="use-existing-transcript" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm text-black hover:bg-teal-soft/20">
                     Use Existing Transcription
                 </button>
-                <button type="button" id="upload-transcript" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm hover:bg-teal-soft/20">
+                <button type="button" id="upload-transcript" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm text-black hover:bg-teal-soft/20">
                     Upload File
                 </button>
             </div>
@@ -87,7 +87,7 @@ Add a new section after the video preview section:
                 name="transcript"
                 rows="10"
                 placeholder="Paste transcript here or use existing transcription..."
-                class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50 resize-none"
+                class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50 resize-none"
             >{{ lesson.transcription }}</textarea>
             
             <!-- File upload input (hidden) -->
@@ -321,7 +321,7 @@ Add chatbot section to the lesson page (in the right sidebar or as a floating wi
 {% if lesson.ai_chatbot_enabled and lesson.ai_chatbot_training_status == 'trained' %}
 <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-blue-soft/20 rounded-xl p-4 mb-6">
     <div class="flex items-center justify-between mb-3">
-        <h4 class="font-bold text-sm flex items-center gap-2">
+        <h4 class="font-bold text-sm text-black flex items-center gap-2">
             <i class="fas fa-robot text-blue-soft"></i>
             Lesson AI Assistant
         </h4>
@@ -332,7 +332,7 @@ Add chatbot section to the lesson page (in the right sidebar or as a floating wi
     
     <div id="chatbot-container" class="hidden">
         <div id="chatbot-messages" class="space-y-3 mb-4 max-h-96 overflow-y-auto">
-            <div class="bg-blue-soft/10 border border-blue-soft/20 rounded-lg p-3 text-sm">
+            <div class="bg-blue-soft/10 border border-blue-soft/20 rounded-lg p-3 text-sm text-black">
                 <div class="flex items-start gap-2">
                     <i class="fas fa-robot text-blue-soft mt-1"></i>
                     <div>
@@ -348,7 +348,7 @@ Add chatbot section to the lesson page (in the right sidebar or as a floating wi
                 type="text" 
                 id="chatbot-input" 
                 placeholder="Ask a question..."
-                class="flex-1 bg-[#ffffff]/40 border border-blue-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-soft/50"
+                class="flex-1 bg-[#ffffff]/40 border border-blue-soft/20 rounded-lg px-4 py-2 text-sm text-black focus:outline-none focus:border-blue-soft/50"
             >
             <button 
                 id="chatbot-send-btn"
@@ -390,7 +390,7 @@ toggleChatbot?.addEventListener('click', function() {
 
 function addMessage(content, isUser = false) {
     const messageDiv = document.createElement('div');
-    messageDiv.className = `bg-${isUser ? 'teal-soft' : 'blue-soft'}/10 border border-${isUser ? 'teal-soft' : 'blue-soft'}/20 rounded-lg p-3 text-sm`;
+    messageDiv.className = `bg-${isUser ? 'teal-soft' : 'blue-soft'}/10 border border-${isUser ? 'teal-soft' : 'blue-soft'}/20 rounded-lg p-3 text-sm text-black`;
     
     const icon = isUser ? 'fa-user' : 'fa-robot';
     const color = isUser ? 'teal-soft' : 'blue-soft';
@@ -428,7 +428,7 @@ async function sendMessage() {
     // Show loading
     const loadingDiv = document.createElement('div');
     loadingDiv.id = 'chatbot-loading';
-    loadingDiv.className = 'bg-blue-soft/10 border border-blue-soft/20 rounded-lg p-3 text-sm';
+    loadingDiv.className = 'bg-blue-soft/10 border border-blue-soft/20 rounded-lg p-3 text-sm text-black';
     loadingDiv.innerHTML = `
         <div class="flex items-start gap-2">
             <i class="fas fa-robot text-blue-soft mt-1"></i>

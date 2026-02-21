@@ -11,7 +11,7 @@
         <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-yellow-500/20 rounded-xl p-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600 mb-1">Pending</p>
+                    <p class="text-sm text-black text-gray-600 mb-1">Pending</p>
                     <p class="text-2xl font-bold text-gray-800">{{ pending_count }}</p>
                 </div>
                 <i class="fas fa-clock text-yellow-500 text-2xl"></i>
@@ -20,7 +20,7 @@
         <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-green-500/20 rounded-xl p-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600 mb-1">Approved</p>
+                    <p class="text-sm text-black text-gray-600 mb-1">Approved</p>
                     <p class="text-2xl font-bold text-gray-800">{{ approved_count }}</p>
                 </div>
                 <i class="fas fa-check-circle text-green-500 text-2xl"></i>
@@ -29,7 +29,7 @@
         <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-red-500/20 rounded-xl p-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600 mb-1">Rejected</p>
+                    <p class="text-sm text-black text-gray-600 mb-1">Rejected</p>
                     <p class="text-2xl font-bold text-gray-800">{{ rejected_count }}</p>
                 </div>
                 <i class="fas fa-times-circle text-red-500 text-2xl"></i>
@@ -42,14 +42,14 @@
         <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Search -->
             <div>
-                <label class="block text-sm font-medium mb-2 text-black">Search</label>
+                <label class="block text-sm text-black font-medium mb-2 text-black">Search</label>
                 <input type="text" name="search" value="{{ search_query }}" placeholder="Name, email, username..." 
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-soft text-gray-800 placeholder-gray-500">
             </div>
             
             <!-- Status Filter -->
             <div>
-                <label class="block text-sm font-medium mb-2 text-black">Status</label>
+                <label class="block text-sm text-black font-medium mb-2 text-black">Status</label>
                 <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-soft text-gray-800 bg-white">
                     <option value="all" {% if status_filter == 'all' %}selected{% endif %} class="text-gray-800">All Status</option>
                     <option value="pending" {% if status_filter == 'pending' %}selected{% endif %} class="text-gray-800">Pending</option>
@@ -86,14 +86,14 @@
                                 <h3 class="font-bold text-lg text-gray-800">
                                     {% if teacher.get_full_name %}{{ teacher.get_full_name }}{% else %}{{ teacher.username }}{% endif %}
                                 </h3>
-                                <p class="text-sm text-gray-600">{{ teacher.email }}</p>
+                                <p class="text-sm text-black text-gray-600">{{ teacher.email }}</p>
                             </div>
                             <span class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-300">
                                 Active Teacher
                             </span>
                         </div>
                         
-                        <div class="grid md:grid-cols-2 gap-4 mt-3 text-sm text-gray-600">
+                        <div class="grid md:grid-cols-2 gap-4 mt-3 text-sm text-black text-gray-600">
                             <div>
                                 <span class="font-semibold">Username:</span> {{ teacher.username }}
                             </div>
@@ -115,7 +115,7 @@
                         
                         {% if teacher.taught_courses.exists %}
                         <div class="mt-3">
-                            <p class="text-sm font-semibold text-gray-700 mb-1">Teaching Courses:</p>
+                            <p class="text-sm text-black font-semibold text-gray-700 mb-1">Teaching Courses:</p>
                             <div class="flex flex-wrap gap-2">
                                 {% for course in teacher.taught_courses.all|slice:":5" %}
                                 <span class="px-2 py-1 bg-teal-soft/10 text-teal-soft rounded text-xs font-medium">{{ course.name }}</span>
@@ -129,7 +129,7 @@
                     </div>
                     
                     <div class="ml-4 flex flex-col gap-2">
-                        <a href="{% url 'dashboard_student_detail' teacher.id %}" class="px-4 py-2 bg-teal-soft text-black rounded-lg font-semibold hover:bg-teal-soft/90 transition-all text-sm text-center">
+                        <a href="{% url 'dashboard_student_detail' teacher.id %}" class="px-4 py-2 bg-teal-soft text-black rounded-lg font-semibold hover:bg-teal-soft/90 transition-all text-sm text-black text-center">
                             <i class="fas fa-user mr-2"></i>View Profile
                         </a>
                     </div>
@@ -164,7 +164,7 @@
                             </div>
                             <div>
                                 <h3 class="font-bold text-lg text-gray-800">{{ req.first_name }} {{ req.last_name }}</h3>
-                                <p class="text-sm text-gray-600">{{ req.email }}</p>
+                                <p class="text-sm text-black text-gray-600">{{ req.email }}</p>
                             </div>
                             <span class="px-3 py-1 rounded-full text-xs font-semibold
                                 {% if req.status == 'approved' %}bg-green-100 text-green-800 border border-green-300
@@ -174,7 +174,7 @@
                             </span>
                         </div>
                         
-                        <div class="grid md:grid-cols-2 gap-4 mt-3 text-sm text-gray-600">
+                        <div class="grid md:grid-cols-2 gap-4 mt-3 text-sm text-black text-gray-600">
                             <div>
                                 <span class="font-semibold">Languages:</span> {{ req.languages_spoken }}
                             </div>
@@ -195,13 +195,13 @@
                         
                         {% if req.bio %}
                         <div class="mt-3">
-                            <p class="text-sm text-gray-700 line-clamp-2">{{ req.bio }}</p>
+                            <p class="text-sm text-black text-gray-700 line-clamp-2">{{ req.bio }}</p>
                         </div>
                         {% endif %}
                     </div>
                     
                     <div class="ml-4 flex flex-col gap-2">
-                        <a href="{% url 'dashboard_teacher_request_detail' req.id %}" class="px-4 py-2 bg-teal-soft text-black rounded-lg font-semibold hover:bg-teal-soft/90 transition-all text-sm text-center">
+                        <a href="{% url 'dashboard_teacher_request_detail' req.id %}" class="px-4 py-2 bg-teal-soft text-black rounded-lg font-semibold hover:bg-teal-soft/90 transition-all text-sm text-black text-center">
                             <i class="fas fa-eye mr-2"></i>View Details
                         </a>
                     </div>

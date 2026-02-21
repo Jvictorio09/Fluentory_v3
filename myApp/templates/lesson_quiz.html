@@ -23,7 +23,7 @@
                             <h1 class="text-3xl lg:text-4xl font-bold">
                                 {{ lesson.title }} Quiz
                             </h1>
-                            <p class="text-gray-700 text-sm mt-1">
+                            <p class="text-gray-700 text-sm text-black mt-1">
                                 {{ questions|length }} question{{ questions|length|pluralize }} &middot; Passing score: {{ quiz.passing_score }}% &middot; <span class="text-red-400 font-semibold text-gray-700">Required</span>
                             </p>
                         </div>
@@ -58,7 +58,7 @@
                                     {{ result.correct }} out of {{ result.total }} questions correct
                                 </div>
                                 {% if not result.passed %}
-                                <div class="text-sm text-gray-700 mt-3">
+                                <div class="text-sm text-black text-gray-700 mt-3">
                                     Passing score is {{ quiz.passing_score }}%. Review the lesson and try again!
                                 </div>
                                 {% endif %}

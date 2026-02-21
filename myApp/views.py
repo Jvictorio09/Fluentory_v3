@@ -2152,6 +2152,74 @@ def view_certificate(request, course_slug):
         return redirect('student_certifications')
 
 
+def verify_certificate(request, certificate_id):
+    """
+    Verify a certificate by certificate ID.
+    Public endpoint - no login required.
+    """
+    from .models import Certification
+    from django.conf import settings
+    
+    # Parse certificate ID format: CERT-{COURSE_SLUG}-{USER_ID}-{DATE}
+    try:
+        parts = certificate_id.split('-')
+        if len(parts) < 4 or parts[0] != 'CERT':
+            raise ValueError("Invalid certificate ID format")
+        
+        course_slug = parts[1].lower()
+        user_id = int(parts[2])
+        # Date is in format YYYYMMDD (no hyphens), so parts[3] is the full date
+        date_str = parts[3] if len(parts) > 3 else ''
+        
+        # Find the certification
+        try:
+            certification = Certification.objects.select_related('user', 'course').get(
+                user_id=user_id,
+                course__slug=course_slug,
+                status='passed'
+            )
+            
+            # Verify the certificate ID matches
+            expected_cert_id = f"CERT-{course_slug.upper()}-{user_id}-{certification.issued_at.strftime('%Y%m%d') if certification.issued_at else ''}"
+            if certificate_id.upper() != expected_cert_id.upper():
+                # Certificate ID doesn't match - might be invalid
+                return render(request, 'certificate_verification.html', {
+                    'valid': False,
+                    'error': 'Certificate ID does not match our records.',
+                    'certificate_id': certificate_id
+                })
+            
+            # Certificate is valid
+            return render(request, 'certificate_verification.html', {
+                'valid': True,
+                'certification': certification,
+                'certificate_id': certificate_id,
+                'student_name': certification.user.get_full_name() or certification.user.username,
+                'course_name': certification.course.name,
+                'issued_date': certification.issued_at,
+            })
+            
+        except Certification.DoesNotExist:
+            return render(request, 'certificate_verification.html', {
+                'valid': False,
+                'error': 'Certificate not found in our records.',
+                'certificate_id': certificate_id
+            })
+        except Exception as e:
+            return render(request, 'certificate_verification.html', {
+                'valid': False,
+                'error': 'Error verifying certificate. Please check the certificate ID.',
+                'certificate_id': certificate_id
+            })
+            
+    except (ValueError, IndexError) as e:
+        return render(request, 'certificate_verification.html', {
+            'valid': False,
+            'error': 'Invalid certificate ID format.',
+            'certificate_id': certificate_id
+        })
+
+
 @require_http_methods(["POST"])
 @login_required
 def toggle_favorite_course(request, course_id):

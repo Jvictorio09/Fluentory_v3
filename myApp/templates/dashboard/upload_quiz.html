@@ -7,7 +7,7 @@
 {% block content %}
 <div class="max-w-4xl mx-auto">
     <div class="mb-6">
-        <a href="{% url 'dashboard_quizzes' %}" class="text-teal-700 hover:text-teal-800 text-sm mb-4 inline-flex items-center gap-2">
+        <a href="{% url 'dashboard_quizzes' %}" class="text-teal-700 hover:text-teal-800 text-sm text-black mb-4 inline-flex items-center gap-2">
             <i class="fas fa-arrow-left"></i> Back to Quizzes
         </a>
     </div>
@@ -32,7 +32,7 @@
             <div class="space-y-6" id="upload-content">
                 <!-- Lesson Selection -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Select Lesson *</label>
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Select Lesson *</label>
                     <select name="lesson_id" required class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50">
                         <option value="">Choose a lesson...</option>
                         {% for lesson in lessons %}
@@ -43,16 +43,16 @@
                 
                 <!-- File Upload -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Upload Quiz File *</label>
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Upload Quiz File *</label>
                     <div class="border-2 border-dashed border-teal-soft/30 rounded-lg p-6 text-center hover:border-teal-soft/50 transition-all">
                         <input type="file" name="quiz_file" accept=".csv,.pdf" required 
                             class="hidden" id="file-input" onchange="updateFileName(this)">
                         <label for="file-input" class="cursor-pointer">
                             <i class="fas fa-cloud-upload-alt text-4xl text-black mb-3"></i>
-                            <p class="text-sm text-gray-700 mb-2">Click to upload or drag and drop</p>
+                            <p class="text-sm text-black text-gray-700 mb-2">Click to upload or drag and drop</p>
                             <p class="text-xs text-gray-500">CSV or PDF files only</p>
                         </label>
-                        <p id="file-name" class="text-sm text-black mt-2 hidden"></p>
+                        <p id="file-name" class="text-sm text-black text-black mt-2 hidden"></p>
                     </div>
                 </div>
                 
@@ -64,7 +64,7 @@
                         <h4 class="font-medium mb-2 flex items-center gap-2">
                             <i class="fas fa-file-csv text-gray-700"></i> CSV Format
                         </h4>
-                        <p class="text-sm text-gray-700 mb-2">Your CSV file should have the following columns:</p>
+                        <p class="text-sm text-black text-gray-700 mb-2">Your CSV file should have the following columns:</p>
                         <div class="bg-[#ffffff]/60 rounded p-3 text-xs font-mono text-gray-700 overflow-x-auto">
                             question, option_a, option_b, option_c, option_d, correct_answer
                         </div>
@@ -78,8 +78,8 @@
                         <h4 class="font-medium mb-2 flex items-center gap-2">
                             <i class="fas fa-file-pdf text-red-400"></i> PDF Format
                         </h4>
-                        <p class="text-sm text-gray-700 mb-2">Your PDF should follow this structure:</p>
-                        <ul class="text-sm text-gray-700 space-y-1 ml-4 list-disc">
+                        <p class="text-sm text-black text-gray-700 mb-2">Your PDF should follow this structure:</p>
+                        <ul class="text-sm text-black text-gray-700 space-y-1 ml-4 list-disc">
                             <li>Numbered questions (1., 2., 3., etc.)</li>
                             <li>Options labeled with A., B., C., D.</li>
                             <li>Optional: "Answer: A" or "Correct: B" line after each question</li>
@@ -115,7 +115,7 @@
             <div class="space-y-6" id="ai-content">
                 <!-- Lesson Selection -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Select Lesson *</label>
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Select Lesson *</label>
                     <select name="lesson_id" required class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50">
                         <option value="">Choose a lesson...</option>
                         {% for lesson in lessons %}
@@ -126,7 +126,7 @@
                 
                 <!-- Number of Questions -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Number of Questions</label>
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Number of Questions</label>
                     <select name="num_questions" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50">
                         <option value="3">3 Questions</option>
                         <option value="5" selected>5 Questions</option>
@@ -143,7 +143,7 @@
                         </div>
                         <div class="flex-1">
                             <h3 class="font-semibold text-gray-700 text-lg mb-2 text-blue-soft">AI Quiz Generation</h3>
-                            <p class="text-sm text-gray-700 mb-3">
+                            <p class="text-sm text-black text-gray-700 mb-3">
                                 Our AI will analyze your lesson content (title, description, and transcription if available) 
                                 to automatically generate relevant quiz questions. The AI will create multiple-choice questions 
                                 that test understanding of key concepts from the lesson.

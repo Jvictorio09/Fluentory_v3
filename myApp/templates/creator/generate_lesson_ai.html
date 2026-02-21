@@ -7,7 +7,7 @@
 <div class="max-w-5xl mx-auto">
     <!-- Header -->
     <div class="mb-8">
-        <a href="{% url 'course_lessons' course.slug %}" class="text-teal-700 hover:text-teal-800 text-sm mb-4 inline-block">
+        <a href="{% url 'course_lessons' course.slug %}" class="text-teal-700 hover:text-teal-800 text-sm text-black mb-4 inline-block">
             <i class="fas fa-arrow-left mr-2"></i> Back to {{ course.name }}
         </a>
         <h1 class="text-3xl font-bold mb-2">AI Autogeneration Panel</h1>
@@ -21,7 +21,7 @@
             <img src="{{ lesson.vimeo_thumbnail }}" alt="Video thumbnail" class="w-48 h-32 object-cover rounded">
             <div class="flex-1">
                 <div class="font-bold text-lg mb-2">{{ lesson.working_title }}</div>
-                <div class="text-sm text-gray-700">
+                <div class="text-sm text-black text-gray-700">
                     <i class="fas fa-clock mr-2"></i>
                     {{ lesson.get_formatted_duration }}
                 </div>
@@ -35,7 +35,7 @@
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h3 class="text-lg font-bold mb-1">AI Chatbot Setup</h3>
-                <p class="text-sm text-gray-700">Train an AI assistant for this lesson using the transcript</p>
+                <p class="text-sm text-black text-gray-700">Train an AI assistant for this lesson using the transcript</p>
             </div>
             <span class="px-3 py-1 rounded-full text-xs font-semibold text-gray-700
                 {% if lesson.ai_chatbot_training_status == 'trained' %}bg-green-500/20 text-gray-700 border border-green-500/30
@@ -57,12 +57,12 @@
         <div class="space-y-4">
             <!-- Transcript Input Options -->
             <div>
-                <label class="block text-sm font-medium mb-2 text-gray-700">Lesson Transcript</label>
+                <label class="block text-sm text-black font-medium mb-2 text-gray-700">Lesson Transcript</label>
                 <div class="flex gap-2 mb-3">
-                    <button type="button" id="use-existing-transcript" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm hover:bg-teal-soft/20 transition-all text-black cursor-pointer" style="pointer-events: auto !important; z-index: 100; position: relative;" onclick="if(window.handleUseExistingTranscript){window.handleUseExistingTranscript(event);}else{alert('Function not loaded yet');} return false;">
+                    <button type="button" id="use-existing-transcript" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm text-black hover:bg-teal-soft/20 transition-all text-black cursor-pointer" style="pointer-events: auto !important; z-index: 100; position: relative;" onclick="if(window.handleUseExistingTranscript){window.handleUseExistingTranscript(event);}else{alert('Function not loaded yet');} return false;">
                         <i class="fas fa-file-alt mr-2"></i> Use Existing Transcription
                     </button>
-                    <button type="button" id="upload-transcript" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm hover:bg-teal-soft/20 transition-all text-black cursor-pointer" style="pointer-events: auto !important; z-index: 100; position: relative;" onclick="if(window.handleUploadTranscript){window.handleUploadTranscript(event);}else{alert('Function not loaded yet');} return false;">
+                    <button type="button" id="upload-transcript" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm text-black hover:bg-teal-soft/20 transition-all text-black cursor-pointer" style="pointer-events: auto !important; z-index: 100; position: relative;" onclick="if(window.handleUploadTranscript){window.handleUploadTranscript(event);}else{alert('Function not loaded yet');} return false;">
                         <i class="fas fa-upload mr-2"></i> Upload File
                     </button>
                 </div>
@@ -73,7 +73,7 @@
                     name="transcript"
                     rows="10"
                     placeholder="Paste transcript here or use existing transcription...&#10;&#10;The AI will learn from this transcript to answer student questions about the lesson."
-                    class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-teal-soft/50 resize-none text-gray-700 placeholder-gray-500"
+                    class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 text-sm text-black focus:outline-none focus:border-teal-soft/50 resize-none text-gray-700 placeholder-gray-500"
                 >{{ lesson.transcription }}</textarea>
                 
                 <!-- File upload input (hidden) -->
@@ -91,7 +91,7 @@
                     <i class="fas fa-check-circle"></i>
                     <div>
                         <p class="font-semibold text-gray-700">AI Chatbot trained successfully!</p>
-                        <p class="text-sm text-green-300">Trained on {{ lesson.ai_chatbot_trained_at|date:"M d, Y H:i" }}</p>
+                        <p class="text-sm text-black text-green-300">Trained on {{ lesson.ai_chatbot_trained_at|date:"M d, Y H:i" }}</p>
                     </div>
                 </div>
             </div>
@@ -99,7 +99,7 @@
             <!-- Test Chatbot Interface -->
             <div class="bg-blue-soft/10 border border-blue-soft/30 rounded-xl p-4 mb-4">
                 <div class="flex items-center justify-between mb-3">
-                    <h4 class="font-bold text-sm flex items-center gap-2 text-blue-soft">
+                    <h4 class="font-bold text-sm text-black flex items-center gap-2 text-blue-soft">
                         <i class="fas fa-flask"></i>
                         Test AI Chatbot
                     </h4>
@@ -110,7 +110,7 @@
                 
                 <div id="test-chatbot-container" class="hidden">
                     <div id="test-chatbot-messages" class="space-y-3 mb-4 max-h-64 overflow-y-auto bg-[#ffffff]/40 rounded-lg p-3">
-                        <div class="bg-blue-soft/10 border border-blue-soft/20 rounded-lg p-3 text-sm">
+                        <div class="bg-blue-soft/10 border border-blue-soft/20 rounded-lg p-3 text-sm text-black">
                             <div class="flex items-start gap-2">
                                 <i class="fas fa-robot text-blue-soft mt-1"></i>
                                 <div>
@@ -126,7 +126,7 @@
                             type="text" 
                             id="test-chatbot-input" 
                             placeholder="Ask a question to test the AI..."
-                            class="flex-1 bg-[#ffffff]/40 border border-blue-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-blue-soft/50 text-white placeholder-gray-500"
+                            class="flex-1 bg-[#ffffff]/40 border border-blue-soft/20 rounded-lg px-4 py-2 text-sm text-black focus:outline-none focus:border-blue-soft/50 text-white placeholder-gray-500"
                         >
                         <button 
                             id="test-chatbot-send-btn"
@@ -153,7 +153,7 @@
                     <i class="fas fa-exclamation-circle mt-1"></i>
                     <div>
                         <p class="font-semibold text-gray-700 mb-1">Training failed</p>
-                        <p class="text-sm text-red-300">{{ lesson.ai_chatbot_training_error|truncatewords:30 }}</p>
+                        <p class="text-sm text-black text-red-300">{{ lesson.ai_chatbot_training_error|truncatewords:30 }}</p>
                         <p class="text-xs text-red-400 mt-2">Please check the transcript and try again.</p>
                     </div>
                 </div>
@@ -177,7 +177,7 @@
             </button>
             
             {% if lesson.ai_chatbot_training_status == 'trained' %}
-            <div class="bg-blue-soft/10 border border-blue-soft/20 rounded-lg p-3 text-sm text-gray-700">
+            <div class="bg-blue-soft/10 border border-blue-soft/20 rounded-lg p-3 text-sm text-black text-gray-700">
                 <i class="fas fa-lightbulb text-blue-soft mr-2"></i>
                 <strong>Tip:</strong> Students will be able to ask questions about this lesson using the AI assistant on the lesson page.
             </div>
@@ -195,7 +195,7 @@
             <div class="space-y-4">
                 <!-- Vimeo URL -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">
                         <i class="fab fa-vimeo mr-2 text-teal-soft"></i>Vimeo URL
                     </label>
                     <input 
@@ -204,14 +204,14 @@
                         id="vimeo-url-input"
                         value="{{ lesson.vimeo_url }}"
                         placeholder="https://vimeo.com/123456789"
-                        class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50"
+                        class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50"
                     >
                     <p class="text-xs text-gray-500 mt-1">Full Vimeo URL (e.g., https://vimeo.com/123456789)</p>
                 </div>
                 
                 <!-- Google Drive URL -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">
                         <i class="fab fa-google-drive mr-2 text-blue-soft"></i>Google Drive Embed URL
                     </label>
                     <input 
@@ -220,14 +220,14 @@
                         id="google-drive-url-input"
                         value="{{ lesson.google_drive_url }}"
                         placeholder="https://drive.google.com/file/d/FILE_ID/preview"
-                        class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50"
+                        class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50"
                     >
                     <p class="text-xs text-gray-500 mt-1">Google Drive embed URL (must end with /preview)</p>
                 </div>
                 
                 <!-- Generic Video URL (YouTube, etc.) -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">
                         <i class="fas fa-video mr-2 text-purple-soft"></i>Generic Video URL (YouTube, Direct Links, etc.)
                     </label>
                     <input 
@@ -236,7 +236,7 @@
                         id="video-url-input"
                         value="{{ lesson.video_url }}"
                         placeholder="https://www.youtube.com/watch?v=VIDEO_ID or https://youtu.be/VIDEO_ID"
-                        class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50"
+                        class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50"
                     >
                     <p class="text-xs text-gray-500 mt-1">YouTube URL, direct video URL, or other video source</p>
                 </div>
@@ -262,7 +262,7 @@
                         name="clean_title" 
                         id="clean-title-input"
                         value="{{ lesson.ai_clean_title|default:lesson.working_title }}"
-                        class="hidden w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50"
+                        class="hidden w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50"
                     >
                 </div>
             </div>
@@ -281,7 +281,7 @@
                         name="short_summary" 
                         id="short-summary-input"
                         rows="3"
-                        class="hidden w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50 resize-none"
+                        class="hidden w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50 resize-none"
                     >{{ lesson.ai_short_summary }}</textarea>
                 </div>
             </div>
@@ -300,7 +300,7 @@
                         name="full_description" 
                         id="full-description-input"
                         rows="6"
-                        class="hidden w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50 resize-none"
+                        class="hidden w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50 resize-none"
                     >{{ lesson.ai_full_description }}</textarea>
                 </div>
             </div>
@@ -333,7 +333,7 @@
                         id="outcomes-input"
                         rows="6"
                         placeholder="One outcome per line"
-                        class="hidden w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-soft/50 resize-none"
+                        class="hidden w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-2 text-sm text-black focus:outline-none focus:border-teal-soft/50 resize-none"
                     >{% for outcome in lesson.get_outcomes_list %}{{ outcome }}
 {% endfor %}</textarea>
                 </div>
@@ -347,7 +347,7 @@
                 <div class="space-y-2">
                     {% if lesson.get_coach_actions_list %}
                         {% for action in lesson.get_coach_actions_list %}
-                        <div class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/20 rounded-lg text-sm">
+                        <div class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/20 rounded-lg text-sm text-black">
                             {{ action }}
                         </div>
                         {% endfor %}
@@ -365,7 +365,7 @@
                         <i class="fas fa-plus mr-1"></i> Add Block
                     </button>
                 </div>
-                <p class="text-sm text-gray-600 mb-4">Edit, reorder, or add new content blocks for this lesson.</p>
+                <p class="text-sm text-black text-gray-600 mb-4">Edit, reorder, or add new content blocks for this lesson.</p>
                 
                 <div id="content-blocks-container" class="space-y-4">
                     {% if lesson.content and lesson.content.blocks %}
@@ -388,33 +388,33 @@
                             
                             <div class="block-content">
                                 {% if block.type == 'paragraph' %}
-                                    <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm resize-none" rows="3" data-field="text" placeholder="Enter paragraph text...">{{ block.data.text }}</textarea>
+                                    <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black resize-none" rows="3" data-field="text" placeholder="Enter paragraph text...">{{ block.data.text }}</textarea>
                                 {% elif block.type == 'header' %}
                                     <div class="flex gap-2 mb-2">
-                                        <select class="block-input bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="level">
+                                        <select class="block-input bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="level">
                                             <option value="1" {% if block.data.level == 1 %}selected{% endif %}>H1</option>
                                             <option value="2" {% if block.data.level == 2 %}selected{% endif %}>H2</option>
                                             <option value="3" {% if block.data.level == 3 %}selected{% endif %}>H3</option>
                                             <option value="4" {% if block.data.level == 4 %}selected{% endif %}>H4</option>
                                         </select>
-                                        <input type="text" class="block-input flex-1 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="text" value="{{ block.data.text }}" placeholder="Enter header text...">
+                                        <input type="text" class="block-input flex-1 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="text" value="{{ block.data.text }}" placeholder="Enter header text...">
                                     </div>
                                 {% elif block.type == 'list' %}
                                     <div class="space-y-2">
-                                        <select class="block-input mb-2 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="style">
+                                        <select class="block-input mb-2 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="style">
                                             <option value="unordered" {% if block.data.style == 'unordered' or not block.data.style %}selected{% endif %}>Unordered List</option>
                                             <option value="ordered" {% if block.data.style == 'ordered' %}selected{% endif %}>Ordered List</option>
                                         </select>
-                                        <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm resize-none" rows="4" data-field="items" placeholder="Enter list items, one per line...">{% for item in block.data.items %}{{ item }}
+                                        <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black resize-none" rows="4" data-field="items" placeholder="Enter list items, one per line...">{% for item in block.data.items %}{{ item }}
 {% endfor %}</textarea>
                                     </div>
                                 {% elif block.type == 'quote' %}
-                                    <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm resize-none mb-2" rows="3" data-field="text" placeholder="Enter quote text...">{{ block.data.text }}</textarea>
-                                    <input type="text" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="caption" value="{{ block.data.caption|default:'' }}" placeholder="Enter citation (optional)...">
+                                    <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black resize-none mb-2" rows="3" data-field="text" placeholder="Enter quote text...">{{ block.data.text }}</textarea>
+                                    <input type="text" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="caption" value="{{ block.data.caption|default:'' }}" placeholder="Enter citation (optional)...">
                                 {% elif block.type == 'image' %}
                                     <div class="space-y-2">
-                                        <input type="url" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="url" value="{% if block.data.file %}{{ block.data.file.url }}{% elif block.data.url %}{{ block.data.url }}{% endif %}" placeholder="Enter image URL...">
-                                        <input type="text" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="caption" value="{{ block.data.caption|default:'' }}" placeholder="Enter image caption (optional)...">
+                                        <input type="url" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="url" value="{% if block.data.file %}{{ block.data.file.url }}{% elif block.data.url %}{{ block.data.url }}{% endif %}" placeholder="Enter image URL...">
+                                        <input type="text" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="caption" value="{{ block.data.caption|default:'' }}" placeholder="Enter image caption (optional)...">
                                         {% if block.data.file.url or block.data.url %}
                                         <div class="mt-2">
                                             <img src="{% if block.data.file %}{{ block.data.file.url }}{% elif block.data.url %}{{ block.data.url }}{% endif %}" alt="{{ block.data.caption|default:'Image' }}" class="max-w-xs rounded-lg border border-teal-soft/20">
@@ -422,7 +422,7 @@
                                         {% endif %}
                                     </div>
                                 {% else %}
-                                    <div class="text-sm text-gray-600 p-2 bg-gray-100 rounded">
+                                    <div class="text-sm text-black text-gray-600 p-2 bg-gray-100 rounded">
                                         <strong>Type:</strong> {{ block.type }}<br>
                                         <strong>Data:</strong> <pre class="text-xs mt-1">{{ block.data|safe }}</pre>
                                     </div>
@@ -431,7 +431,7 @@
                         </div>
                         {% endfor %}
                     {% else %}
-                        <p class="text-gray-600 text-sm italic">No content blocks yet. Click "Add Block" to create one.</p>
+                        <p class="text-gray-600 text-sm text-black italic">No content blocks yet. Click "Add Block" to create one.</p>
                     {% endif %}
                 </div>
                 
@@ -838,7 +838,7 @@
         
         function addTestMessage(content, isUser = false) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `bg-${isUser ? 'teal-soft' : 'blue-soft'}/10 border border-${isUser ? 'teal-soft' : 'blue-soft'}/20 rounded-lg p-3 text-sm`;
+            messageDiv.className = `bg-${isUser ? 'teal-soft' : 'blue-soft'}/10 border border-${isUser ? 'teal-soft' : 'blue-soft'}/20 rounded-lg p-3 text-sm text-black`;
             
             const iconClass = isUser ? 'fa-user' : 'fa-robot';
             const color = isUser ? 'teal-soft' : 'blue-soft';
@@ -869,7 +869,7 @@
             // Show loading
             const loadingDiv = document.createElement('div');
             loadingDiv.id = 'test-chatbot-loading';
-            loadingDiv.className = 'bg-blue-soft/10 border border-blue-soft/20 rounded-lg p-3 text-sm';
+            loadingDiv.className = 'bg-blue-soft/10 border border-blue-soft/20 rounded-lg p-3 text-sm text-black';
             loadingDiv.innerHTML = `
                 <div class="flex items-start gap-2">
                     <i class="fas fa-robot text-blue-soft mt-1"></i>
@@ -1057,46 +1057,46 @@
         let contentHTML = '';
         
         if (type === 'paragraph') {
-            contentHTML = `<textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm resize-none" rows="3" data-field="text" placeholder="Enter paragraph text...">${data.text || ''}</textarea>`;
+            contentHTML = `<textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black resize-none" rows="3" data-field="text" placeholder="Enter paragraph text...">${data.text || ''}</textarea>`;
         } else if (type === 'header') {
             contentHTML = `
                 <div class="flex gap-2 mb-2">
-                    <select class="block-input bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="level">
+                    <select class="block-input bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="level">
                         <option value="1" ${data.level == 1 ? 'selected' : ''}>H1</option>
                         <option value="2" ${data.level == 2 ? 'selected' : 'selected'}>H2</option>
                         <option value="3" ${data.level == 3 ? 'selected' : ''}>H3</option>
                         <option value="4" ${data.level == 4 ? 'selected' : ''}>H4</option>
                     </select>
-                    <input type="text" class="block-input flex-1 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="text" value="${data.text || ''}" placeholder="Enter header text...">
+                    <input type="text" class="block-input flex-1 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="text" value="${data.text || ''}" placeholder="Enter header text...">
                 </div>
             `;
         } else if (type === 'list') {
             const itemsText = (data.items || []).join('\n');
             contentHTML = `
                 <div class="space-y-2">
-                    <select class="block-input mb-2 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="style">
+                    <select class="block-input mb-2 bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="style">
                         <option value="unordered" ${data.style === 'ordered' ? '' : 'selected'}>Unordered List</option>
                         <option value="ordered" ${data.style === 'ordered' ? 'selected' : ''}>Ordered List</option>
                     </select>
-                    <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm resize-none" rows="4" data-field="items" placeholder="Enter list items, one per line...">${itemsText}</textarea>
+                    <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black resize-none" rows="4" data-field="items" placeholder="Enter list items, one per line...">${itemsText}</textarea>
                 </div>
             `;
         } else if (type === 'quote') {
             contentHTML = `
-                <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm resize-none mb-2" rows="3" data-field="text" placeholder="Enter quote text...">${data.text || ''}</textarea>
-                <input type="text" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="caption" value="${data.caption || ''}" placeholder="Enter citation (optional)...">
+                <textarea class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black resize-none mb-2" rows="3" data-field="text" placeholder="Enter quote text...">${data.text || ''}</textarea>
+                <input type="text" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="caption" value="${data.caption || ''}" placeholder="Enter citation (optional)...">
             `;
         } else if (type === 'image') {
             const imageUrl = (data.file && data.file.url) || data.url || '';
             contentHTML = `
                 <div class="space-y-2">
-                    <input type="url" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="url" value="${imageUrl}" placeholder="Enter image URL...">
-                    <input type="text" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm" data-field="caption" value="${data.caption || ''}" placeholder="Enter image caption (optional)...">
+                    <input type="url" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="url" value="${imageUrl}" placeholder="Enter image URL...">
+                    <input type="text" class="block-input w-full bg-[#ffffff]/60 border border-teal-soft/20 rounded-lg px-3 py-2 text-sm text-black" data-field="caption" value="${data.caption || ''}" placeholder="Enter image caption (optional)...">
                     ${imageUrl ? `<div class="mt-2"><img src="${imageUrl}" alt="${data.caption || 'Image'}" class="max-w-xs rounded-lg border border-teal-soft/20"></div>` : ''}
                 </div>
             `;
         } else {
-            contentHTML = `<div class="text-sm text-gray-600 p-2 bg-gray-100 rounded">Unknown block type: ${type}</div>`;
+            contentHTML = `<div class="text-sm text-black text-gray-600 p-2 bg-gray-100 rounded">Unknown block type: ${type}</div>`;
         }
         
         blockDiv.innerHTML = `

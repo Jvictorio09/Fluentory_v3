@@ -97,28 +97,28 @@
 
       <!-- Desktop links -->
       <div class="hidden md:flex items-center gap-2">
-        <a href="{% url 'courses' %}" class="px-3 py-2 rounded-xl text-sm font-semibold text-gray-700 text-slate-700 hover:text-ink-deep hover:bg-white/70 transition">
+        <a href="{% url 'courses' %}" class="px-3 py-2 rounded-xl text-sm text-black font-semibold text-gray-700 text-slate-700 hover:text-ink-deep hover:bg-white/70 transition">
           Courses
         </a>
 
         {% if user.is_authenticated %}
-          <a href="{% url 'student_dashboard' %}" class="px-3 py-2 rounded-xl text-sm font-semibold text-gray-700 text-slate-700 hover:text-ink-deep hover:bg-white/70 transition">
+          <a href="{% url 'student_dashboard' %}" class="px-3 py-2 rounded-xl text-sm text-black font-semibold text-gray-700 text-slate-700 hover:text-ink-deep hover:bg-white/70 transition">
             Dashboard
           </a>
-          <a href="{% url 'student_certifications' %}" class="px-3 py-2 rounded-xl text-sm font-semibold text-gray-700 text-slate-700 hover:text-ink-deep hover:bg-white/70 transition">
+          <a href="{% url 'student_certifications' %}" class="px-3 py-2 rounded-xl text-sm text-black font-semibold text-gray-700 text-slate-700 hover:text-ink-deep hover:bg-white/70 transition">
             Certifications
           </a>
         {% endif %}
 
         {% if user.is_staff %}
-          <a href="{% url 'dashboard_home' %}" class="px-3 py-2 rounded-xl text-sm font-semibold text-gray-700 text-slate-700 hover:text-ink-deep hover:bg-white/70 transition">
+          <a href="{% url 'dashboard_home' %}" class="px-3 py-2 rounded-xl text-sm text-black font-semibold text-gray-700 text-slate-700 hover:text-ink-deep hover:bg-white/70 transition">
             Admin
           </a>
         {% endif %}
 
         <div class="w-px h-6 bg-slate-200 mx-1"></div>
 
-        <a href="{% url 'logout' %}" class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2 text-sm font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
+        <a href="{% url 'logout' %}" class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
           Log out
           <i class="fas fa-arrow-right ml-2 text-xs"></i>
         </a>
@@ -128,26 +128,26 @@
     <!-- Mobile menu -->
     <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200/70 bg-white/80 backdrop-blur-xl">
       <div class="mx-auto max-w-6xl px-6 py-4 space-y-2">
-        <a href="{% url 'courses' %}" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 text-slate-700 hover:bg-white transition">
+        <a href="{% url 'courses' %}" class="block rounded-xl px-4 py-3 text-sm text-black font-semibold text-gray-700 text-slate-700 hover:bg-white transition">
           <i class="fas fa-compass mr-2 text-blue-soft"></i> Courses
         </a>
 
         {% if user.is_authenticated %}
-          <a href="{% url 'student_dashboard' %}" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 text-slate-700 hover:bg-white transition">
+          <a href="{% url 'student_dashboard' %}" class="block rounded-xl px-4 py-3 text-sm text-black font-semibold text-gray-700 text-slate-700 hover:bg-white transition">
             <i class="fas fa-chart-line mr-2 text-black"></i> Dashboard
           </a>
-          <a href="{% url 'student_certifications' %}" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 text-slate-700 hover:bg-white transition">
+          <a href="{% url 'student_certifications' %}" class="block rounded-xl px-4 py-3 text-sm text-black font-semibold text-gray-700 text-slate-700 hover:bg-white transition">
             <i class="fas fa-certificate mr-2 text-amber-600"></i> Certifications
           </a>
         {% endif %}
 
         {% if user.is_staff %}
-          <a href="{% url 'dashboard_home' %}" class="block rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 text-slate-700 hover:bg-white transition">
+          <a href="{% url 'dashboard_home' %}" class="block rounded-xl px-4 py-3 text-sm text-black font-semibold text-gray-700 text-slate-700 hover:bg-white transition">
             <i class="fas fa-screwdriver-wrench mr-2 text-slate-500"></i> Admin
           </a>
         {% endif %}
 
-        <a href="{% url 'logout' %}" class="block rounded-xl px-4 py-3 text-sm font-extrabold text-white bg-coral-cta shadow-lg shadow-coral-cta/20">
+        <a href="{% url 'logout' %}" class="block rounded-xl px-4 py-3 text-sm text-black font-extrabold text-white bg-coral-cta shadow-lg shadow-coral-cta/20">
           Log out <i class="fas fa-arrow-right ml-2 text-xs"></i>
         </a>
       </div>
@@ -192,7 +192,7 @@
         <h3 class="text-xl font-extrabold tracking-tight text-ink-deep" id="student-preloader-text">
           Processing…
         </h3>
-        <p class="mt-2 text-sm text-slate-600">Please wait</p>
+        <p class="mt-2 text-sm text-black text-slate-600">Please wait</p>
 
         <div class="mt-6 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
           <div class="h-full w-1/2 rounded-full bg-gradient-to-r from-teal-soft to-blue-soft animate-pulse"></div>
@@ -265,10 +265,10 @@
     <div id="coach-messages" class="flex-1 overflow-y-auto p-5 space-y-4">
       <div class="flex items-start gap-3">
         <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-teal-soft to-blue-soft flex items-center justify-center flex-shrink-0">
-          <i class="fas fa-brain text-white text-sm"></i>
+          <i class="fas fa-brain text-white text-sm text-black"></i>
         </div>
         <div class="flex-1 rounded-3xl rounded-tl-xl border border-slate-200 bg-white/80 px-4 py-3 shadow-sm shadow-slate-900/5">
-          <p class="text-sm text-slate-700 leading-relaxed">
+          <p class="text-sm text-black text-slate-700 leading-relaxed">
             Hi! I’m your Lesson Coach. Ask anything about your lesson, or use a shortcut below.
           </p>
           <div class="text-[10px] text-slate-400 mt-2">Just now</div>
@@ -278,20 +278,20 @@
       <div id="coach-quick-suggestions" class="space-y-2 ml-12">
         <button onclick="sendQuickAction('5-bullet summary')" class="w-full text-left rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 hover:bg-white transition">
           <div class="flex items-center gap-2">
-            <i class="fas fa-list text-blue-soft text-sm"></i>
-            <span class="text-sm font-semibold text-gray-700 text-slate-700">5-bullet summary</span>
+            <i class="fas fa-list text-blue-soft text-sm text-black"></i>
+            <span class="text-sm text-black font-semibold text-gray-700 text-slate-700">5-bullet summary</span>
           </div>
         </button>
         <button onclick="sendQuickAction('3-step action plan')" class="w-full text-left rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 hover:bg-white transition">
           <div class="flex items-center gap-2">
-            <i class="fas fa-list-check text-black text-sm"></i>
-            <span class="text-sm font-semibold text-gray-700 text-slate-700">3-step action plan</span>
+            <i class="fas fa-list-check text-black text-sm text-black"></i>
+            <span class="text-sm text-black font-semibold text-gray-700 text-slate-700">3-step action plan</span>
           </div>
         </button>
         <button onclick="sendQuickAction('Delegation guide')" class="w-full text-left rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 hover:bg-white transition">
           <div class="flex items-center gap-2">
-            <i class="fas fa-users text-slate-600 text-sm"></i>
-            <span class="text-sm font-semibold text-gray-700 text-slate-700">Delegation guide</span>
+            <i class="fas fa-users text-slate-600 text-sm text-black"></i>
+            <span class="text-sm text-black font-semibold text-gray-700 text-slate-700">Delegation guide</span>
           </div>
         </button>
       </div>
@@ -304,7 +304,7 @@
           id="coach-input"
           rows="1"
           placeholder="Ask me anything…"
-          class="flex-1 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 resize-none focus-ring"
+          class="flex-1 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-black text-slate-800 placeholder:text-slate-400 resize-none focus-ring"
           style="min-height: 46px; max-height: 140px;"
           onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendCoachMessage(); }"
         ></textarea>
@@ -356,7 +356,7 @@
       userMessage.className = 'flex items-start gap-3 justify-end';
       userMessage.innerHTML = `
         <div class="max-w-[85%] rounded-3xl rounded-tr-xl border border-blue-soft/20 bg-blue-soft/10 px-4 py-3">
-          <p class="text-sm text-slate-800 leading-relaxed">${escapeHtml(messageText)}</p>
+          <p class="text-sm text-black text-slate-800 leading-relaxed">${escapeHtml(messageText)}</p>
         </div>
       `;
       messagesContainer.appendChild(userMessage);
@@ -371,12 +371,12 @@
       thinking.className = 'flex items-start gap-3';
       thinking.innerHTML = `
         <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-teal-soft to-blue-soft flex items-center justify-center flex-shrink-0">
-          <i class="fas fa-brain text-white text-sm"></i>
+          <i class="fas fa-brain text-white text-sm text-black"></i>
         </div>
         <div class="flex-1 rounded-3xl rounded-tl-xl border border-slate-200 bg-white/80 px-4 py-3 shadow-sm shadow-slate-900/5">
           <div class="flex items-center gap-2 text-slate-600">
             <i class="fas fa-spinner fa-spin text-blue-soft"></i>
-            <p class="text-sm font-semibold text-gray-700">Thinking…</p>
+            <p class="text-sm text-black font-semibold text-gray-700">Thinking…</p>
           </div>
         </div>
       `;
@@ -386,10 +386,10 @@
       setTimeout(() => {
         thinking.innerHTML = `
           <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-teal-soft to-blue-soft flex items-center justify-center flex-shrink-0">
-            <i class="fas fa-brain text-white text-sm"></i>
+            <i class="fas fa-brain text-white text-sm text-black"></i>
           </div>
           <div class="flex-1 rounded-3xl rounded-tl-xl border border-slate-200 bg-white/80 px-4 py-3 shadow-sm shadow-slate-900/5">
-            <p class="text-sm text-slate-700 leading-relaxed">
+            <p class="text-sm text-black text-slate-700 leading-relaxed">
               I’m ready when you connect me to your AI backend. For now, this is a placeholder response.
             </p>
             <div class="text-[10px] text-slate-400 mt-2">Just now</div>

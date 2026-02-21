@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Certificate Verification - Fluentory{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-teal-50 to-white py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="inline-block p-4 bg-teal-100 rounded-full mb-4">
+                <i class="fas fa-certificate text-4xl text-teal-700"></i>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">Certificate Verification</h1>
+            <p class="text-gray-600">Verify the authenticity of a Fluentory certificate</p>
+        </div>
+
+        <!-- Verification Result Card -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            {% if valid %}
+                <!-- Valid Certificate -->
+                <div class="bg-gradient-to-r from-green-500 to-green-600 p-6">
+                    <div class="flex items-center justify-center space-x-3">
+                        <i class="fas fa-check-circle text-4xl text-white"></i>
+                        <h2 class="text-2xl font-bold text-white">Certificate Verified ✓</h2>
+                    </div>
+                </div>
+                
+                <div class="p-8">
+                    <div class="space-y-6">
+                        <!-- Certificate Details -->
+                        <div class="border-b border-gray-200 pb-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Certificate Details</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm text-gray-500 mb-1">Certificate ID</p>
+                                    <p class="font-mono text-sm font-semibold text-gray-900">{{ certificate_id }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500 mb-1">Status</p>
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-check-circle mr-2"></i>Valid
+                                    </span>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500 mb-1">Student Name</p>
+                                    <p class="font-semibold text-gray-900">{{ student_name }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500 mb-1">Course</p>
+                                    <p class="font-semibold text-gray-900">{{ course_name }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-500 mb-1">Date Issued</p>
+                                    <p class="font-semibold text-gray-900">{{ issued_date|date:"F d, Y" }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Verification Info -->
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-blue-600 mt-1 mr-3"></i>
+                                <div>
+                                    <p class="text-sm text-blue-900 font-medium mb-1">Certificate Verified</p>
+                                    <p class="text-sm text-blue-700">
+                                        This certificate has been verified and is authentic. The student has successfully completed the course and earned this certification.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Invalid Certificate -->
+                <div class="bg-gradient-to-r from-red-500 to-red-600 p-6">
+                    <div class="flex items-center justify-center space-x-3">
+                        <i class="fas fa-times-circle text-4xl text-white"></i>
+                        <h2 class="text-2xl font-bold text-white">Certificate Not Verified ✗</h2>
+                    </div>
+                </div>
+                
+                <div class="p-8">
+                    <div class="space-y-6">
+                        <!-- Error Message -->
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle text-red-600 mt-1 mr-3"></i>
+                                <div>
+                                    <p class="text-sm text-red-900 font-medium mb-1">Verification Failed</p>
+                                    <p class="text-sm text-red-700">
+                                        {% if error %}
+                                            {{ error }}
+                                        {% else %}
+                                            This certificate could not be verified. Please check the certificate ID and try again.
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if certificate_id %}
+                        <div class="border-b border-gray-200 pb-4">
+                            <p class="text-sm text-gray-500 mb-1">Certificate ID Provided</p>
+                            <p class="font-mono text-sm text-gray-900">{{ certificate_id }}</p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Help Text -->
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                            <p class="text-sm text-gray-700">
+                                <strong>Possible reasons:</strong>
+                            </p>
+                            <ul class="text-sm text-gray-600 mt-2 list-disc list-inside space-y-1">
+                                <li>The certificate ID may be incorrect</li>
+                                <li>The certificate may not exist in our records</li>
+                                <li>The certificate may have been revoked</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Footer Actions -->
+            <div class="bg-gray-50 px-8 py-6 border-t border-gray-200">
+                <div class="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+                    <a href="{% url 'landing' %}" class="text-teal-700 hover:text-teal-800 font-medium">
+                        <i class="fas fa-home mr-2"></i>Return to Home
+                    </a>
+                    <div class="text-sm text-gray-500">
+                        <i class="fas fa-shield-alt mr-2"></i>Secure Verification System
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="mt-8 text-center">
+            <p class="text-sm text-gray-600">
+                Need help? <a href="{% url 'landing' %}" class="text-teal-700 hover:text-teal-800 font-medium">Contact Support</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

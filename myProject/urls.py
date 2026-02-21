@@ -28,6 +28,7 @@ urlpatterns = [
     path('my-dashboard/course/<slug:course_slug>/', views.student_course_progress, name='student_course_progress'),
     path('my-certifications/', views.student_certifications, name='student_certifications'),
     path('certificate/<slug:course_slug>/', views.view_certificate, name='view_certificate'),
+    path('verify-certificate/<str:certificate_id>/', views.verify_certificate, name='verify_certificate'),
     
     # Dashboard URLs (Admin-facing, for developers)
     path('dashboard/', dashboard_views.dashboard_home, name='dashboard_home'),
@@ -37,6 +38,8 @@ urlpatterns = [
     path('dashboard/courses/<slug:course_slug>/', dashboard_views.dashboard_course_detail, name='dashboard_course_detail'),
     path('dashboard/courses/<slug:course_slug>/delete/', dashboard_views.dashboard_delete_course, name='dashboard_delete_course'),
     path('dashboard/courses/<slug:course_slug>/lessons/', dashboard_views.dashboard_course_lessons, name='dashboard_course_lessons'),
+    path('dashboard/courses/<slug:course_slug>/sample-certificate/', dashboard_views.dashboard_sample_certificate, name='dashboard_sample_certificate'),
+    path('dashboard/courses/<slug:course_slug>/edit-certificate-template/', dashboard_views.dashboard_edit_certificate_template, name='dashboard_edit_certificate_template'),
     path('dashboard/courses/<slug:course_slug>/upload-pdf/', views.upload_pdf_lessons, name='dashboard_upload_pdf_lessons'),
     path('dashboard/courses/<slug:course_slug>/clear-lessons/', views.clear_course_lessons, name='dashboard_clear_course_lessons'),
     path('dashboard/lessons/', dashboard_views.dashboard_lessons, name='dashboard_lessons'),

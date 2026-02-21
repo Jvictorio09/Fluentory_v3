@@ -1,0 +1,332 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Edit Certificate Template - {{ course.name }}{% endblock %}
+{% block page_title %}Edit Certificate Template{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'dashboard_course_detail' course.slug %}" class="text-teal-700 hover:text-teal-800 text-sm text-black mb-4 inline-block">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Course
+    </a>
+</div>
+
+<div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
+    <h2 class="text-2xl font-bold mb-4 text-black">{{ course.name }} - Certificate Template Editor</h2>
+    
+    <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <p class="text-sm text-black text-blue-800">
+            <i class="fas fa-info-circle mr-2"></i>
+            <strong>Instructions:</strong> Drag the text fields below to position them on your certificate template. 
+            The positions will be saved and used when generating certificates.
+        </p>
+    </div>
+    
+    <!-- PDF Preview Container -->
+    <div class="mb-6 relative bg-gray-100 rounded-lg overflow-hidden" style="min-height: 600px;">
+        <div class="relative w-full" style="padding-bottom: 70.71%;"> <!-- Aspect ratio for A4 landscape -->
+            <iframe 
+                id="pdf-preview" 
+                src="{{ template_url }}#toolbar=0&navpanes=0&scrollbar=0" 
+                class="absolute inset-0 w-full h-full border-0"
+                style="background: white;">
+            </iframe>
+            
+            <!-- Draggable Field Overlays Container -->
+            <div id="field-overlays" class="absolute inset-0" style="pointer-events: none;">
+                <!-- Draggable fields will be positioned here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Field Controls -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="field-control" data-field="student_name">
+            <label class="block text-sm text-black font-semibold text-gray-700 mb-2">
+                <i class="fas fa-user mr-1"></i> Student Name
+            </label>
+            <div class="p-3 bg-white border-2 border-blue-500 rounded-lg cursor-move draggable-field" 
+                 data-field="student_name" 
+                 style="position: relative;">
+                <span class="text-sm text-black font-medium">John Doe</span>
+                <button type="button" class="ml-2 text-xs text-gray-500 hover:text-gray-700" onclick="centerField('student_name')">
+                    <i class="fas fa-crosshairs"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="field-control" data-field="course_name">
+            <label class="block text-sm text-black font-semibold text-gray-700 mb-2">
+                <i class="fas fa-book mr-1"></i> Course Name
+            </label>
+            <div class="p-3 bg-white border-2 border-green-500 rounded-lg cursor-move draggable-field" 
+                 data-field="course_name"
+                 style="position: relative;">
+                <span class="text-sm text-black font-medium">{{ course.name }}</span>
+                <button type="button" class="ml-2 text-xs text-gray-500 hover:text-gray-700" onclick="centerField('course_name')">
+                    <i class="fas fa-crosshairs"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="field-control" data-field="date">
+            <label class="block text-sm text-black font-semibold text-gray-700 mb-2">
+                <i class="fas fa-calendar mr-1"></i> Date
+            </label>
+            <div class="p-3 bg-white border-2 border-purple-500 rounded-lg cursor-move draggable-field" 
+                 data-field="date"
+                 style="position: relative;">
+                <span class="text-sm text-black font-medium">February 21, 2026</span>
+                <button type="button" class="ml-2 text-xs text-gray-500 hover:text-gray-700" onclick="centerField('date')">
+                    <i class="fas fa-crosshairs"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="field-control" data-field="certificate_id">
+            <label class="block text-sm text-black font-semibold text-gray-700 mb-2">
+                <i class="fas fa-id-card mr-1"></i> Certificate ID
+            </label>
+            <div class="p-3 bg-white border-2 border-orange-500 rounded-lg cursor-move draggable-field" 
+                 data-field="certificate_id"
+                 style="position: relative;">
+                <span class="text-sm text-black font-medium">CERT-12345</span>
+                <button type="button" class="ml-2 text-xs text-gray-500 hover:text-gray-700" onclick="centerField('certificate_id')">
+                    <i class="fas fa-crosshairs"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Save Button -->
+    <form method="POST" id="save-positions-form">
+        {% csrf_token %}
+        <input type="hidden" name="field_positions" id="field-positions-input">
+        <div class="flex gap-4">
+            <button type="submit" class="px-6 py-3 bg-teal-soft text-white rounded-full font-bold hover:bg-teal-soft/90 transition-all">
+                <i class="fas fa-save mr-2"></i> Save Positions
+            </button>
+            <a href="{% url 'dashboard_sample_certificate' course.slug %}" target="_blank" class="px-6 py-3 bg-yellow-500 text-white rounded-full font-bold hover:bg-yellow-600 transition-all">
+                <i class="fas fa-eye mr-2"></i> Preview Certificate
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+// Field positions (will be loaded from server or use defaults)
+let fieldPositions = {{ field_positions|safe }};
+if (typeof fieldPositions === 'string') {
+    fieldPositions = JSON.parse(fieldPositions);
+}
+if (!fieldPositions || Object.keys(fieldPositions).length === 0) {
+    fieldPositions = {};
+}
+const fields = ['student_name', 'course_name', 'date', 'certificate_id'];
+
+// Initialize default positions if not set
+function initDefaultPositions() {
+    const container = document.getElementById('field-overlays');
+    const rect = container.getBoundingClientRect();
+    
+    fields.forEach((field, index) => {
+        if (!fieldPositions[field]) {
+            fieldPositions[field] = {
+                x: rect.width / 2,
+                y: rect.height * (0.6 - index * 0.15)
+            };
+        }
+    });
+}
+
+// Initialize draggable fields
+function initDraggableFields() {
+    initDefaultPositions();
+    
+    const container = document.getElementById('field-overlays');
+    const containerRect = container.getBoundingClientRect();
+    container.style.pointerEvents = 'auto';
+    
+    // Field colors
+    const fieldColors = {
+        'student_name': 'blue',
+        'course_name': 'green',
+        'date': 'purple',
+        'certificate_id': 'orange'
+    };
+    
+    // Create overlay elements for each field
+    fields.forEach(field => {
+        // Get position (convert from percentage or use pixel values)
+        let x = fieldPositions[field]?.x || containerRect.width / 2;
+        let y = fieldPositions[field]?.y || containerRect.height * (0.6 - fields.indexOf(field) * 0.15);
+        
+        // If positions are in percentage, convert to pixels
+        if (x < 1 && y < 1) {
+            x = x * containerRect.width;
+            y = y * containerRect.height;
+        }
+        
+        const overlay = document.createElement('div');
+        overlay.id = `overlay-${field}`;
+        overlay.className = 'absolute draggable-overlay cursor-move';
+        overlay.style.left = x + 'px';
+        overlay.style.top = y + 'px';
+        overlay.style.transform = 'translate(-50%, -50%)';
+        overlay.style.zIndex = '1000';
+        overlay.dataset.field = field;
+        
+        // Create field display
+        const fieldLabel = field.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+        overlay.innerHTML = `
+            <div class="px-3 py-2 bg-white border-2 border-${fieldColors[field]}-500 rounded-lg shadow-lg">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold text-${fieldColors[field]}-700">${fieldLabel}</span>
+                    <button type="button" class="text-xs text-gray-500 hover:text-gray-700" onclick="centerField('${field}')" title="Center field">
+                        <i class="fas fa-crosshairs"></i>
+                    </button>
+                </div>
+                <div class="text-xs text-gray-600 mt-1">
+                    ${getFieldPreview(field)}
+                </div>
+            </div>
+        `;
+        
+        // Make it draggable
+        makeDraggable(overlay, field);
+        
+        container.appendChild(overlay);
+    });
+}
+
+// Get preview text for field
+function getFieldPreview(field) {
+    const previews = {
+        'student_name': 'John Doe',
+        'course_name': '{{ course.name|truncatewords:5 }}',
+        'date': 'February 21, 2026',
+        'certificate_id': 'CERT-12345'
+    };
+    return previews[field] || '';
+}
+
+// Make element draggable
+function makeDraggable(element, fieldName) {
+    let isDragging = false;
+    let offsetX = 0, offsetY = 0;
+    
+    element.addEventListener('mousedown', (e) => {
+        if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+        
+        e.preventDefault();
+        isDragging = true;
+        const rect = element.getBoundingClientRect();
+        const container = document.getElementById('field-overlays');
+        const containerRect = container.getBoundingClientRect();
+        
+        // Calculate offset from mouse to element center
+        offsetX = e.clientX - (rect.left + rect.width / 2);
+        offsetY = e.clientY - (rect.top + rect.height / 2);
+        
+        element.style.cursor = 'grabbing';
+        element.style.opacity = '0.8';
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        
+        e.preventDefault();
+        const container = document.getElementById('field-overlays');
+        const containerRect = container.getBoundingClientRect();
+        
+        // Calculate new position relative to container
+        let currentX = e.clientX - containerRect.left - offsetX;
+        let currentY = e.clientY - containerRect.top - offsetY;
+        
+        // Constrain to container bounds
+        currentX = Math.max(0, Math.min(currentX, containerRect.width));
+        currentY = Math.max(0, Math.min(currentY, containerRect.height));
+        
+        element.style.left = currentX + 'px';
+        element.style.top = currentY + 'px';
+        
+        // Update position (store as pixels relative to container)
+        fieldPositions[fieldName] = { 
+            x: currentX, 
+            y: currentY,
+            // Also store as percentage for scaling
+            xPercent: (currentX / containerRect.width) * 100,
+            yPercent: (currentY / containerRect.height) * 100
+        };
+    });
+    
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            element.style.cursor = 'grab';
+            element.style.opacity = '1';
+        }
+    });
+}
+
+// Center a field
+function centerField(fieldName) {
+    const container = document.getElementById('field-overlays');
+    const rect = container.getBoundingClientRect();
+    const overlay = document.getElementById(`overlay-${fieldName}`);
+    
+    if (overlay) {
+        const x = rect.width / 2;
+        const y = rect.height / 2;
+        overlay.style.left = x + 'px';
+        overlay.style.top = y + 'px';
+        fieldPositions[fieldName] = { 
+            x, 
+            y,
+            xPercent: 50,
+            yPercent: 50
+        };
+    }
+}
+
+// Save positions
+document.getElementById('save-positions-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    document.getElementById('field-positions-input').value = JSON.stringify(fieldPositions);
+    e.target.submit();
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+    // Wait a bit for iframe to render, then initialize
+    setTimeout(() => {
+        initDraggableFields();
+    }, 1000);
+    
+    // Also try when iframe loads
+    const iframe = document.getElementById('pdf-preview');
+    iframe.addEventListener('load', () => {
+        setTimeout(initDraggableFields, 500);
+    });
+});
+</script>
+
+<style>
+.draggable-overlay {
+    user-select: none;
+    cursor: grab;
+}
+
+.draggable-overlay:active {
+    cursor: grabbing;
+}
+
+.field-control .draggable-field {
+    transition: transform 0.2s;
+}
+
+.field-control .draggable-field:hover {
+    transform: scale(1.05);
+}
+</style>
+{% endblock %}
+

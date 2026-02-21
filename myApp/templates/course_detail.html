@@ -32,7 +32,7 @@
                     <div id="youtube-error" class="hidden absolute inset-0 flex items-center justify-center bg-gray-900 text-white p-4">
                         <div class="text-center">
                             <p class="text-lg font-semibold mb-2">Video cannot be embedded</p>
-                            <p class="text-sm mb-4">Please check that the video allows embedding in its privacy settings.</p>
+                            <p class="text-sm text-black mb-4">Please check that the video allows embedding in its privacy settings.</p>
                             <a href="{{ course.preview_video_url }}" target="_blank" class="text-teal-soft hover:text-teal-400 underline">Watch on YouTube</a>
                         </div>
                     </div>
@@ -75,7 +75,7 @@
                             {{ module.name }}
                         </h3>
                         {% if module.description %}
-                        <p class="text-sm text-gray-600 mb-3 ml-7">{{ module.description }}</p>
+                        <p class="text-sm text-black text-gray-600 mb-3 ml-7">{{ module.description }}</p>
                         {% endif %}
                         
                         <div class="space-y-2 ml-7">
@@ -114,7 +114,7 @@
                     </div>
                 {% endif %}
 
-                <div class="mt-6 pt-6 border-t border-gray-200 flex items-center gap-4 text-sm text-gray-600">
+                <div class="mt-6 pt-6 border-t border-gray-200 flex items-center gap-4 text-sm text-black text-gray-600">
                     <span><i class="fas fa-video mr-2"></i>{{ course.get_lesson_count }} lessons</span>
                     {% if course.modules.exists %}
                     <span><i class="fas fa-folder mr-2"></i>{{ course.modules.count }} modules</span>
@@ -135,7 +135,7 @@
                         <p class="text-3xl font-bold text-teal-soft mb-4">
                             {{ course.price|floatformat:2 }} {{ course.currency }}
                         </p>
-                        <p class="text-sm text-gray-700 mb-6">One-time payment • Lifetime access to all lessons, quizzes, and certificates</p>
+                        <p class="text-sm text-black text-gray-700 mb-6">One-time payment • Lifetime access to all lessons, quizzes, and certificates</p>
                     </div>
                     
                     {% if user.is_authenticated %}
@@ -161,7 +161,7 @@
                 <!-- Course Features -->
                 <div class="mt-8 pt-8 border-t border-gray-200">
                     <h3 class="font-semibold text-gray-800 mb-4">What's Included</h3>
-                    <ul class="space-y-3 text-sm text-gray-700">
+                    <ul class="space-y-3 text-sm text-black text-gray-700">
                         <li class="flex items-start gap-2">
                             <i class="fas fa-check-circle text-teal-soft mt-0.5"></i>
                             <span>{{ course.get_lesson_count }} video lessons</span>

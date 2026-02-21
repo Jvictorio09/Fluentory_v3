@@ -7,7 +7,7 @@
 <div class="mb-8">
     <div class="flex items-center justify-between mb-6">
         <div>
-            <a href="{% url 'dashboard_course_detail' course.slug %}" class="text-teal-700 hover:text-teal-800 text-sm mb-2 inline-block">
+            <a href="{% url 'dashboard_course_detail' course.slug %}" class="text-teal-700 hover:text-teal-800 text-sm text-black mb-2 inline-block">
                 <i class="fas fa-arrow-left mr-2"></i> Back to Course
             </a>
             <h1 class="text-3xl font-bold mb-2 text-black">{{ course.name }}</h1>
@@ -30,7 +30,7 @@
                     </div>
                     <div>
                         <h2 class="text-2xl font-bold text-black">Upload PDF Lessons</h2>
-                        <p class="text-black text-sm mt-1">Upload PDF files and let AI generate structured lesson content automatically</p>
+                        <p class="text-black text-sm text-black mt-1">Upload PDF files and let AI generate structured lesson content automatically</p>
                     </div>
                 </div>
             </div>
@@ -55,7 +55,7 @@
                     </div>
                     <div class="flex-1">
                         <div class="font-semibold text-gray-700">{{ lesson.title }}</div>
-                        <div class="text-sm text-gray-700 flex items-center gap-4 mt-1">
+                        <div class="text-sm text-black text-gray-700 flex items-center gap-4 mt-1">
                             <span><i class="fas fa-clock mr-1"></i> {{ lesson.get_formatted_duration }}</span>
                             {% if lesson.vimeo_id %}
                             <span class="text-gray-700"><i class="fas fa-check-circle mr-1"></i> Video Ready</span>
@@ -70,12 +70,12 @@
                     </span>
                 </div>
                 <div class="flex gap-2 ml-4">
-                    <a href="{% url 'dashboard_edit_lesson' lesson.id %}" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm font-medium hover:bg-teal-soft/20 transition-all text-black">
+                    <a href="{% url 'dashboard_edit_lesson' lesson.id %}" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm text-black font-medium hover:bg-teal-soft/20 transition-all text-black">
                         Edit
                     </a>
                     <form method="POST" action="{% url 'dashboard_delete_lesson' lesson.id %}" class="inline" onsubmit="return confirm('Are you sure you want to delete \"{{ lesson.title }}\"? This will also delete all related progress, quiz data, and other associated information. This action cannot be undone.');">
                         {% csrf_token %}
-                        <button type="submit" class="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-sm font-medium hover:bg-red-500/20 transition-all text-red-400">
+                        <button type="submit" class="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-black font-medium hover:bg-red-500/20 transition-all text-red-400">
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>
@@ -97,7 +97,7 @@
                     </div>
                     <div class="flex-1">
                         <div class="font-semibold text-gray-700">{{ lesson.title }}</div>
-                        <div class="text-sm text-gray-700 flex items-center gap-4 mt-1">
+                        <div class="text-sm text-black text-gray-700 flex items-center gap-4 mt-1">
                             <span><i class="fas fa-clock mr-1"></i> {{ lesson.get_formatted_duration }}</span>
                             {% if lesson.vimeo_id %}
                             <span class="text-gray-700"><i class="fas fa-check-circle mr-1"></i> Video Ready</span>
@@ -112,12 +112,12 @@
                     </span>
                 </div>
                 <div class="flex gap-2 ml-4">
-                    <a href="{% url 'dashboard_edit_lesson' lesson.id %}" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm font-medium hover:bg-teal-soft/20 transition-all text-black">
+                    <a href="{% url 'dashboard_edit_lesson' lesson.id %}" class="px-4 py-2 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-sm text-black font-medium hover:bg-teal-soft/20 transition-all text-black">
                         Edit
                     </a>
                     <form method="POST" action="{% url 'dashboard_delete_lesson' lesson.id %}" class="inline" onsubmit="return confirm('Are you sure you want to delete \"{{ lesson.title }}\"? This will also delete all related progress, quiz data, and other associated information. This action cannot be undone.');">
                         {% csrf_token %}
-                        <button type="submit" class="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-sm font-medium hover:bg-red-500/20 transition-all text-red-400">
+                        <button type="submit" class="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-sm text-black font-medium hover:bg-red-500/20 transition-all text-red-400">
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>

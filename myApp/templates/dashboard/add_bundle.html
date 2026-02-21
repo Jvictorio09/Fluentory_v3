@@ -6,7 +6,7 @@
 {% block content %}
 <div class="max-w-4xl mx-auto">
     <div class="mb-6">
-        <a href="{% url 'dashboard_bundles' %}" class="text-blue-soft hover:text-blue-soft/80 text-sm mb-4 inline-block">
+        <a href="{% url 'dashboard_bundles' %}" class="text-blue-soft hover:text-blue-soft/80 text-sm text-black mb-4 inline-block">
             <i class="fas fa-arrow-left mr-2"></i> Back to Bundles
         </a>
     </div>
@@ -17,18 +17,18 @@
             {% csrf_token %}
             <div class="space-y-6">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Bundle Name *</label>
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Bundle Name *</label>
                     <input type="text" name="name" required class="w-full bg-[#ffffff]/40 border border-blue-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-soft/50 text-gray-800 placeholder-gray-500" placeholder="e.g., Black Friday 2025 Bundle">
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Description</label>
                     <textarea name="description" rows="4" class="w-full bg-[#ffffff]/40 border border-blue-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-soft/50 resize-none text-gray-800 placeholder-gray-500" placeholder="Describe what's included in this bundle..."></textarea>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Bundle Type *</label>
+                        <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Bundle Type *</label>
                         <select name="bundle_type" required class="w-full bg-[#ffffff]/40 border border-blue-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-soft/50 text-gray-800">
                             <option value="fixed" class="text-gray-800">Fixed Bundle (curated set)</option>
                             <option value="pick_your_own" class="text-gray-800">Pick Your Own (choose N courses)</option>
@@ -37,13 +37,13 @@
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Price (optional)</label>
+                        <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Price (optional)</label>
                         <input type="number" name="price" step="0.01" min="0" class="w-full bg-[#ffffff]/40 border border-blue-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-soft/50 text-gray-800 placeholder-gray-500" placeholder="0.00">
                     </div>
                 </div>
                 
                 <div id="max-selections-field" style="display: none;">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Max Course Selections</label>
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Max Course Selections</label>
                     <input type="number" name="max_course_selections" min="1" class="w-full bg-[#ffffff]/40 border border-blue-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-soft/50 text-gray-800 placeholder-gray-500" placeholder="Number of courses student can choose">
                     <p class="text-xs text-gray-600 mt-1">Only required for "Pick Your Own" bundles</p>
                 </div>
@@ -51,21 +51,21 @@
                 <div>
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" name="is_active" checked class="rounded border-blue-soft/30 text-blue-soft focus:ring-blue-soft">
-                        <span class="text-sm font-semibold text-gray-700">Active (bundle is available for purchase)</span>
+                        <span class="text-sm text-black font-semibold text-gray-700">Active (bundle is available for purchase)</span>
                     </label>
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Select Courses *</label>
+                    <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Select Courses *</label>
                     <div class="bg-[#ffffff]/40 border border-blue-soft/20 rounded-lg p-4 max-h-64 overflow-y-auto">
                         <div class="space-y-2">
                             {% for course in courses %}
                             <label class="flex items-center gap-2 cursor-pointer hover:bg-blue-soft/5 p-2 rounded">
                                 <input type="checkbox" name="courses" value="{{ course.id }}" class="rounded border-blue-soft/30 text-blue-soft focus:ring-blue-soft">
-                                <span class="text-sm text-gray-800">{{ course.name }}</span>
+                                <span class="text-sm text-black text-gray-800">{{ course.name }}</span>
                             </label>
                             {% empty %}
-                            <p class="text-sm text-gray-600">No active courses available. Create courses first.</p>
+                            <p class="text-sm text-black text-gray-600">No active courses available. Create courses first.</p>
                             {% endfor %}
                         </div>
                     </div>
