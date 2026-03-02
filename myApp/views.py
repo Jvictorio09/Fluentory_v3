@@ -46,6 +46,14 @@ def landing(request):
         'courses': courses,
     })
 
+def v3_landing(request):
+    """V3 Premium landing page view"""
+    # Get featured courses for the landing page (exclude Tawjehi courses)
+    courses = Course.objects.filter(status='active', visibility='public').exclude(course_type='tawjehi')[:6]
+    return render(request, 'v3_landing/index.html', {
+        'courses': courses,
+    })
+
 def tawjehi_page(request):
     """Tawjehi exam preparation courses page"""
     # Get only Tawjehi courses

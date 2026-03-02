@@ -8,7 +8,8 @@ from myApp import teacher_views
 
 urlpatterns = [
     # Public-facing URLs
-    path('', views.landing, name='landing'),
+    path('v1/', views.landing, name='landing'),
+    path('', views.v3_landing, name='v3_landing'),
     path('home/', views.home, name='home'),
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),

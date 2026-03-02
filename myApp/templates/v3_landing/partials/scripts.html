@@ -1,0 +1,21 @@
+<script>
+  window.addEventListener('scroll', () => {
+    document.getElementById('nav').classList.toggle('shadow', window.scrollY > 20);
+  });
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+  }, { threshold: 0.1, rootMargin: '0px 0px -48px 0px' });
+  document.querySelectorAll('.fade').forEach(el => obs.observe(el));
+
+  function toggleFaq(btn) {
+    const item = btn.closest('.fi');
+    const body = item.querySelector('.fi-body');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.fi.open').forEach(i => {
+      i.classList.remove('open');
+      i.querySelector('.fi-body').style.display = 'none';
+    });
+    if (!isOpen) { item.classList.add('open'); body.style.display = 'block'; }
+  }
+</script>
+

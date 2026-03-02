@@ -1,0 +1,29 @@
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-inner">
+    <a href="{% url 'v3_landing' %}" class="nav-logo">
+      <img 
+        src="https://res.cloudinary.com/dwooadxdj/image/upload/v1771294639/copy_of_copy_of_fluentory_-_branding-05_ijgdpz_a6f568_7b4fc3.png" 
+        alt="Fluentory Logo" 
+        style="height: 34px; width: auto; object-fit: contain;"
+      >
+     
+    </a>
+    <div class="nav-links">
+      <a href="#hiw">How It Works</a>
+      <a href="#courses">Courses</a>
+      <a href="{% url 'tawjehi_page' %}">Tawjehi</a>
+      <a href="#stories">Stories</a>
+      <a href="#faq">FAQ</a>
+      <a href="mailto:Fluentory.me@gmail.com">Contact</a>
+    </div>
+    <div class="nav-actions">
+      <a href="{% url 'login' %}" class="btn-ghost">Login</a>
+      <a href="{% url 'register' %}" class="btn-teal"><i class="fa-solid fa-play" style="font-size:10px"></i> Free Demo</a>
+    </div>
+    <div class="mobile-tog" onclick="">
+      <i class="fa-solid fa-bars" style="color:var(--navy)"></i>
+    </div>
+  </div>
+</nav>
+
