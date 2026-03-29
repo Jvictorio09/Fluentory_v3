@@ -13,28 +13,44 @@
             </a>
             <h1 class="text-4xl font-bold mb-2">{{ course.name }}</h1>
             <p class="text-gray-700">{{ course.short_description }}</p>
+            {% if course.delivery_type == 'live' %}
+            <p class="mt-2 text-sm font-medium text-teal-800">
+                <i class="fas fa-video mr-1"></i> Live course
+            </p>
+            {% endif %}
         </div>
     </div>
 
     <!-- Course Progress Overview -->
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <div class="flex items-center justify-between mb-4">
-            <span class="font-semibold text-gray-700 text-lg">Course Progress</span>
+            <span class="font-semibold text-gray-700 text-lg">Course progress</span>
             <span class="text-black font-bold text-2xl">{{ progress_percentage }}%</span>
         </div>
         <div class="w-full bg-[#f8fafc] rounded-full h-4 overflow-hidden mb-4">
             <div class="h-full bg-gradient-to-r from-teal-soft to-blue-soft transition-all duration-500" style="width: {{ progress_percentage }}%"></div>
         </div>
-        <div class="flex items-center gap-6 text-sm text-black">
+        <div class="flex flex-wrap items-center gap-6 text-sm text-black">
             <div class="flex items-center gap-2">
                 <i class="fas fa-check-circle text-gray-700"></i>
-                <span>{{ completed_lessons }}/{{ total_lessons }} Lessons Completed</span>
+                {% if use_session_progress %}
+                <span>{{ attended_sessions }}/{{ total_live_sessions }} live session{{ total_live_sessions|pluralize }} attended</span>
+                {% elif total_lessons %}
+                <span>{{ completed_lessons }}/{{ total_lessons }} lesson{{ total_lessons|pluralize }} completed</span>
+                {% elif total_live_sessions %}
+                <span>{{ attended_sessions }}/{{ total_live_sessions }} live session{{ total_live_sessions|pluralize }} attended</span>
+                {% else %}
+                <span class="text-gray-500">No lessons or live sessions to track yet</span>
+                {% endif %}
             </div>
             <div class="flex items-center gap-2">
                 <i class="fas fa-calendar text-black"></i>
                 <span>Enrolled: {{ enrollment.enrolled_at|date:"M d, Y" }}</span>
             </div>
         </div>
+        {% if course.delivery_type == 'live' and total_live_sessions and not use_session_progress and total_lessons %}
+        <p class="mt-3 text-xs text-gray-600">Progress is based on video lessons. Live sessions are listed below.</p>
+        {% endif %}
     </div>
 
     <!-- Exam & Certification Section -->
@@ -90,6 +106,8 @@
                 <p class="text-sm text-black text-gray-700">
                     {% if enrollment.payment_type == 'installment' %}
                     Exam unlocks {{ enrollment.days_until_exam }} days after enrollment
+                    {% elif course.delivery_type == 'live' and not total_lessons %}
+                    Complete your live sessions (or meet your instructor’s requirements) to unlock the exam
                     {% else %}
                     Complete all lessons to unlock the exam
                     {% endif %}
@@ -137,9 +155,141 @@
     </div>
     {% endif %}
 
-    <!-- Lessons Progress -->
+    {% if course.delivery_type == 'live' %}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10 items-start">
+        <div class="lg:col-span-2 space-y-8">
+
+    <!-- Course curriculum (outline: sessions as curriculum units) -->
+    {% if live_session_rows or course.modules.exists or lesson_progress %}
+    <section class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6 md:p-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">Course curriculum</h2>
+        <p class="text-sm text-gray-600 mb-6">Live sessions are the core of this course—like lessons in a pre-recorded class. Use the detailed list below to join and track attendance.</p>
+
+        {% if live_session_rows %}
+        <div class="mb-8 last:mb-0">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-teal-soft/90 mb-4 flex items-center gap-2">
+                <i class="fas fa-video"></i> Live sessions
+            </h3>
+            <ol class="space-y-3 list-none">
+                {% for row in live_session_rows %}
+                <li class="flex gap-4 rounded-xl border border-slate-200/80 bg-white/60 px-4 py-3">
+                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-teal-soft/15 text-sm font-bold text-teal-900">{{ forloop.counter }}</span>
+                    <div class="min-w-0 flex-1">
+                        <p class="font-semibold text-gray-900">{{ row.session.title }}</p>
+                        <p class="text-sm text-gray-600 mt-0.5">
+                            <i class="fas fa-clock mr-1"></i>{{ row.session.scheduled_at|date:"M j, Y" }} at {{ row.session.scheduled_at|time:"g:i A" }}
+                            {% if row.session.duration_minutes %} · {{ row.session.duration_minutes }} min{% endif %}
+                        </p>
+                        {% if row.session.description %}
+                        <p class="text-xs text-gray-500 mt-2 line-clamp-3">{{ row.session.description }}</p>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ol>
+        </div>
+        {% endif %}
+
+        {% if course.modules.exists %}
+        <div class="{% if live_session_rows %}pt-6 border-t border-gray-200{% endif %}">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-4 flex items-center gap-2">
+                <i class="fas fa-folder-open text-teal-soft"></i> Modules &amp; video lessons
+            </h3>
+            {% for module in course.modules.all %}
+            <div class="mb-6 last:mb-0">
+                <p class="font-semibold text-gray-800 mb-2">{{ module.name }}</p>
+                {% if module.description %}
+                <p class="text-sm text-gray-600 mb-2">{{ module.description }}</p>
+                {% endif %}
+                <ul class="space-y-1 text-sm text-gray-700 ml-1">
+                    {% for lesson in module.lessons.all %}
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-play-circle text-teal-soft mt-0.5 text-xs"></i>
+                        <span>{{ lesson.title }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        </div>
+        {% elif lesson_progress %}
+        <div class="{% if live_session_rows %}pt-6 border-t border-gray-200{% endif %}">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-4 flex items-center gap-2">
+                <i class="fas fa-play-circle text-teal-soft"></i> Video lessons
+            </h3>
+            <ul class="space-y-2 text-sm text-gray-700">
+                {% for lp in lesson_progress %}
+                <li class="flex items-start gap-2">
+                    <i class="fas fa-play-circle text-teal-soft mt-0.5 text-xs"></i>
+                    <span>{{ lp.lesson.title }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    {% if live_session_rows %}
+    <!-- Live sessions (actions & progress) -->
     <div class="space-y-4">
-        <h2 class="text-2xl font-bold text-black">Lessons</h2>
+        <h2 class="text-2xl font-bold text-black">Your live sessions</h2>
+        <p class="text-sm text-gray-600 -mt-2">Join links and passwords are also on the <a href="{% url 'course_detail' course.slug %}" class="text-teal-soft font-semibold hover:underline">course page</a>.</p>
+        <div class="space-y-3">
+            {% for row in live_session_rows %}
+            {% with s=row.session b=row.booking %}
+            <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-4 hover:border-teal-soft/30 transition-all">
+                <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                    <div class="flex items-start gap-4 flex-1 min-w-0">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0
+                            {% if b and b.status == 'attended' %}bg-green-500/20 text-emerald-800
+                            {% elif s.status == 'completed' %}bg-slate-200 text-slate-700
+                            {% elif s.status == 'in_progress' %}bg-amber-100 text-amber-800
+                            {% else %}bg-teal-soft/15 text-teal-900{% endif %}">
+                            {% if b and b.status == 'attended' %}
+                            <i class="fas fa-check"></i>
+                            {% elif s.status == 'completed' %}
+                            <i class="fas fa-flag-checkered"></i>
+                            {% else %}
+                            <i class="fas fa-video"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-gray-800">{{ s.title }}</h3>
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600 mt-1">
+                                <span><i class="fas fa-clock mr-1"></i>{{ s.scheduled_at|date:"M j, Y" }} at {{ s.scheduled_at|time:"g:i A" }}</span>
+                                {% if s.duration_minutes %}<span>{{ s.duration_minutes }} min</span>{% endif %}
+                                <span class="text-xs font-medium uppercase tracking-wide text-gray-500">{{ s.get_status_display }}</span>
+                            </div>
+                            {% if b %}
+                            <p class="text-xs text-gray-600 mt-2">
+                                Your booking: <strong>{{ b.get_status_display }}</strong>
+                                {% if b.status == 'attended' %}— counted toward your course progress{% endif %}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 items-center justify-end md:justify-start shrink-0">
+                        {% if s.meeting_link and s.status != 'cancelled' %}
+                        <a href="{{ s.meeting_link }}" target="_blank" rel="noopener noreferrer"
+                           class="inline-flex items-center gap-2 px-4 py-2 bg-teal-soft text-white rounded-lg text-sm font-semibold hover:bg-teal-soft/90 transition-all">
+                            <i class="fas fa-external-link-alt"></i> Join
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'course_detail' course.slug %}" class="text-sm text-teal-soft font-medium hover:underline">Course page</a>
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if lesson_progress %}
+    <!-- Video lessons -->
+    <div class="space-y-4">
+        <h2 class="text-2xl font-bold text-black">{% if live_session_rows %}Video lessons{% else %}Lessons{% endif %}</h2>
         
         <div class="space-y-3">
             {% for lp in lesson_progress %}
@@ -186,8 +336,149 @@
             {% endfor %}
         </div>
     </div>
+    {% endif %}
+
+    {% if not live_session_rows and not lesson_progress %}
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6 text-center text-gray-600">
+        {% if course.delivery_type == 'live' %}
+        <p>No live sessions have been scheduled yet. Check back soon or open the <a href="{% url 'course_detail' course.slug %}" class="text-teal-soft font-semibold hover:underline">course page</a>.</p>
+        {% else %}
+        <p>This course doesn’t have any lessons yet.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+        </div>
+
+        <aside class="lg:col-span-1 space-y-6 lg:sticky lg:top-24">
+            {% if course_instructors %}
+            {% include 'partials/course_instructors.html' with compact=True %}
+            {% else %}
+            <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6 text-center text-sm text-gray-600">
+                <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-teal-soft/10 text-teal-soft">
+                    <i class="fas fa-chalkboard-teacher text-xl"></i>
+                </div>
+                <p class="font-medium text-gray-800">Your instructor</p>
+                <p class="mt-2 text-gray-600">Instructor details will show here when added to this course.</p>
+            </div>
+            {% endif %}
+        </aside>
+    </div>
+
+    {% else %}
+
+    {% if live_session_rows %}
+    <div class="space-y-4">
+        <h2 class="text-2xl font-bold text-black">Live sessions</h2>
+        <p class="text-sm text-gray-600 -mt-2">Join links and passwords are on the <a href="{% url 'course_detail' course.slug %}" class="text-teal-soft font-semibold hover:underline">course page</a>.</p>
+        <div class="space-y-3">
+            {% for row in live_session_rows %}
+            {% with s=row.session b=row.booking %}
+            <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-4 hover:border-teal-soft/30 transition-all">
+                <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                    <div class="flex items-start gap-4 flex-1 min-w-0">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0
+                            {% if b and b.status == 'attended' %}bg-green-500/20 text-emerald-800
+                            {% elif s.status == 'completed' %}bg-slate-200 text-slate-700
+                            {% elif s.status == 'in_progress' %}bg-amber-100 text-amber-800
+                            {% else %}bg-teal-soft/15 text-teal-900{% endif %}">
+                            {% if b and b.status == 'attended' %}
+                            <i class="fas fa-check"></i>
+                            {% elif s.status == 'completed' %}
+                            <i class="fas fa-flag-checkered"></i>
+                            {% else %}
+                            <i class="fas fa-video"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-gray-800">{{ s.title }}</h3>
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600 mt-1">
+                                <span><i class="fas fa-clock mr-1"></i>{{ s.scheduled_at|date:"M j, Y" }} at {{ s.scheduled_at|time:"g:i A" }}</span>
+                                {% if s.duration_minutes %}<span>{{ s.duration_minutes }} min</span>{% endif %}
+                                <span class="text-xs font-medium uppercase tracking-wide text-gray-500">{{ s.get_status_display }}</span>
+                            </div>
+                            {% if b %}
+                            <p class="text-xs text-gray-600 mt-2">
+                                Your booking: <strong>{{ b.get_status_display }}</strong>
+                                {% if b.status == 'attended' %}— counted toward your course progress{% endif %}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 items-center justify-end md:justify-start shrink-0">
+                        {% if s.meeting_link and s.status != 'cancelled' %}
+                        <a href="{{ s.meeting_link }}" target="_blank" rel="noopener noreferrer"
+                           class="inline-flex items-center gap-2 px-4 py-2 bg-teal-soft text-white rounded-lg text-sm font-semibold hover:bg-teal-soft/90 transition-all">
+                            <i class="fas fa-external-link-alt"></i> Join
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'course_detail' course.slug %}" class="text-sm text-teal-soft font-medium hover:underline">Course page</a>
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if lesson_progress %}
+    <div class="space-y-4">
+        <h2 class="text-2xl font-bold text-black">{% if live_session_rows %}Video lessons{% else %}Lessons{% endif %}</h2>
+        <div class="space-y-3">
+            {% for lp in lesson_progress %}
+            <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-4 hover:border-teal-soft/30 transition-all">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4 flex-1">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center
+                            {% if lp.completed %}bg-green-500/20 text-gray-700
+                            {% elif lp.status == 'in_progress' %}bg-teal-soft/20 text-black
+                            {% else %}bg-gray-500/20 text-gray-700{% endif %}">
+                            {% if lp.completed %}
+                            <i class="fas fa-check"></i>
+                            {% elif lp.status == 'in_progress' %}
+                            <i class="fas fa-play"></i>
+                            {% else %}
+                            <i class="fas fa-circle"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-gray-700 mb-1">{{ lp.lesson.title }}</h3>
+                            <div class="flex items-center gap-4 text-sm text-black text-gray-700">
+                                <span><i class="fas fa-clock mr-1"></i>{{ lp.lesson.get_formatted_duration }}</span>
+                                {% if lp.watch_percentage > 0 %}
+                                <span><i class="fas fa-eye mr-1"></i>{{ lp.watch_percentage|floatformat:0 }}% Watched</span>
+                                {% endif %}
+                                {% if lp.last_accessed %}
+                                <span><i class="fas fa-history mr-1"></i>Last: {{ lp.last_accessed|date:"M d" }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        {% if lp.watch_percentage > 0 and lp.watch_percentage < 100 %}
+                        <div class="w-24 bg-[#f8fafc] rounded-full h-2 overflow-hidden">
+                            <div class="h-full bg-teal-soft transition-all" style="width: {{ lp.watch_percentage }}%"></div>
+                        </div>
+                        {% endif %}
+                        <a href="{% url 'lesson_detail' course.slug lp.lesson.slug %}" class="px-4 py-2 bg-teal-soft/10 hover:bg-teal-soft/20 border border-teal-soft/20 rounded-lg text-sm text-black font-medium transition-all text-black">
+                            {% if lp.completed %}Review{% elif lp.status == 'in_progress' %}Continue{% else %}Start{% endif %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not live_session_rows and not lesson_progress %}
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6 text-center text-gray-600">
+        <p>This course doesn’t have any lessons yet.</p>
+    </div>
+    {% endif %}
+
+    {% endif %}
+
 </div>
 {% endblock %}
-
-
-

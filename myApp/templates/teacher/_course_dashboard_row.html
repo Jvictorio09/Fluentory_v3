@@ -1,0 +1,9 @@
+<a href="{% url 'teacher_course_detail' course.slug %}" class="block p-3 bg-[#ffffff]/40 rounded-lg hover:bg-teal-soft/10 transition-all">
+    <div class="flex items-center justify-between">
+        <div class="flex-1 min-w-0">
+            <h3 class="font-semibold text-gray-800 truncate">{{ course.name }}</h3>
+            <p class="text-sm text-black text-gray-700">{{ course.lesson_count }} lessons</p>
+        </div>
+        <i class="fas fa-chevron-right text-gray-700 flex-shrink-0 ml-2"></i>
+    </div>
+</a>

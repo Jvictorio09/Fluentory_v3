@@ -6,15 +6,22 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.conf import settings
 from django.utils.text import slugify
 from datetime import datetime
+from decimal import Decimal, InvalidOperation
 import json
 import re
 import requests
 import os
 import threading
+try:
+    import stripe
+    STRIPE_AVAILABLE = True
+except ImportError:
+    STRIPE_AVAILABLE = False
 from .models import (
     Course,
     Lesson,
@@ -29,13 +36,17 @@ from .models import (
     LessonQuizAttempt,
     CoursePurchase,
     TeacherRequest,
+    TeacherProfile,
     GiftPurchase,
+    LiveSession,
+    Booking,
 )
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count, Prefetch, Q
 from django.db import models
 from django.utils import timezone
 from .utils.transcription import transcribe_video
 from .utils.access import has_course_access
+from .utils.teacher import get_course_instructors
 
 
 def landing(request):
@@ -52,6 +63,35 @@ def v3_landing(request):
     courses = Course.objects.filter(status='active', visibility='public').exclude(course_type='tawjehi')[:6]
     return render(request, 'v3_landing/index.html', {
         'courses': courses,
+    })
+
+
+def teacher_public_profile(request, username):
+    """Public teacher profile page for students and prospects."""
+    teacher = get_object_or_404(User, username=username, is_active=True)
+    if teacher.is_superuser:
+        return redirect('home')
+
+    try:
+        profile = teacher.teacher_profile
+    except TeacherProfile.DoesNotExist:
+        profile = None
+
+    taught_courses = Course.objects.filter(
+        teachers=teacher,
+        status='active',
+        visibility='public',
+    ).order_by('name').distinct()
+
+    accomplishments_lines = []
+    if profile and profile.accomplishments:
+        accomplishments_lines = [line.strip() for line in profile.accomplishments.splitlines() if line.strip()]
+
+    return render(request, 'teacher_public_profile.html', {
+        'teacher_user': teacher,
+        'profile': profile,
+        'taught_courses': taught_courses,
+        'accomplishments_lines': accomplishments_lines,
     })
 
 def tawjehi_page(request):
@@ -662,16 +702,77 @@ def courses(request):
 
 def course_detail(request, course_slug):
     """Course detail page - premium sales page"""
-    course = get_object_or_404(Course, slug=course_slug)
+    course = get_object_or_404(
+        Course.objects.prefetch_related(
+            'teachers__teacher_profile',
+            Prefetch(
+                'live_sessions',
+                queryset=LiveSession.objects.exclude(status='cancelled').order_by('scheduled_at').prefetch_related('bookings'),
+            ),
+        ),
+        slug=course_slug,
+    )
+    user_has_access = False
+    first_lesson = course.lessons.order_by('order', 'id').first()
+    course_instructors = get_course_instructors(course)
     
     # For authenticated users with access, redirect to first lesson
     if request.user.is_authenticated:
         from .utils.access import has_course_access
         has_access, access_record, _ = has_course_access(request.user, course)
+        user_has_access = has_access
         if has_access:
-            first_lesson = course.lessons.first()
             if first_lesson:
                 return lesson_detail(request, course_slug, first_lesson.slug)
+
+        # Fallback activation path: verify Stripe checkout success return.
+        # This protects against delayed/missed webhook events.
+        purchase_status = request.GET.get('purchase')
+        checkout_session_id = (request.GET.get('session_id') or '').strip()
+        if purchase_status == 'success':
+            try:
+                pending_purchases = CoursePurchase.objects.filter(
+                    user=request.user,
+                    course=course,
+                    provider='stripe',
+                    status='pending',
+                ).order_by('-created_at')
+
+                placeholder_session = (
+                    not checkout_session_id
+                    or 'CHECKOUT_SESSION_ID' in checkout_session_id
+                    or checkout_session_id.startswith('{')
+                )
+
+                if placeholder_session:
+                    pending_purchase = pending_purchases.first()
+                else:
+                    pending_purchase = pending_purchases.filter(provider_id=checkout_session_id).first()
+                    if not pending_purchase:
+                        pending_purchase = pending_purchases.first()
+
+                if pending_purchase and STRIPE_AVAILABLE and getattr(settings, 'STRIPE_SECRET_KEY', ''):
+                    stripe.api_key = settings.STRIPE_SECRET_KEY
+                    session_to_verify = pending_purchase.provider_id or checkout_session_id
+                    if not session_to_verify:
+                        raise ValueError('Missing checkout session ID for verification')
+
+                    checkout_session = stripe.checkout.Session.retrieve(session_to_verify)
+                    payment_status = checkout_session.get('payment_status')
+                    session_status = checkout_session.get('status')
+
+                    if payment_status == 'paid' or session_status == 'complete':
+                        _finalize_purchase(
+                            purchase=pending_purchase,
+                            provider='stripe',
+                            provider_id=session_to_verify,
+                            status='paid',
+                        )
+                        messages.success(request, 'Payment confirmed. Course access is now active.')
+                        return redirect('course_detail', course_slug=course.slug)
+            except Exception:
+                # Keep sales page functional even if Stripe verification fails.
+                pass
     
     # Process preview video URL for embedding
     preview_video_embed_url = None
@@ -736,12 +837,34 @@ def course_detail(request, course_slug):
         if not preview_video_embed_url:
             preview_video_embed_url = url
             video_type = 'direct'
+
+    # Live courses: per-session rows for template (join links only for enrolled students)
+    live_sessions_with_join = []
+    if course.delivery_type == 'live':
+        sessions = list(course.live_sessions.all())
+        booking_map = {}
+        if request.user.is_authenticated and sessions:
+            booking_map = {
+                b.session_id: b
+                for b in Booking.objects.filter(
+                    user=request.user,
+                    session_id__in=[s.id for s in sessions],
+                )
+            }
+        for s in sessions:
+            live_sessions_with_join.append({
+                'session': s,
+                'user_booking': booking_map.get(s.id),
+            })
     
     # Show premium sales page for non-authenticated or users without access
     # Include purchase information if course is paid
     return render(request, 'course_detail.html', {
         'course': course,
+        'course_instructors': course_instructors,
         'show_purchase': course.is_paid and course.price is not None,
+        'user_has_access': user_has_access,
+        'first_lesson': first_lesson,
         'preview_video_embed_url': preview_video_embed_url,
         'video_type': video_type,
         'is_youtube': video_type == 'youtube',
@@ -749,14 +872,19 @@ def course_detail(request, course_slug):
         'is_google_drive': video_type == 'google_drive',
         'is_cloudinary': video_type == 'cloudinary',
         'is_direct': video_type == 'direct',
+        'live_sessions_with_join': live_sessions_with_join,
     })
 
 
 @login_required
 def lesson_detail(request, course_slug, lesson_slug):
     """Lesson detail page with three-column layout"""
-    course = get_object_or_404(Course, slug=course_slug)
+    course = get_object_or_404(
+        Course.objects.prefetch_related('teachers__teacher_profile'),
+        slug=course_slug,
+    )
     lesson = get_object_or_404(Lesson, course=course, slug=lesson_slug)
+    course_instructors = get_course_instructors(course)
     
     # Get user progress
     enrollment = CourseEnrollment.objects.filter(
@@ -877,9 +1005,27 @@ def lesson_detail(request, course_slug, lesson_slug):
                 else:
                     youtube_video_id = None
 
+    lesson_blocks = []
+    raw_content = lesson.content
+    if isinstance(raw_content, dict):
+        lesson_blocks = raw_content.get('blocks', []) or []
+    elif isinstance(raw_content, list):
+        lesson_blocks = raw_content
+    elif isinstance(raw_content, str) and raw_content.strip():
+        try:
+            parsed_content = json.loads(raw_content)
+            if isinstance(parsed_content, dict):
+                lesson_blocks = parsed_content.get('blocks', []) or []
+            elif isinstance(parsed_content, list):
+                lesson_blocks = parsed_content
+        except Exception:
+            lesson_blocks = []
+
     return render(request, 'lesson.html', {
         'course': course,
         'lesson': lesson,
+        'course_instructors': course_instructors,
+        'lesson_blocks': lesson_blocks,
         'progress_percentage': progress_percentage,
         'completed_lessons': completed_lessons,
         'accessible_lessons': accessible_lessons,
@@ -2020,6 +2166,67 @@ def update_video_progress(request, lesson_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)
     
     try:
+        stripe_signature = request.headers.get('Stripe-Signature', '')
+        stripe_webhook_secret = getattr(settings, 'STRIPE_WEBHOOK_SECRET', '')
+
+        if stripe_signature and stripe_webhook_secret and STRIPE_AVAILABLE:
+            stripe.api_key = getattr(settings, 'STRIPE_SECRET_KEY', '')
+            try:
+                event = stripe.Webhook.construct_event(
+                    payload=request.body,
+                    sig_header=stripe_signature,
+                    secret=stripe_webhook_secret,
+                )
+            except Exception as exc:
+                return JsonResponse({'success': False, 'error': f'Invalid Stripe signature: {str(exc)}'}, status=400)
+
+            event_type = event.get('type')
+            event_obj = (event.get('data') or {}).get('object') or {}
+            metadata = event_obj.get('metadata') or {}
+            purchase_id = metadata.get('purchase_id') or event_obj.get('client_reference_id')
+            provider_id = event_obj.get('payment_intent') or event_obj.get('id') or ''
+
+            if not purchase_id:
+                return JsonResponse({'success': True, 'message': f'Ignored Stripe event {event_type} without purchase_id'})
+
+            try:
+                purchase = CoursePurchase.objects.get(id=purchase_id)
+            except CoursePurchase.DoesNotExist:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Purchase {purchase_id} not found'
+                }, status=404)
+
+            if event_type in {'checkout.session.completed', 'checkout.session.async_payment_succeeded', 'payment_intent.succeeded'}:
+                return JsonResponse(
+                    _finalize_purchase(
+                        purchase=purchase,
+                        provider='stripe',
+                        provider_id=str(provider_id),
+                        status='paid',
+                    )
+                )
+            if event_type in {'checkout.session.async_payment_failed', 'payment_intent.payment_failed'}:
+                return JsonResponse(
+                    _finalize_purchase(
+                        purchase=purchase,
+                        provider='stripe',
+                        provider_id=str(provider_id),
+                        status='failed',
+                    )
+                )
+            if event_type in {'charge.refunded'}:
+                return JsonResponse(
+                    _finalize_purchase(
+                        purchase=purchase,
+                        provider='stripe',
+                        provider_id=str(provider_id),
+                        status='refunded',
+                    )
+                )
+
+            return JsonResponse({'success': True, 'message': f'Ignored Stripe event type: {event_type}'})
+
         data = json.loads(request.body)
         watch_percentage = float(data.get('watch_percentage', 0))
         timestamp = float(data.get('timestamp', 0))
@@ -2512,13 +2719,14 @@ def student_dashboard(request):
             exam = Exam.objects.get(course=course)
             exam_attempts = ExamAttempt.objects.filter(user=user, exam=exam).order_by('-started_at')
             latest_attempt = exam_attempts.first()
+            exam_available = enrollment.is_exam_available() if enrollment else (completed_lessons >= total_lessons and total_lessons > 0)
             exam_info = {
                 'exists': True,
                 'attempts_count': exam_attempts.count(),
                 'max_attempts': exam.max_attempts,
                 'latest_attempt': latest_attempt,
                 'passed': exam_attempts.filter(passed=True).exists(),
-                'is_available': enrollment.is_exam_available(),
+                'is_available': exam_available,
             }
         except Exam.DoesNotExist:
             exam_info = {'exists': False}
@@ -2591,13 +2799,14 @@ def student_dashboard(request):
             exam = Exam.objects.get(course=course)
             exam_attempts = ExamAttempt.objects.filter(user=user, exam=exam).order_by('-started_at')
             latest_attempt = exam_attempts.first()
+            exam_available = enrollment.is_exam_available() if enrollment else (completed_lessons >= total_lessons and total_lessons > 0)
             exam_info = {
                 'exists': True,
                 'attempts_count': exam_attempts.count(),
                 'max_attempts': exam.max_attempts,
                 'latest_attempt': latest_attempt,
                 'passed': exam_attempts.filter(passed=True).exists(),
-                'is_available': enrollment.is_exam_available(),
+                'is_available': exam_available,
             }
         except Exam.DoesNotExist:
             exam_info = {'exists': False}
@@ -2702,8 +2911,21 @@ def student_dashboard(request):
 @login_required
 def student_course_progress(request, course_slug):
     """Detailed progress view for a specific course"""
-    course = get_object_or_404(Course, slug=course_slug)
+    course = get_object_or_404(
+        Course.objects.prefetch_related(
+            'teachers__teacher_profile',
+            'modules__lessons',
+            'lessons',
+            Prefetch(
+                'live_sessions',
+                queryset=LiveSession.objects.exclude(status='cancelled').order_by('scheduled_at').prefetch_related('bookings'),
+            ),
+        ),
+        slug=course_slug,
+    )
     user = request.user
+
+    course_instructors = get_course_instructors(course)
     
     # Check access using the access control system
     from .utils.access import has_course_access
@@ -2738,10 +2960,43 @@ def student_course_progress(request, course_slug):
             'last_accessed': progress.last_accessed if progress else None,
         })
     
-    # Calculate overall progress
+    # Calculate lesson-based progress
     total_lessons = len(lessons)
     completed_lessons = sum(1 for lp in lesson_progress if lp['completed'])
-    progress_percentage = int((completed_lessons / total_lessons * 100)) if total_lessons > 0 else 0
+    lesson_progress_percentage = int((completed_lessons / total_lessons * 100)) if total_lessons > 0 else None
+
+    # Live sessions (for live courses: sessions replace lessons in the UI when there are no lessons)
+    live_sessions_list = list(course.live_sessions.all())
+    bookings_by_session = {}
+    if live_sessions_list:
+        for b in Booking.objects.filter(
+            user=user,
+            session_id__in=[s.id for s in live_sessions_list],
+        ).select_related('session'):
+            bookings_by_session[b.session_id] = b
+
+    live_session_rows = []
+    attended_sessions = 0
+    for s in live_sessions_list:
+        b = bookings_by_session.get(s.id)
+        if b and b.status == 'attended':
+            attended_sessions += 1
+        live_session_rows.append({'session': s, 'booking': b})
+
+    total_live_sessions = len(live_sessions_list)
+    session_progress_percentage = (
+        int((attended_sessions / total_live_sessions) * 100) if total_live_sessions > 0 else None
+    )
+
+    if total_lessons > 0:
+        progress_percentage = lesson_progress_percentage
+        use_session_progress = False
+    elif total_live_sessions > 0:
+        progress_percentage = session_progress_percentage
+        use_session_progress = True
+    else:
+        progress_percentage = 0
+        use_session_progress = False
     
     # Get exam info
     exam = None
@@ -2760,11 +3015,16 @@ def student_course_progress(request, course_slug):
     
     return render(request, 'student/course_progress.html', {
         'course': course,
+        'course_instructors': course_instructors,
         'enrollment': enrollment,
         'lesson_progress': lesson_progress,
         'total_lessons': total_lessons,
         'completed_lessons': completed_lessons,
         'progress_percentage': progress_percentage,
+        'use_session_progress': use_session_progress,
+        'live_session_rows': live_session_rows,
+        'total_live_sessions': total_live_sessions,
+        'attended_sessions': attended_sessions,
         'exam': exam,
         'exam_attempts': exam_attempts,
         'certification': certification,
@@ -3557,6 +3817,126 @@ def process_course_content_response(course_type, module_name, content_data):
 
 # ========== PURCHASE SYSTEM ==========
 
+def _build_purchase_redirect(course):
+    """Build post-purchase redirect URL."""
+    if course.lessons.exists():
+        first_lesson = course.lessons.order_by('order', 'id').first()
+        if first_lesson:
+            return f'/courses/{course.slug}/{first_lesson.slug}/'
+    return f'/courses/{course.slug}/'
+
+
+def _create_stripe_checkout_session(request, purchase):
+    """Create Stripe Checkout Session for a purchase."""
+    if not STRIPE_AVAILABLE:
+        raise RuntimeError('Stripe package is not installed.')
+
+    stripe_secret_key = getattr(settings, 'STRIPE_SECRET_KEY', '')
+    if not stripe_secret_key:
+        raise RuntimeError('STRIPE_SECRET_KEY is not configured.')
+
+    stripe.api_key = stripe_secret_key
+
+    success_url = request.build_absolute_uri(
+        f"{reverse('course_detail', args=[purchase.course.slug])}?purchase=success&session_id={{CHECKOUT_SESSION_ID}}"
+    )
+    cancel_url = request.build_absolute_uri(
+        f"{reverse('course_detail', args=[purchase.course.slug])}?purchase=cancelled"
+    )
+
+    try:
+        unit_amount = int((Decimal(str(purchase.amount)) * 100).quantize(Decimal('1')))
+    except (InvalidOperation, ValueError):
+        raise RuntimeError('Invalid purchase amount for Stripe checkout.')
+
+    if unit_amount <= 0:
+        raise RuntimeError('Purchase amount must be greater than zero.')
+
+    checkout_session = stripe.checkout.Session.create(
+        mode='payment',
+        line_items=[
+            {
+                'price_data': {
+                    'currency': (purchase.currency or 'USD').lower(),
+                    'unit_amount': unit_amount,
+                    'product_data': {
+                        'name': purchase.course.name,
+                        'description': (purchase.course.short_description or purchase.course.description or '')[:500],
+                    },
+                },
+                'quantity': 1,
+            }
+        ],
+        success_url=success_url,
+        cancel_url=cancel_url,
+        client_reference_id=str(purchase.id),
+        customer_email=purchase.user.email or None,
+        metadata={
+            'purchase_id': str(purchase.id),
+            'course_slug': purchase.course.slug,
+            'user_id': str(purchase.user_id),
+        },
+    )
+
+    purchase.provider = 'stripe'
+    purchase.provider_id = checkout_session.id
+    purchase.status = 'pending'
+    purchase.save(update_fields=['provider', 'provider_id', 'status'])
+    return checkout_session
+
+
+def _finalize_purchase(purchase, provider='manual', provider_id='', status='paid'):
+    """Apply final purchase status and grant access if paid."""
+    purchase.provider = provider or purchase.provider or 'manual'
+    if provider_id:
+        purchase.provider_id = provider_id
+    purchase.status = status
+
+    if status == 'paid':
+        purchase.paid_at = timezone.now()
+        purchase.save()
+
+        try:
+            gift = GiftPurchase.objects.get(course_purchase=purchase)
+            from .utils.email import send_gift_email
+            email_result = send_gift_email(gift)
+
+            if email_result['success']:
+                gift.status = 'sent'
+                gift.sent_at = timezone.now()
+                gift.save()
+                return {
+                    'success': True,
+                    'message': 'Payment confirmed and gift email sent',
+                    'purchase_id': purchase.id,
+                }
+            return {
+                'success': True,
+                'message': 'Payment confirmed but gift email failed to send',
+                'warning': email_result.get('message', 'Email error'),
+                'purchase_id': purchase.id,
+            }
+        except GiftPurchase.DoesNotExist:
+            from .utils.access import grant_purchase_access
+            access = grant_purchase_access(
+                user=purchase.user,
+                course=purchase.course,
+                purchase=purchase,
+            )
+            return {
+                'success': True,
+                'message': 'Purchase confirmed and access granted',
+                'purchase_id': purchase.id,
+                'access_id': access.id,
+            }
+
+    purchase.save()
+    return {
+        'success': True,
+        'message': f'Purchase status updated to {status}',
+        'purchase_id': purchase.id,
+    }
+
 @login_required
 @require_http_methods(["POST"])
 def initiate_purchase(request, course_slug):
@@ -3583,6 +3963,12 @@ def initiate_purchase(request, course_slug):
             'error': 'You already have access to this course'
         }, status=400)
     
+    simulate_payment = getattr(settings, 'SIMULATE_PAYMENT', True)
+    stripe_enabled = (
+        not simulate_payment
+        and bool(getattr(settings, 'STRIPE_SECRET_KEY', ''))
+    )
+
     # Check if there's already a pending or paid purchase
     existing_purchase = CoursePurchase.objects.filter(
         user=user,
@@ -3597,7 +3983,26 @@ def initiate_purchase(request, course_slug):
                 'error': 'You already have a paid purchase for this course'
             }, status=400)
         else:
-            # Return existing pending purchase
+            if stripe_enabled:
+                try:
+                    checkout_session = _create_stripe_checkout_session(request, existing_purchase)
+                    return JsonResponse({
+                        'success': True,
+                        'purchase_id': existing_purchase.id,
+                        'amount': str(existing_purchase.amount),
+                        'currency': existing_purchase.currency,
+                        'status': existing_purchase.status,
+                        'provider': 'stripe',
+                        'checkout_url': checkout_session.url,
+                        'message': 'Redirecting to Stripe Checkout...',
+                    })
+                except Exception as exc:
+                    return JsonResponse({
+                        'success': False,
+                        'error': f'Failed to create Stripe checkout: {str(exc)}'
+                    }, status=500)
+
+            # Return existing pending purchase (non-Stripe mode)
             return JsonResponse({
                 'success': True,
                 'purchase_id': existing_purchase.id,
@@ -3616,11 +4021,6 @@ def initiate_purchase(request, course_slug):
         provider='',  # Will be set by webhook
         provider_id='',  # Will be set by webhook
     )
-    
-    # SIMULATE PAYMENT: If no payment provider is configured, auto-approve the purchase
-    # This is for development/testing. In production, remove this and use actual payment provider.
-    from django.conf import settings
-    simulate_payment = getattr(settings, 'SIMULATE_PAYMENT', True)  # Default to True for development
     
     if simulate_payment:
         # Auto-approve the purchase
@@ -3641,19 +4041,38 @@ def initiate_purchase(request, course_slug):
             'currency': purchase.currency,
             'status': 'paid',
             'message': 'Purchase completed successfully! Access granted.',
-            'redirect': f'/courses/{course.slug}/{course.lessons.first().slug}/' if course.lessons.exists() else f'/courses/{course.slug}/'
+            'redirect': _build_purchase_redirect(course),
         })
-    
+
+    if stripe_enabled:
+        try:
+            checkout_session = _create_stripe_checkout_session(request, purchase)
+            return JsonResponse({
+                'success': True,
+                'purchase_id': purchase.id,
+                'amount': str(purchase.amount),
+                'currency': purchase.currency,
+                'status': purchase.status,
+                'provider': 'stripe',
+                'checkout_url': checkout_session.url,
+                'message': 'Redirecting to Stripe Checkout...',
+            })
+        except Exception as exc:
+            purchase.status = 'failed'
+            purchase.notes = f'Stripe checkout creation failed: {str(exc)}'
+            purchase.save(update_fields=['status', 'notes'])
+            return JsonResponse({
+                'success': False,
+                'error': f'Unable to start Stripe Checkout: {str(exc)}'
+            }, status=500)
+
     return JsonResponse({
-        'success': True,
-        'purchase_id': purchase.id,
-        'amount': str(purchase.amount),
-        'currency': purchase.currency,
-        'status': purchase.status,
-        'message': 'Purchase initiated. Redirecting to payment provider...'
-    })
+        'success': False,
+        'error': 'No active payment provider configured. Set SIMULATE_PAYMENT=true or configure Stripe keys.',
+    }, status=500)
 
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def purchase_webhook(request):
     """
@@ -3677,9 +4096,6 @@ def purchase_webhook(request):
         provider = data.get('provider', 'manual')
         provider_id = data.get('provider_id', '')
         status = data.get('status', 'paid')
-        amount = data.get('amount')
-        currency = data.get('currency', 'USD')
-        
         if not purchase_id:
             return JsonResponse({
                 'success': False,
@@ -3695,61 +4111,14 @@ def purchase_webhook(request):
                 'error': f'Purchase {purchase_id} not found'
             }, status=404)
         
-        # Update purchase
-        purchase.provider = provider
-        purchase.provider_id = provider_id
-        purchase.status = status
-        
-        if status == 'paid':
-            from django.utils import timezone
-            purchase.paid_at = timezone.now()
-            purchase.save()
-            
-            # Check if this is a gift purchase
-            try:
-                gift = GiftPurchase.objects.get(course_purchase=purchase)
-                # Send gift email
-                from .utils.email import send_gift_email
-                email_result = send_gift_email(gift)
-                
-                if email_result['success']:
-                    gift.status = 'sent'
-                    gift.sent_at = timezone.now()
-                    gift.save()
-                    return JsonResponse({
-                        'success': True,
-                        'message': 'Payment confirmed and gift email sent',
-                        'purchase_id': purchase.id,
-                    })
-                else:
-                    return JsonResponse({
-                        'success': True,
-                        'message': 'Payment confirmed but gift email failed to send',
-                        'warning': email_result.get('message', 'Email error'),
-                        'purchase_id': purchase.id,
-                    })
-            except GiftPurchase.DoesNotExist:
-                # Regular purchase - grant access to purchaser
-                from .utils.access import grant_purchase_access
-                access = grant_purchase_access(
-                    user=purchase.user,
-                    course=purchase.course,
-                    purchase=purchase
-                )
-                
-                return JsonResponse({
-                    'success': True,
-                    'message': 'Purchase confirmed and access granted',
-                    'purchase_id': purchase.id,
-                    'access_id': access.id,
-                })
-        else:
-            purchase.save()
-            return JsonResponse({
-                'success': True,
-                'message': f'Purchase status updated to {status}',
-                'purchase_id': purchase.id,
-            })
+        return JsonResponse(
+            _finalize_purchase(
+                purchase=purchase,
+                provider=provider,
+                provider_id=provider_id,
+                status=status,
+            )
+        )
     
     except json.JSONDecodeError:
         return JsonResponse({

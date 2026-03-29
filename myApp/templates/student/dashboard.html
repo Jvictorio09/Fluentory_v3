@@ -4,506 +4,982 @@
 {% block title %}My Dashboard - Fluentory{% endblock %}
 
 {% block content %}
-<div class="space-y-10">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- HERO HEADER (modern, airy, brand-aligned) -->
-  <section class="relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white/70 shadow-soft backdrop-blur-xl">
-    <!-- subtle atmosphere -->
-    <div class="pointer-events-none absolute inset-0">
-      <div class="absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-gradient-to-br from-teal-soft/20 to-blue-soft/20 blur-3xl"></div>
-      <div class="absolute -bottom-44 right-[-140px] h-[560px] w-[560px] rounded-full bg-gradient-to-tr from-blue-soft/14 to-teal-soft/14 blur-3xl"></div>
-      <div class="absolute inset-0 opacity-[0.08]"
-           style="background-image: linear-gradient(rgba(15,23,42,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.06) 1px, transparent 1px);
-                  background-size: 56px 56px;">
-      </div>
-    </div>
+<style>
+* { box-sizing: border-box; }
 
-    <div class="relative p-6 sm:p-8 md:p-10">
-      <div class="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+:root {
+  --teal: #2a9d8f;
+  --teal-2: #3bb5a6;
+  --teal-pale: #f0faf8;
+  --coral: #e76f51;
+  --ink: #0f1923;
+  --ink-2: #2d3748;
+  --muted: #8492a6;
+  --border: #e8ecf0;
+  --border-hover: #c8d0da;
+  --surface: #ffffff;
+  --surface-2: #f7f9fb;
+  --amber: #f59e0b;
+  --blue: #3b82f6;
+  --emerald: #10b981;
+  --rose: #f43f5e;
+  --shadow-sm: 0 1px 3px rgba(15,25,35,.06), 0 1px 2px rgba(15,25,35,.04);
+  --shadow-md: 0 4px 16px rgba(15,25,35,.08), 0 1px 4px rgba(15,25,35,.04);
+  --shadow-card: 0 0 0 1px rgba(15,25,35,.05), 0 4px 20px rgba(15,25,35,.07);
+  --shadow-hover: 0 0 0 1px rgba(42,157,143,.12), 0 8px 32px rgba(15,25,35,.1);
+  --r: 16px;
+  --r-lg: 20px;
+}
 
-        <div class="max-w-2xl">
-          <p class="text-[11px] font-semibold text-gray-700 tracking-[0.34em] uppercase text-slate-500">
-            Dashboard
-          </p>
-          <h1 class="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight text-ink-deep">
-            Your learning — at a glance
-          </h1>
-          <p class="mt-3 text-sm text-black md:text-base text-slate-600">
-            Track progress, continue where you left off, and access your certificates.
-          </p>
+.fld-db {
+  font-family: 'Sora', sans-serif;
+  color: var(--ink);
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
 
-          <!-- micro trust line -->
-          <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-slate-500">
-            <span class="inline-flex items-center gap-2">
-              <i class="fas fa-infinity text-blue-soft"></i> Lifetime access
-            </span>
-            <span class="inline-flex items-center gap-2">
-              <i class="fas fa-download text-black"></i> PDFs + audio
-            </span>
-            <span class="inline-flex items-center gap-2">
-              <i class="fas fa-shield-check text-black"></i> 30-day guarantee
-            </span>
-          </div>
-        </div>
+/* ── HERO ──────────────────────────────── */
+.fld-hero {
+  background: var(--ink);
+  border-radius: 24px;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: relative;
+  overflow: hidden;
+  animation: fadeUp .5s ease both;
+}
+.fld-hero::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 340px; height: 340px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(42,157,143,.25) 0%, transparent 70%);
+  pointer-events: none;
+}
+.fld-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -60px; left: 30%;
+  width: 240px; height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(231,111,81,.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.fld-hero-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+@media (min-width: 700px) {
+  .fld-hero-inner { flex-direction: row; align-items: center; justify-content: space-between; }
+}
+.fld-hero-eyebrow {
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--teal-2);
+  margin-bottom: .6rem;
+}
+.fld-hero-title {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+  margin: 0 0 .6rem;
+}
+.fld-hero-sub {
+  font-size: .88rem;
+  color: rgba(255,255,255,.55);
+  margin: 0;
+  font-weight: 300;
+}
+.fld-hero-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-top: 1.25rem;
+}
+.fld-hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .72rem;
+  font-weight: 500;
+  color: rgba(255,255,255,.5);
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  padding: .3rem .75rem;
+  border-radius: 100px;
+}
+.fld-hero-pill i { color: var(--teal-2); font-size: .7rem; }
+.fld-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  flex-shrink: 0;
+}
+.fld-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  font-family: inherit;
+  font-size: .82rem;
+  font-weight: 600;
+  padding: .65rem 1.25rem;
+  border-radius: 10px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s, background .15s;
+  white-space: nowrap;
+}
+.fld-btn:hover { transform: translateY(-1px); }
+.fld-btn-primary {
+  background: var(--coral);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(231,111,81,.35);
+}
+.fld-btn-primary:hover { box-shadow: 0 6px 20px rgba(231,111,81,.45); }
+.fld-btn-ghost {
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.8);
+  border: 1px solid rgba(255,255,255,.1);
+}
+.fld-btn-ghost:hover { background: rgba(255,255,255,.14); }
+.fld-btn-outline {
+  background: var(--surface);
+  color: var(--ink-2);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.fld-btn-outline:hover { border-color: var(--border-hover); box-shadow: var(--shadow-md); }
 
-        <div class="flex flex-wrap items-center gap-3">
-          <a href="{% url 'student_certifications' %}"
-             class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-5 py-3 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/25 transition hover:-translate-y-0.5">
-            <i class="fas fa-certificate mr-2"></i>
-            View certifications
-          </a>
+/* ── STATS ──────────────────────────────── */
+.fld-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  animation: fadeUp .5s .05s ease both;
+}
+@media (min-width: 700px) { .fld-stats-grid { grid-template-columns: repeat(4, 1fr); } }
 
-          <a href="{% url 'courses' %}"
-             class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/80 px-5 py-3 text-sm text-black font-semibold text-gray-700 text-ink-deep backdrop-blur transition hover:bg-white">
-            <i class="fas fa-compass mr-2 text-blue-soft"></i>
-            Browse courses
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
+.fld-stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 1.4rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s, border-color .2s;
+  position: relative;
+  overflow: hidden;
+}
+.fld-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 4px 4px 0 0;
+}
+.fld-stat-card.fld-c-teal::before   { background: var(--teal); }
+.fld-stat-card.fld-c-emerald::before { background: var(--emerald); }
+.fld-stat-card.fld-c-blue::before   { background: var(--blue); }
+.fld-stat-card.fld-c-coral::before  { background: var(--coral); }
 
-  <!-- STATS (clean, product-like cards) -->
-  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm shadow-slate-900/5 backdrop-blur">
-      <div class="flex items-center justify-between">
-        <div class="h-11 w-11 rounded-2xl bg-teal-soft/10 flex items-center justify-center">
-          <i class="fas fa-book text-black"></i>
-        </div>
-        <span class="text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-400">Enrolled</span>
-      </div>
-      <div class="mt-4 text-3xl font-extrabold text-ink-deep">{{ total_courses }}</div>
-      <p class="mt-1 text-sm text-black text-slate-600">Courses</p>
-    </div>
+.fld-stat-card:hover { border-color: var(--border-hover); box-shadow: var(--shadow-md); }
+.fld-stat-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem;
+  margin-bottom: 1rem;
+}
+.fld-stat-icon.fld-c-teal    { background: var(--teal-pale); color: var(--teal); }
+.fld-stat-icon.fld-c-emerald { background: #ecfdf5; color: var(--emerald); }
+.fld-stat-icon.fld-c-blue    { background: #eff6ff; color: var(--blue); }
+.fld-stat-icon.fld-c-coral   { background: #fff5f2; color: var(--coral); }
 
-    <div class="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm shadow-slate-900/5 backdrop-blur">
-      <div class="flex items-center justify-between">
-        <div class="h-11 w-11 rounded-2xl bg-success-soft/10 flex items-center justify-center">
-          <i class="fas fa-check-circle text-success-soft"></i>
-        </div>
-        <span class="text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-400">Completed</span>
-      </div>
-      <div class="mt-4 text-3xl font-extrabold text-ink-deep">{{ completed_courses }}</div>
-      <p class="mt-1 text-sm text-black text-slate-600">Courses</p>
-    </div>
+.fld-stat-num {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1;
+  letter-spacing: -.03em;
+}
+.fld-stat-num sup { font-size: .95rem; font-weight: 600; }
+.fld-stat-label {
+  margin-top: .3rem;
+  font-size: .75rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
 
-    <div class="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm shadow-slate-900/5 backdrop-blur">
-      <div class="flex items-center justify-between">
-        <div class="h-11 w-11 rounded-2xl bg-blue-soft/10 flex items-center justify-center">
-          <i class="fas fa-layer-group text-blue-soft"></i>
-        </div>
-        <span class="text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-400">Lessons</span>
-      </div>
-      <div class="mt-4 text-3xl font-extrabold text-ink-deep">{{ completed_lessons_all }}<span class="text-slate-400">/</span>{{ total_lessons_all }}</div>
-      <p class="mt-1 text-sm text-black text-slate-600">Completed</p>
-    </div>
+/* ── PROGRESS BAR ──────────────────────────────── */
+.fld-progress-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 1.6rem 1.75rem;
+  box-shadow: var(--shadow-sm);
+  animation: fadeUp .5s .1s ease both;
+}
+.fld-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.fld-progress-title { font-size: .95rem; font-weight: 700; color: var(--ink); }
+.fld-progress-sub { font-size: .75rem; color: var(--muted); margin-top: .15rem; }
+.fld-progress-badge {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--teal);
+  background: var(--teal-pale);
+  padding: .3rem .85rem;
+  border-radius: 100px;
+}
+.fld-progress-track {
+  height: 8px;
+  background: var(--surface-2);
+  border-radius: 100px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.fld-progress-fill {
+  height: 100%;
+  border-radius: 100px;
+  background: linear-gradient(90deg, var(--teal), var(--teal-2));
+  transition: width .8s cubic-bezier(.4,0,.2,1);
+}
 
-    <div class="rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm shadow-slate-900/5 backdrop-blur">
-      <div class="flex items-center justify-between">
-        <div class="h-11 w-11 rounded-2xl bg-coral-cta/10 flex items-center justify-center">
-          <i class="fas fa-chart-line text-coral-cta"></i>
-        </div>
-        <span class="text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-400">Overall</span>
-      </div>
-      <div class="mt-4 text-3xl font-extrabold text-ink-deep">{{ overall_progress }}%</div>
-      <p class="mt-1 text-sm text-black text-slate-600">Progress</p>
-    </div>
-  </section>
+/* ── SECTION HEADER ──────────────────────────────── */
+.fld-section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+@media (min-width: 680px) {
+  .fld-section-header { flex-direction: row; align-items: center; justify-content: space-between; }
+}
+.fld-section-title { font-size: 1.2rem; font-weight: 800; color: var(--ink); margin: 0; }
+.fld-section-sub   { font-size: .8rem; color: var(--muted); margin: .25rem 0 0; font-weight: 400; }
+.fld-filter-row    { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
 
-  <!-- OVERALL PROGRESS (modern bar + number) -->
-  <section class="rounded-3xl border border-slate-200/70 bg-white/80 p-6 md:p-7 shadow-sm shadow-slate-900/5 backdrop-blur">
-    <div class="flex items-center justify-between">
+.fld-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .78rem;
+  font-weight: 600;
+  padding: .42rem .9rem;
+  border-radius: 8px;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  background: var(--surface);
+  transition: all .15s;
+  cursor: pointer;
+}
+.fld-chip:hover { border-color: var(--border-hover); color: var(--ink-2); }
+.fld-chip.fld-active { background: var(--ink); color: #fff; border-color: var(--ink); }
+.fld-chip.fld-fld-active-amber { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+
+.fld-sort-select {
+  font-family: inherit;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: .42rem .85rem .42rem .75rem;
+  border-radius: 8px;
+  appearance: none;
+  cursor: pointer;
+  transition: border-color .15s;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%238492a6' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .65rem center;
+  padding-right: 2rem;
+}
+.fld-sort-select:focus { outline: none; border-color: var(--teal); }
+
+/* ── COURSE CARDS ──────────────────────────────── */
+.fld-courses-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  animation: fadeUp .5s .15s ease both;
+}
+@media (min-width: 820px) { .fld-courses-grid { grid-template-columns: 1fr 1fr; } }
+
+/* Card shell */
+.fld-course-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow .2s, border-color .2s, transform .2s;
+}
+.fld-course-card:hover {
+  box-shadow: var(--shadow-hover);
+  border-color: rgba(42,157,143,.18);
+  transform: translateY(-2px);
+}
+.fld-course-card.fld-favorited {
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 2px rgba(251,191,36,.2), var(--shadow-sm);
+}
+
+/* ── Top info row (thumbnail + title + fav) */
+.fld-cc-top {
+  display: flex;
+  align-items: flex-start;
+  gap: .9rem;
+  padding: 1.1rem 1.1rem .9rem;
+}
+
+/* Thumbnail */
+.fld-cc-thumb {
+  width: 68px;
+  height: 68px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--teal-pale) 0%, #d0f0eb 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.fld-cc-thumb img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.fld-cc-thumb-placeholder {
+  font-size: 1.6rem;
+  color: var(--teal);
+  opacity: .6;
+}
+
+.fld-cc-meta { flex: 1; min-width: 0; }
+
+/* Tags row */
+.fld-cc-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .35rem;
+  margin-bottom: .45rem;
+}
+.fld-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: .2rem .55rem;
+  border-radius: 6px;
+  border: 1px solid;
+}
+.fld-tag-live    { color: #be123c; background: #fff1f2; border-color: #fecdd3; }
+.fld-tag-rec     { color: #64748b; background: #f8fafc; border-color: var(--border); }
+.fld-tag-exam    { color: #065f46; background: #ecfdf5; border-color: #a7f3d0; }
+.fld-tag-exam-av { color: #92400e; background: #fffbeb; border-color: #fde68a; }
+.fld-tag-cert    { color: #92400e; background: #fffbeb; border-color: #fde68a; }
+.fld-tag-eligible{ color: #1e40af; background: #eff6ff; border-color: #bfdbfe; }
+
+.fld-cc-name {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.35;
+  margin: 0 0 .2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fld-cc-desc {
+  font-size: .76rem;
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Favorite button — top right corner */
+.fld-fav-btn {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--muted);
+  transition: all .15s;
+  font-size: .8rem;
+  flex-shrink: 0;
+}
+.fld-fav-btn:hover { border-color: #fde68a; color: var(--amber); background: #fffbeb; }
+.fld-fav-btn.fld-on { border-color: #fde68a; color: var(--amber); background: #fffbeb; }
+
+/* ── Progress bar strip */
+.fld-cc-progress {
+  padding: 0 1.1rem .75rem;
+}
+.fld-cc-progress-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: .7rem;
+  color: var(--muted);
+  margin-bottom: .35rem;
+}
+.fld-cc-progress-row strong { color: var(--ink-2); font-weight: 600; }
+.fld-cc-track {
+  height: 5px;
+  background: var(--surface-2);
+  border-radius: 100px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.fld-cc-fill {
+  height: 100%;
+  border-radius: 100px;
+  background: linear-gradient(90deg, var(--teal), var(--teal-2));
+  transition: width .6s cubic-bezier(.4,0,.2,1);
+}
+
+/* Extra meta (watch %, expiry) */
+.fld-cc-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem .9rem;
+  font-size: .72rem;
+  color: var(--muted);
+  padding: 0 1.1rem .75rem;
+  align-items: center;
+}
+.fld-cc-meta-row i { font-size: .65rem; }
+.fld-cc-expire { color: #b45309; }
+
+/* ── Price strip (for unlock cards embedded in enrolled list — keep neutral) */
+.fld-cc-price-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+  padding: .75rem 1.1rem;
+}
+.fld-cc-price-num {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1;
+}
+.fld-cc-price-label {
+  font-size: .68rem;
+  color: var(--muted);
+  margin-top: .15rem;
+}
+
+/* ── Action buttons row */
+.fld-cc-actions {
+  display: flex;
+  gap: .5rem;
+  padding: .75rem 1.1rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.fld-cc-actions .fld-btn {
+  flex: 1;
+  justify-content: center;
+  font-size: .8rem;
+  padding: .6rem .9rem;
+  border-radius: 10px;
+}
+
+.fld-btn-continue {
+  background: var(--coral);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(231,111,81,.28);
+}
+.fld-btn-continue:hover { box-shadow: 0 4px 14px rgba(231,111,81,.4); }
+.fld-btn-start {
+  background: var(--coral);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(231,111,81,.28);
+}
+.fld-btn-start:hover { box-shadow: 0 4px 14px rgba(231,111,81,.4); }
+.fld-btn-outline-card {
+  background: var(--surface);
+  color: var(--ink-2);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.fld-btn-outline-card:hover { border-color: var(--border-hover); background: #fff; }
+
+/* ── UNLOCK CARDS ──────────────────────────────── */
+.fld-unlock-card {
+  background: var(--surface);
+  border: 1px solid #fbbf24;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: 0 0 0 2px rgba(251,191,36,.12), var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow .2s, transform .2s;
+}
+.fld-unlock-card:hover { box-shadow: 0 0 0 2px rgba(251,191,36,.25), var(--shadow-md); transform: translateY(-2px); }
+
+.fld-unlock-top {
+  display: flex;
+  align-items: flex-start;
+  gap: .9rem;
+  padding: 1.1rem 1.1rem .9rem;
+}
+.fld-unlock-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  padding: .25rem .65rem;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+
+.fld-unlock-price {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+  padding: .75rem 1.1rem;
+}
+.fld-unlock-price-num { font-size: 1.2rem; font-weight: 800; color: var(--ink); line-height: 1; }
+.fld-unlock-price-label { font-size: .68rem; color: var(--muted); margin-top: .15rem; }
+
+.fld-unlock-bundles {
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+  padding: .85rem 1.1rem;
+}
+.fld-unlock-bundles-title { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: .6rem; }
+.fld-bundle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: .8rem;
+  padding: .3rem 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink-2);
+}
+.fld-bundle-row:last-child { border-bottom: none; padding-bottom: 0; }
+.fld-bundle-price { font-weight: 600; color: var(--ink); }
+
+.fld-prereq-block {
+  background: #fffbeb;
+  border-top: 1px solid #fde68a;
+  padding: .85rem 1.1rem;
+}
+.fld-prereq-title { font-size: .72rem; font-weight: 700; color: #92400e; margin-bottom: .45rem; }
+.fld-prereq-item  { display: flex; align-items: center; gap: .5rem; font-size: .78rem; color: #78350f; padding: .2rem 0; }
+
+/* ── EMPTY STATE ──────────────────────────────── */
+.fld-empty-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 3.5rem 2rem;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+.fld-empty-icon {
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  background: var(--teal-pale);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+  color: var(--teal);
+  margin: 0 auto 1.25rem;
+}
+.fld-empty-title { font-size: 1.1rem; font-weight: 700; color: var(--ink); margin: 0 0 .4rem; }
+.fld-empty-sub   { font-size: .82rem; color: var(--muted); margin: 0 0 1.5rem; }
+
+/* ── ANIMATIONS ──────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+<div class="fld-db">
+
+  <!-- ── HERO ── -->
+  <section class="fld-hero">
+    <div class="fld-hero-inner">
       <div>
-        <p class="text-sm text-black font-semibold text-gray-700 text-ink-deep">Overall learning progress</p>
-        <p class="mt-1 text-[12px] text-slate-500">A roll-up of your course completion.</p>
+        <p class="fld-hero-eyebrow">Dashboard</p>
+        <h1 class="fld-hero-title">Your learning —<br>at a glance</h1>
+        <p class="fld-hero-sub">Track progress, continue where you left off, and access your certificates.</p>
+        <div class="fld-hero-pills">
+          <span class="fld-hero-pill"><i class="fas fa-infinity"></i> Lifetime access</span>
+          <span class="fld-hero-pill"><i class="fas fa-download"></i> PDFs + audio</span>
+          <span class="fld-hero-pill"><i class="fas fa-shield-alt"></i> 30-day guarantee</span>
+        </div>
       </div>
-      <div class="inline-flex items-center gap-2 rounded-full bg-blue-soft/10 px-4 py-1.5 text-sm text-black font-extrabold text-blue-soft">
-        <i class="fas fa-sparkles text-[12px]"></i>
-        {{ overall_progress }}%
+      <div class="fld-hero-actions">
+        <a href="{% url 'student_certifications' %}" class="fld-btn btn-primary">
+          <i class="fas fa-certificate"></i> My Certifications
+        </a>
+        <a href="{% url 'student_dashboard' %}" class="fld-btn btn-ghost">
+          <i class="fas fa-compass"></i> Browse courses
+        </a>
       </div>
-    </div>
-
-    <div class="mt-5 h-3 w-full overflow-hidden rounded-full bg-slate-200">
-      <div class="h-full rounded-full bg-gradient-to-r from-teal-soft to-blue-soft transition-all duration-500"
-           style="width: {{ overall_progress }}%"></div>
     </div>
   </section>
 
-  <!-- MY COURSES -->
-  <section class="space-y-5">
-    <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-      <div>
-        <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-ink-deep">My courses</h2>
-        <p class="mt-1 text-sm text-black text-slate-600">Pick up right where you left off.</p>
-      </div>
+  <!-- ── STATS ── -->
+  <div class="fld-stats-grid">
+    <div class="fld-stat-card c-teal">
+      <div class="fld-stat-icon c-teal"><i class="fas fa-book-open"></i></div>
+      <div class="fld-stat-num">{{ total_courses }}</div>
+      <div class="fld-stat-label">Enrolled</div>
+    </div>
+    <div class="fld-stat-card c-emerald">
+      <div class="fld-stat-icon c-emerald"><i class="fas fa-check-circle"></i></div>
+      <div class="fld-stat-num">{{ completed_courses }}</div>
+      <div class="fld-stat-label">Completed</div>
+    </div>
+    <div class="fld-stat-card c-blue">
+      <div class="fld-stat-icon c-blue"><i class="fas fa-layer-group"></i></div>
+      <div class="fld-stat-num">{{ completed_lessons_all }}<sup style="color:var(--border-hover)">/{{ total_lessons_all }}</sup></div>
+      <div class="fld-stat-label">Lessons done</div>
+    </div>
+    <div class="fld-stat-card c-coral">
+      <div class="fld-stat-icon c-coral"><i class="fas fa-chart-line"></i></div>
+      <div class="fld-stat-num">{{ overall_progress }}<sup>%</sup></div>
+      <div class="fld-stat-label">Progress</div>
+    </div>
+  </div>
 
-      <!-- Controls (chips + select, modern style) -->
-      <div class="flex flex-wrap items-center gap-3">
+  <!-- ── OVERALL PROGRESS ── -->
+  <div class="fld-progress-section">
+    <div class="fld-progress-header">
+      <div>
+        <div class="fld-progress-title">Overall learning progress</div>
+        <div class="fld-progress-sub">A roll-up of your course completion.</div>
+      </div>
+      <span class="fld-progress-badge">{{ overall_progress }}% complete</span>
+    </div>
+    <div class="fld-progress-track">
+      <div class="fld-progress-fill" style="width: {{ overall_progress }}%"></div>
+    </div>
+  </div>
+
+  <!-- ── MY COURSES ── -->
+  <section>
+    <div class="fld-section-header">
+      <div>
+        <h2 class="fld-section-title">My courses</h2>
+        <p class="fld-section-sub">Pick up right where you left off.</p>
+      </div>
+      <div class="fld-filter-row">
         <a href="?favorites=true&sort={{ sort_by }}"
-           class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm text-black font-semibold text-gray-700 transition
-           {% if filter_favorites == 'true' %}
-             border-amber-200 bg-amber-50 text-amber-700
-           {% else %}
-             border-slate-200 bg-white/80 text-slate-700 hover:bg-white
-           {% endif %}">
+           class="fld-chip {% if filter_favorites == 'true' %}fld-active-amber{% endif %}">
           <i class="fas fa-heart"></i> Favorites
         </a>
-
         <a href="?sort={{ sort_by }}"
-           class="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm text-black font-semibold text-gray-700 transition
-           {% if filter_favorites != 'true' %}
-             border-blue-soft/30 bg-blue-soft/10 text-blue-soft
-           {% else %}
-             border-slate-200 bg-white/80 text-slate-700 hover:bg-white
-           {% endif %}">
+           class="fld-chip {% if filter_favorites != 'true' %}fld-active{% endif %}">
           <i class="fas fa-layer-group"></i> All
         </a>
-
-        <div class="relative">
-          <i class="fas fa-sort-amount-down absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-          <select id="sortSelect"
-                  onchange="window.location.href='?sort=' + this.value + '&favorites={{ filter_favorites }}'"
-                  class="appearance-none rounded-full border border-slate-200 bg-white/80 py-2 pl-9 pr-9 text-sm text-black font-semibold text-gray-700 text-slate-700 backdrop-blur transition hover:bg-white focus:outline-none focus:ring-2 focus:ring-teal-soft/20">
-            <option value="progress" {% if sort_by == 'progress' %}selected{% endif %}>Sort: Progress</option>
-            <option value="favorites" {% if sort_by == 'favorites' %}selected{% endif %}>Sort: Favorites</option>
-            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Sort: Name</option>
-          </select>
-          <i class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-        </div>
+        <select class="fld-sort-select" onchange="window.location.href='?sort='+this.value+'&favorites={{ filter_favorites }}'">
+          <option value="progress" {% if sort_by == 'progress' %}selected{% endif %}>Progress</option>
+          <option value="favorites" {% if sort_by == 'favorites' %}selected{% endif %}>Favorites</option>
+          <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name</option>
+        </select>
       </div>
     </div>
 
     {% if my_courses %}
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {% for data in my_courses %}
-          <article class="group relative rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-sm shadow-slate-900/5 backdrop-blur transition hover:-translate-y-0.5 hover:border-slate-300
-                          {% if data.is_favorited %} ring-2 ring-amber-200 {% endif %}">
+    <div class="fld-courses-grid">
+      {% for data in my_courses %}
+      <div class="fld-course-card {% if data.is_favorited %}fld-favorited{% endif %}">
 
-            <!-- top row -->
-            <div class="flex items-start justify-between gap-4">
-              <div class="min-w-0">
-                <div class="flex items-center gap-3">
-                  <h3 class="text-lg md:text-xl font-extrabold text-ink-deep truncate">
-                    {{ data.course.name }}
-                  </h3>
+        <!-- ── Top: thumbnail + title + fav btn -->
+        <div class="fld-cc-top">
+          <div class="fld-cc-thumb">
+            {% if data.course.thumbnail %}
+              <img src="{{ data.course.thumbnail.url }}" alt="{{ data.course.name }}">
+            {% else %}
+              <span class="fld-cc-thumb-placeholder"><i class="fas fa-graduation-cap"></i></span>
+            {% endif %}
+          </div>
 
-                  <!-- Favorite -->
-                  <button onclick="toggleFavorite({{ data.course.id }}, this)"
-                          class="favorite-btn inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/70 transition hover:bg-white hover:scale-[1.02]
-                                {% if data.is_favorited %} text-amber-600 {% else %} text-slate-400 hover:text-amber-600 {% endif %}"
-                          data-course-id="{{ data.course.id }}"
-                          data-is-favorited="{{ data.is_favorited|yesno:'true,false' }}"
-                          aria-label="Toggle favorite">
-                    <i class="fa-heart {% if data.is_favorited %}fas{% else %}far{% endif %}"></i>
-                  </button>
-                </div>
-
-                <p class="mt-2 text-sm text-black text-slate-600">
-                  {{ data.course.short_description|truncatewords:20 }}
-                </p>
-              </div>
-
-              <!-- progress badge -->
-              <div class="shrink-0 inline-flex items-center gap-2 rounded-full bg-teal-soft/10 px-4 py-1.5 text-sm text-black font-extrabold text-black">
-                <i class="fas fa-chart-line text-[12px]"></i>
-                {{ data.progress_percentage }}%
-              </div>
-            </div>
-
-            <!-- progress bar -->
-            <div class="mt-5">
-              <div class="flex items-center justify-between text-[12px] text-slate-500">
-                <span>Course progress</span>
-                <span>{{ data.completed_lessons }}/{{ data.total_lessons }} lessons</span>
-              </div>
-
-              <div class="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-slate-200">
-                <div class="h-full rounded-full bg-gradient-to-r from-teal-soft to-blue-soft transition-all duration-500"
-                     style="width: {{ data.progress_percentage }}%"></div>
-              </div>
-
-              <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-black text-slate-600">
-                {% if data.avg_watch_percentage > 0 %}
-                  <span class="inline-flex items-center gap-2">
-                    <i class="fas fa-eye text-blue-soft"></i>
-                    {{ data.avg_watch_percentage }}% avg watch
-                  </span>
-                {% endif %}
-
-                {% if data.access_record and data.access_record.expires_at %}
-                  <span class="inline-flex items-center gap-2 text-amber-700">
-                    <i class="fas fa-clock"></i>
-                    Expires {{ data.access_record.expires_at|date:"M d, Y" }}
-                  </span>
-                {% endif %}
-              </div>
-            </div>
-
-            <!-- status chips -->
-            <div class="mt-5 flex flex-wrap gap-2">
+          <div class="fld-cc-meta">
+            <div class="fld-cc-tags">
+              {% if data.course.delivery_type == 'live' %}
+                <span class="fld-tag fld-tag-live"><i class="fas fa-microphone"></i> Live</span>
+              {% else %}
+                <span class="fld-tag fld-tag-rec"><i class="fas fa-film"></i> Pre-recorded</span>
+              {% endif %}
               {% if data.exam_info.exists %}
                 {% if data.exam_info.passed %}
-                  <span class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-gray-700 text-emerald-700">
-                    <i class="fas fa-check"></i> Exam passed
-                  </span>
+                  <span class="fld-tag fld-tag-exam"><i class="fas fa-check"></i> Exam passed</span>
                 {% elif data.exam_info.is_available %}
-                  <span class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-gray-700 text-amber-700">
-                    <i class="fas fa-clock"></i> Exam available
-                  </span>
+                  <span class="fld-tag fld-tag-exam-av"><i class="fas fa-clock"></i> Exam ready</span>
                 {% endif %}
               {% endif %}
-
               {% if data.certification %}
                 {% if data.cert_status == 'passed' %}
-                  <span class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-gray-700 text-amber-700">
-                    <i class="fas fa-certificate"></i> Certified
-                  </span>
+                  <span class="fld-tag fld-tag-cert"><i class="fas fa-certificate"></i> Certified</span>
                 {% elif data.cert_status == 'eligible' %}
-                  <span class="inline-flex items-center gap-2 rounded-full border border-blue-soft/25 bg-blue-soft/10 px-3 py-1 text-xs font-semibold text-gray-700 text-blue-soft">
-                    <i class="fas fa-certificate"></i> Eligible
-                  </span>
+                  <span class="fld-tag fld-tag-eligible"><i class="fas fa-certificate"></i> Eligible</span>
                 {% endif %}
               {% endif %}
             </div>
+            <h3 class="fld-cc-name">{{ data.course.name }}</h3>
+            <p class="fld-cc-desc">{{ data.course.short_description|truncatewords:12 }}</p>
+          </div>
 
-            <!-- actions -->
-            <div class="mt-6 flex items-center gap-3">
-              {% if data.has_any_progress %}
-                <a href="{% url 'student_course_progress' data.course.slug %}"
-                   class="flex-1 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/70 px-4 py-2.5 text-sm text-black font-semibold text-gray-700 text-ink-deep transition hover:bg-white">
-                  View progress
-                </a>
+          <button class="fld-fav-btn {% if data.is_favorited %}fld-on{% endif %}"
+                  onclick="toggleFavorite({{ data.course.id }}, this)"
+                  data-course-id="{{ data.course.id }}"
+                  data-is-favorited="{{ data.is_favorited|yesno:'true,false' }}"
+                  aria-label="Toggle favorite">
+            <i class="fa-heart {% if data.is_favorited %}fas{% else %}far{% endif %}"></i>
+          </button>
+        </div>
 
-                {% if data.course.lessons.first %}
-                  <a href="{% url 'lesson_detail' data.course.slug data.course.lessons.first.slug %}"
-                     class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
-                    Continue
-                    <i class="fas fa-arrow-right ml-2 text-xs"></i>
-                  </a>
-                {% endif %}
-              {% else %}
-                {% if data.course.lessons.first %}
-                  <a href="{% url 'lesson_detail' data.course.slug data.course.lessons.first.slug %}"
-                     class="flex-1 inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
-                    Start course
-                    <i class="fas fa-arrow-right ml-2 text-xs"></i>
-                  </a>
-                {% else %}
-                  <a href="{% url 'student_course_progress' data.course.slug %}"
-                     class="flex-1 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/70 px-4 py-2.5 text-sm text-black font-semibold text-gray-700 text-ink-deep transition hover:bg-white">
-                    View details
-                  </a>
-                {% endif %}
-              {% endif %}
-            </div>
-          </article>
-        {% endfor %}
+        <!-- ── Progress bar -->
+        <div class="fld-cc-progress">
+          <div class="fld-cc-progress-row">
+            <span>Progress</span>
+            <strong>{{ data.completed_lessons }}/{{ data.total_lessons }} lessons</strong>
+          </div>
+          <div class="fld-cc-track">
+            <div class="fld-cc-fill" style="width: {{ data.progress_percentage }}%"></div>
+          </div>
+        </div>
+
+        <!-- ── Extra meta -->
+        {% if data.avg_watch_percentage > 0 or data.access_record.expires_at %}
+        <div class="fld-cc-meta-row">
+          {% if data.avg_watch_percentage > 0 %}
+            <span><i class="fas fa-eye" style="color:var(--blue)"></i> {{ data.avg_watch_percentage }}% avg watch</span>
+          {% endif %}
+          {% if data.access_record and data.access_record.expires_at %}
+            <span class="fld-cc-expire"><i class="fas fa-clock"></i> Expires {{ data.access_record.expires_at|date:"M d, Y" }}</span>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- ── Action buttons -->
+        <div class="fld-cc-actions">
+          {% if data.has_any_progress %}
+            <a href="{% url 'student_course_progress' data.course.slug %}" class="fld-btn fld-btn-outline-card">
+              Course Details
+            </a>
+            {% if data.course.lessons.first %}
+              <a href="{% url 'lesson_detail' data.course.slug data.course.lessons.first.slug %}" class="fld-btn fld-btn-continue">
+                Continue <i class="fas fa-arrow-right" style="font-size:.65rem"></i>
+              </a>
+            {% endif %}
+          {% else %}
+            {% if data.course.lessons.first %}
+              <a href="{% url 'student_course_progress' data.course.slug %}" class="fld-btn fld-btn-outline-card">
+                Course Details
+              </a>
+              <a href="{% url 'lesson_detail' data.course.slug data.course.lessons.first.slug %}" class="fld-btn fld-btn-start">
+                Start Now <i class="fas fa-arrow-right" style="font-size:.65rem"></i>
+              </a>
+            {% else %}
+              <a href="{% url 'student_course_progress' data.course.slug %}" class="fld-btn fld-btn-outline-card">
+                Course Details
+              </a>
+            {% endif %}
+          {% endif %}
+        </div>
+
       </div>
+      {% endfor %}
+    </div>
+
     {% else %}
-      <div class="rounded-3xl border border-slate-200/70 bg-white/80 p-12 text-center shadow-sm shadow-slate-900/5 backdrop-blur">
-        <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-blue-soft/10">
-          <i class="fas fa-book-open text-2xl text-blue-soft"></i>
-        </div>
-        <h3 class="mt-5 text-xl font-extrabold text-ink-deep">No courses yet</h3>
-        <p class="mt-2 text-sm text-black text-slate-600">
-          You don’t have access to any courses yet. Browse the catalog or contact support.
-        </p>
-        <div class="mt-6">
-          <a href="{% url 'courses' %}"
-             class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-5 py-3 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
-            Browse courses
-            <i class="fas fa-arrow-right ml-2 text-xs"></i>
-          </a>
-        </div>
-      </div>
+    <div class="fld-empty-card">
+      <div class="fld-empty-icon"><i class="fas fa-book-open"></i></div>
+      <h3 class="fld-empty-title">No courses yet</h3>
+      <p class="fld-empty-sub">You don't have access to any courses yet.<br>Browse the catalog or contact support.</p>
+      <a href="{% url 'student_dashboard' %}" class="fld-btn btn-primary" style="display:inline-flex">
+        Browse courses <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
     {% endif %}
   </section>
 
-  <!-- AVAILABLE TO UNLOCK (same modern card language) -->
+  <!-- ── AVAILABLE TO UNLOCK ── -->
   {% if available_to_unlock %}
-    <section class="space-y-5">
+  <section>
+    <div class="fld-section-header">
       <div>
-        <h2 class="text-2xl md:text-3xl font-extrabold tracking-tight text-ink-deep">Available to unlock</h2>
-        <p class="mt-1 text-sm text-black text-slate-600">Courses you can access via bundles, purchase, or after prerequisites.</p>
+        <h2 class="fld-section-title">Available to unlock</h2>
+        <p class="fld-section-sub">Courses you can access via bundles, purchase, or after prerequisites.</p>
       </div>
+    </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {% for data in available_to_unlock %}
-          <article class="rounded-3xl border border-amber-200/70 bg-amber-50/60 p-6 shadow-sm shadow-slate-900/5 backdrop-blur transition hover:-translate-y-0.5 hover:border-amber-200">
-            <div class="flex items-start justify-between gap-4">
-              <div class="min-w-0 flex-1">
-                <h3 class="text-lg md:text-xl font-extrabold text-ink-deep truncate">{{ data.course.name }}</h3>
-                <p class="mt-2 text-sm text-black text-slate-700">
-                  {{ data.course.short_description|truncatewords:20 }}
-                </p>
-              </div>
-              <span class="shrink-0 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white/70 px-3 py-1 text-xs font-extrabold text-amber-700">
-                <i class="fas fa-unlock"></i> Available
-              </span>
-            </div>
+    <div class="fld-courses-grid" style="animation: fadeUp .5s .2s ease both;">
+      {% for data in available_to_unlock %}
+      <div class="fld-unlock-card">
 
-            <!-- Price Display for Paid Courses -->
-            {% if data.course.is_paid and data.course.price %}
-              <div class="mt-4 rounded-2xl border border-teal-soft/30 bg-teal-soft/10 p-4">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-[11px] font-semibold text-gray-700 tracking-[0.18em] uppercase text-teal-soft/80 mb-1">Course Price</p>
-                    <p class="text-2xl font-extrabold text-ink-deep">
-                      {{ data.course.price|floatformat:2 }} {{ data.course.currency }}
-                    </p>
-                    <p class="text-xs text-slate-600 mt-1">One-time payment • Lifetime access</p>
-                  </div>
-                  <div class="text-right">
-                    {% if data.has_pending_purchase %}
-                      <span class="inline-flex items-center gap-2 rounded-full bg-amber-100 border border-amber-300 px-3 py-1 text-xs font-semibold text-amber-800">
-                        <i class="fas fa-clock"></i> Purchase Pending
-                      </span>
-                    {% else %}
-                      <a href="{% url 'course_detail' data.course.slug %}" 
-                         class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
-                        Buy Now
-                        <i class="fas fa-arrow-right ml-2 text-xs"></i>
-                      </a>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
+        <div class="fld-unlock-top">
+          <div class="fld-cc-thumb">
+            {% if data.course.thumbnail %}
+              <img src="{{ data.course.thumbnail.url }}" alt="{{ data.course.name }}">
+            {% else %}
+              <span class="fld-cc-thumb-placeholder"><i class="fas fa-lock"></i></span>
             {% endif %}
-
-            {% if data.bundles %}
-              <div class="mt-4 rounded-2xl border border-amber-200/60 bg-white/60 p-4">
-                <p class="text-[11px] font-semibold text-gray-700 tracking-[0.18em] uppercase text-amber-700/80">Available in bundles</p>
-                <div class="mt-3 space-y-2 text-sm text-black">
-                  {% for bundle in data.bundles %}
-                    <div class="flex items-center justify-between gap-3">
-                      <div class="min-w-0 text-slate-800">
-                        <i class="fas fa-gift mr-2 text-amber-700"></i>
-                        <span class="font-semibold text-gray-700">{{ bundle.name }}</span>
-                      </div>
-                      {% if bundle.price %}
-                        <span class="text-slate-600">${{ bundle.price }}</span>
-                      {% endif %}
-                    </div>
-                  {% endfor %}
-                </div>
-              </div>
-            {% endif %}
-
-            {% if not data.prereqs_met %}
-              <div class="mt-4 rounded-2xl border border-amber-200/60 bg-white/60 p-4">
-                <p class="text-xs font-extrabold text-amber-800 mb-2">
-                  <i class="fas fa-lock mr-2"></i>Prerequisites required
-                </p>
-                <ul class="text-sm text-black text-slate-700 space-y-1">
-                  {% for prereq in data.missing_prereqs %}
-                    <li class="flex items-start gap-2">
-                      <i class="fas fa-circle-minus text-amber-700 mt-1 text-xs"></i>
-                      <span>{{ prereq.name }}</span>
-                    </li>
-                  {% endfor %}
-                </ul>
-              </div>
-            {% endif %}
-
-            <div class="mt-5 flex items-center gap-3">
-              <a href="{% url 'course_detail' data.course.slug %}"
-                 class="flex-1 inline-flex items-center justify-center rounded-2xl border border-amber-200 bg-white/70 px-4 py-2.5 text-sm text-black font-semibold text-gray-700 text-amber-800 transition hover:bg-white">
-                View details
-              </a>
-              {% if data.bundles %}
-                <a href="{% url 'courses' %}"
-                   class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
-                  View bundles
-                  <i class="fas fa-arrow-right ml-2 text-xs"></i>
-                </a>
-              {% elif not data.course.is_paid %}
-                <a href="{% url 'courses' %}"
-                   class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2.5 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
-                  Browse all
-                  <i class="fas fa-arrow-right ml-2 text-xs"></i>
-                </a>
+          </div>
+          <div class="fld-cc-meta">
+            <div class="fld-cc-tags">
+              {% if data.course.delivery_type == 'live' %}
+                <span class="fld-tag fld-tag-live"><i class="fas fa-microphone"></i> Live</span>
+              {% else %}
+                <span class="fld-tag fld-tag-rec"><i class="fas fa-film"></i> Pre-recorded</span>
               {% endif %}
             </div>
-          </article>
-        {% endfor %}
+            <h3 class="fld-cc-name">{{ data.course.name }}</h3>
+            <p class="fld-cc-desc">{{ data.course.short_description|truncatewords:12 }}</p>
+          </div>
+          <span class="fld-unlock-badge"><i class="fas fa-unlock-alt"></i> Unlock</span>
+        </div>
+
+        {% if data.course.is_paid and data.course.price %}
+        <div class="fld-unlock-price">
+          <div>
+            <div class="fld-unlock-price-num">{{ data.course.price|floatformat:2 }} {{ data.course.currency }}</div>
+            <div class="fld-unlock-price-label">One-time · Lifetime access</div>
+          </div>
+          {% if data.has_pending_purchase %}
+            <span class="fld-tag fld-tag-exam-av"><i class="fas fa-clock"></i> Pending</span>
+          {% else %}
+            <a href="{% url 'course_detail' data.course.slug %}" class="fld-btn fld-btn-continue" style="flex:none">
+              Enroll Now <i class="fas fa-arrow-right" style="font-size:.65rem"></i>
+            </a>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if data.bundles %}
+        <div class="fld-unlock-bundles">
+          <div class="fld-unlock-bundles-title">Available in bundles</div>
+          {% for bundle in data.bundles %}
+          <div class="fld-bundle-row">
+            <span><i class="fas fa-gift" style="color:var(--amber);margin-right:.4rem"></i>{{ bundle.name }}</span>
+            {% if bundle.price %}<span class="fld-bundle-price">${{ bundle.price }}</span>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if not data.prereqs_met %}
+        <div class="fld-prereq-block">
+          <div class="fld-prereq-title"><i class="fas fa-lock" style="margin-right:.4rem"></i>Prerequisites required</div>
+          {% for prereq in data.missing_prereqs %}
+          <div class="fld-prereq-item">
+            <i class="fas fa-minus-circle" style="font-size:.7rem;flex-shrink:0"></i>
+            <span>{{ prereq.name }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="fld-cc-actions" style="margin-top:0">
+          <a href="{% url 'course_detail' data.course.slug %}" class="fld-btn fld-btn-outline-card">Course Details</a>
+          {% if data.bundles %}
+            <a href="{% url 'student_dashboard' %}" class="fld-btn fld-btn-continue">View bundles <i class="fas fa-arrow-right" style="font-size:.65rem"></i></a>
+          {% elif not data.course.is_paid %}
+            <a href="{% url 'student_dashboard' %}" class="fld-btn fld-btn-continue">Browse all <i class="fas fa-arrow-right" style="font-size:.65rem"></i></a>
+          {% endif %}
+        </div>
+
       </div>
-    </section>
+      {% endfor %}
+    </div>
+  </section>
   {% endif %}
+
 </div>
 
 <script>
-function toggleFavorite(courseId, buttonElement) {
-  const icon = buttonElement.querySelector('i');
-  const isCurrentlyFavorited = buttonElement.dataset.isFavorited === 'true';
+function toggleFavorite(courseId, btn) {
+  const icon = btn.querySelector('i');
+  const isFav = btn.dataset.isFavorited === 'true';
+  const card = btn.closest('.fld-course-card');
 
-  // Find card
-  const card = buttonElement.closest('article');
+  // Optimistic UI
+  btn.classList.toggle('fld-on', !isFav);
+  icon.className = !isFav ? 'fas fa-heart' : 'far fa-heart';
+  if (card) card.classList.toggle('fld-favorited', !isFav);
+  btn.dataset.isFavorited = (!isFav).toString();
 
-  // Optimistic
-  if (isCurrentlyFavorited) {
-    icon.classList.remove('fas'); icon.classList.add('far');
-    buttonElement.classList.remove('text-amber-600');
-    buttonElement.classList.add('text-slate-400');
-    if (card) card.classList.remove('ring-2','ring-amber-200');
-  } else {
-    icon.classList.remove('far'); icon.classList.add('fas');
-    buttonElement.classList.remove('text-slate-400');
-    buttonElement.classList.add('text-amber-600');
-    if (card) card.classList.add('ring-2','ring-amber-200');
-  }
-  buttonElement.dataset.isFavorited = (!isCurrentlyFavorited).toString();
-
-  // Spinner
-  const originalClass = icon.className;
-  icon.className = 'fas fa-spinner fa-spin text-amber-600';
+  const prev = icon.className;
+  icon.className = 'fas fa-spinner fa-spin';
 
   fetch(`/api/courses/${courseId}/favorite/`, {
     method: 'POST',
-    headers: {
-      'X-CSRFToken': getCookie('csrftoken'),
-      'Content-Type': 'application/json',
-    },
+    headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' }
   })
   .then(r => r.json())
-  .then(data => {
-    if (data.success) {
-      icon.className = data.is_favorited ? 'fas fa-heart' : 'far fa-heart';
-      buttonElement.dataset.isFavorited = data.is_favorited.toString();
-      if (data.is_favorited) {
-        buttonElement.classList.remove('text-slate-400');
-        buttonElement.classList.add('text-amber-600');
-        if (card) card.classList.add('ring-2','ring-amber-200');
-      } else {
-        buttonElement.classList.remove('text-amber-600');
-        buttonElement.classList.add('text-slate-400');
-        if (card) card.classList.remove('ring-2','ring-amber-200');
-      }
+  .then(d => {
+    if (d.success) {
+      btn.classList.toggle('fld-on', d.is_favorited);
+      icon.className = d.is_favorited ? 'fas fa-heart' : 'far fa-heart';
+      btn.dataset.isFavorited = d.is_favorited.toString();
+      if (card) card.classList.toggle('fld-favorited', d.is_favorited);
     } else {
-      icon.className = originalClass;
-      buttonElement.dataset.isFavorited = isCurrentlyFavorited.toString();
-      alert('Error: ' + (data.message || 'Failed to update favorite'));
+      icon.className = prev;
+      btn.dataset.isFavorited = isFav.toString();
+      alert(d.message || 'Failed to update');
     }
   })
-  .catch(() => {
-    icon.className = originalClass;
-    buttonElement.dataset.isFavorited = isCurrentlyFavorited.toString();
-    alert('Error updating favorite. Please try again.');
-  });
+  .catch(() => { icon.className = prev; btn.dataset.isFavorited = isFav.toString(); });
 }
 
-function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return cookieValue;
+function getCookie(n) {
+  return document.cookie.split(';')
+    .map(c => c.trim()).find(c => c.startsWith(n+'='))
+    ?.split('=')[1] ? decodeURIComponent(document.cookie.split(';').map(c=>c.trim()).find(c=>c.startsWith(n+'='))?.split('=').slice(1).join('=')) : null;
 }
 </script>
 {% endblock %}

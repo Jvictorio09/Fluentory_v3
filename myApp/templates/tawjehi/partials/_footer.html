@@ -19,7 +19,7 @@
                 <h3 class="font-semibold mb-4">Quick Links</h3>
                 <ul class="space-y-2 text-sm text-black text-slate-400">
                     <li><a href="{% url 'landing' %}" class="hover:text-white transition-colors">Home</a></li>
-                    <li><a href="{% url 'courses' %}" class="hover:text-white transition-colors">Language Courses</a></li>
+                    <li><a href="{% url 'student_dashboard' %}" class="hover:text-white transition-colors">Language Courses</a></li>
                     <li><a href="{% url 'tawjehi_page' %}" class="hover:text-white transition-colors">Tawjehi Courses</a></li>
                     {% if not user.is_authenticated %}
                     <li><a href="{% url 'login' %}" class="hover:text-white transition-colors">Login</a></li>

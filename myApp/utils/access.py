@@ -7,6 +7,51 @@ from django.db.models import Q
 from ..models import CourseAccess, Course, CohortMember, BundlePurchase
 
 
+def ensure_live_session_bookings_for_user_course(user, course):
+    """
+    For live courses, create a pending Booking per non-cancelled session so teachers see enrolled students.
+    Idempotent (get_or_create).
+    """
+    if course.delivery_type != 'live':
+        return
+    from ..models import LiveSession, Booking
+
+    sessions = LiveSession.objects.filter(course=course).exclude(status='cancelled')
+    for session in sessions:
+        Booking.objects.get_or_create(
+            user=user,
+            session=session,
+            defaults={'status': 'pending'},
+        )
+
+
+def ensure_live_session_bookings_for_session(session):
+    """
+    When a live session exists, add pending bookings for every student with active course access.
+    Used after a new session is created (or to backfill).
+    """
+    course = session.course
+    if course.delivery_type != 'live':
+        return
+    if session.status == 'cancelled':
+        return
+    from ..models import Booking
+
+    accesses = CourseAccess.objects.filter(
+        course=course,
+        status='unlocked',
+    ).exclude(
+        Q(expires_at__isnull=False) & Q(expires_at__lt=timezone.now())
+    ).select_related('user')
+
+    for access in accesses:
+        Booking.objects.get_or_create(
+            user=access.user,
+            session=session,
+            defaults={'status': 'pending'},
+        )
+
+
 def has_course_access(user, course):
     """
     Check if user has active access to a course.
@@ -63,6 +108,7 @@ def grant_course_access(user, course, access_type, granted_by=None, bundle_purch
         expires_at=expires_at,
         notes=notes
     )
+    ensure_live_session_bookings_for_user_course(user, course)
     return access
 
 
@@ -259,6 +305,7 @@ def grant_purchase_access(user, course, purchase):
         if existing_access.status != 'unlocked':
             existing_access.status = 'unlocked'
             existing_access.save()
+        ensure_live_session_bookings_for_user_course(user, course)
         return existing_access
     
     # Create new access record

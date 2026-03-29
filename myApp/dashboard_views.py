@@ -5,12 +5,15 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.db.models import Count, Q
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.core.cache import cache
+from django.db import close_old_connections
 import json
 import re
 import requests
 import csv
 import io
 import os
+import threading
 try:
     import fitz  # PyMuPDF
     PDF_AVAILABLE = True
@@ -50,6 +53,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Avg, Count, Q, Sum
 from django.utils import timezone
+
+from .utils.teacher import get_eligible_course_teacher_users
 
 
 @staff_member_required
@@ -468,8 +473,7 @@ def dashboard_course_detail(request, course_slug):
         if course.delivery_type == 'live':
             teacher_ids = request.POST.getlist('teachers')
             if teacher_ids:
-                from django.contrib.auth.models import User
-                teachers = User.objects.filter(id__in=teacher_ids)
+                teachers = get_eligible_course_teacher_users().filter(id__in=teacher_ids)
                 course.teachers.set(teachers)
             else:
                 course.teachers.clear()
@@ -479,12 +483,7 @@ def dashboard_course_detail(request, course_slug):
         messages.success(request, 'Course updated successfully.')
         return redirect('dashboard_course_detail', course_slug=course.slug)
     
-    # Get all users who could be teachers
-    from django.contrib.auth.models import User
-    from django.db.models import Q
-    potential_teachers = User.objects.filter(
-        Q(is_staff=False) | Q(taught_courses__isnull=False)
-    ).distinct().order_by('username')
+    potential_teachers = get_eligible_course_teacher_users()
     
     return render(request, 'dashboard/course_detail.html', {
         'course': course,
@@ -675,6 +674,7 @@ def dashboard_add_course(request):
         course_type = request.POST.get('course_type', 'sprint')
         status = request.POST.get('status', 'active')
         coach_name = request.POST.get('coach_name', 'Sprint Coach')
+        use_ai = request.POST.get('use_ai') == 'on'
         
         # Delivery type and pricing
         delivery_type = request.POST.get('delivery_type', 'pre_recorded')
@@ -708,22 +708,847 @@ def dashboard_add_course(request):
         if delivery_type == 'live':
             teacher_ids = request.POST.getlist('teachers')
             if teacher_ids:
-                from django.contrib.auth.models import User
-                teachers = User.objects.filter(id__in=teacher_ids)
+                teachers = get_eligible_course_teacher_users().filter(id__in=teacher_ids)
                 course.teachers.set(teachers)
-        
-        messages.success(request, f'Course "{course.name}" has been created successfully.')
+
+        if use_ai and description.strip():
+            _update_ai_gen_progress(
+                course.id,
+                status='starting',
+                progress=5,
+                current='Queued AI generation',
+            )
+
+            generating_courses = request.session.get('ai_generating_courses', [])
+            if not any(
+                (isinstance(item, dict) and item.get('id') == course.id) or item == course.id
+                for item in generating_courses
+            ):
+                generating_courses.append({'id': course.id, 'name': course.name})
+                request.session['ai_generating_courses'] = generating_courses
+                request.session.modified = True
+
+            worker = threading.Thread(
+                target=_generate_course_ai_content,
+                args=(course.id, course.name, description, course_type, coach_name),
+                daemon=True,
+            )
+            worker.start()
+            messages.success(
+                request,
+                f'Course "{course.name}" was created. AI generation is running in the background.',
+            )
+        else:
+            messages.success(request, f'Course "{course.name}" has been created successfully.')
         return redirect('dashboard_courses')
     
-    # Get all users who could be teachers (non-staff users or users with taught courses)
-    from django.contrib.auth.models import User
-    potential_teachers = User.objects.filter(
-        Q(is_staff=False) | Q(taught_courses__isnull=False)
-    ).distinct().order_by('username')
+    potential_teachers = get_eligible_course_teacher_users()
     
     return render(request, 'dashboard/add_course.html', {
         'potential_teachers': potential_teachers,
     })
+
+
+@staff_member_required
+@require_http_methods(["GET"])
+def api_ai_generation_status(request, course_id):
+    """Return AI generation progress for a course."""
+    cache_key = f'ai_gen_{course_id}'
+    payload = cache.get(cache_key)
+
+    generating_courses = request.session.get('ai_generating_courses', [])
+
+    def _course_in_session():
+        for item in generating_courses:
+            if isinstance(item, dict) and item.get('id') == course_id:
+                return True
+            if item == course_id:
+                return True
+        return False
+
+    if payload is None:
+        if _course_in_session():
+            return JsonResponse({
+                'status': 'unknown',
+                'progress': 0,
+                'current': 'Waiting for worker update',
+                'retry': True,
+            })
+        return JsonResponse({
+            'status': 'not_found',
+            'progress': 0,
+            'current': 'No active generation found',
+            'retry': False,
+        })
+
+    status = payload.get('status')
+    if status in {'completed', 'failed'} and _course_in_session():
+        request.session['ai_generating_courses'] = [
+            item for item in generating_courses
+            if not (
+                (isinstance(item, dict) and item.get('id') == course_id) or item == course_id
+            )
+        ]
+        request.session.modified = True
+
+    return JsonResponse(payload)
+
+
+def _update_ai_gen_progress(course_id, status, progress, current, error=''):
+    """Store AI generation progress in cache."""
+    cache.set(
+        f'ai_gen_{course_id}',
+        {
+            'status': status,
+            'progress': int(max(0, min(100, progress))),
+            'current': current,
+            'error': error or '',
+        },
+        timeout=60 * 60,
+    )
+
+
+def _fallback_course_structure(course_name, description):
+    """Return a deterministic fallback structure when AI is unavailable."""
+    sentence_chunks = [s.strip() for s in re.split(r'[.!?]\s+', description) if s.strip()]
+    seed = sentence_chunks[:6]
+    while len(seed) < 6:
+        seed.append(f'Core concept {len(seed) + 1} for {course_name}')
+
+    return {
+        'modules': [
+            {
+                'title': 'Foundations',
+                'description': f'Core fundamentals of {course_name}.',
+                'lessons': [
+                    {'title': 'Orientation and Goals', 'description': seed[0]},
+                    {'title': 'Key Concepts', 'description': seed[1]},
+                    {'title': 'Common Mistakes to Avoid', 'description': seed[2]},
+                ],
+            },
+            {
+                'title': 'Practice and Application',
+                'description': f'Apply {course_name} concepts in realistic scenarios.',
+                'lessons': [
+                    {'title': 'Practical Frameworks', 'description': seed[3]},
+                    {'title': 'Scenario Walkthrough', 'description': seed[4]},
+                    {'title': 'Guided Practice', 'description': seed[5]},
+                ],
+            },
+            {
+                'title': 'Mastery',
+                'description': 'Consolidate skills and plan next steps.',
+                'lessons': [
+                    {'title': 'Advanced Patterns', 'description': 'Move from basics to advanced execution.'},
+                    {'title': 'Self-Review Checklist', 'description': 'Measure readiness with a repeatable checklist.'},
+                    {'title': 'Action Plan', 'description': 'Create a weekly action plan to keep momentum.'},
+                ],
+            },
+        ]
+    }
+
+
+def generate_ai_course_structure(course_name, description, course_type='sprint', coach_name='Sprint Coach'):
+    """Generate course structure JSON using OpenAI with safe fallback."""
+    if not OPENAI_AVAILABLE:
+        return _fallback_course_structure(course_name, description)
+
+    api_key = os.getenv('OPENAI_API_KEY')
+    if not api_key:
+        return _fallback_course_structure(course_name, description)
+
+    try:
+        client = OpenAI(api_key=api_key)
+        prompt = f"""Create a learning path for a course.
+
+Course title: {course_name}
+Course type: {course_type}
+Coach persona: {coach_name}
+Description: {description}
+
+Requirements:
+- Return strict JSON only.
+- Include 3 to 6 modules.
+- Include 3 to 8 lessons per module.
+- Keep progression practical and sequential.
+
+JSON schema:
+{{
+  "modules": [
+    {{
+      "title": "Module name",
+      "description": "Module description",
+      "lessons": [
+        {{
+          "title": "Lesson title",
+          "description": "Lesson description"
+        }}
+      ]
+    }}
+  ]
+}}
+"""
+        response = client.chat.completions.create(
+            model='gpt-4o-mini',
+            messages=[
+                {'role': 'system', 'content': 'You design practical course outlines and always return valid JSON.'},
+                {'role': 'user', 'content': prompt},
+            ],
+            temperature=0.7,
+            max_tokens=3000,
+        )
+        content = (response.choices[0].message.content or '').strip()
+
+        if content.startswith('```'):
+            content = content.split('```', 1)[1]
+            if content.startswith('json'):
+                content = content[4:]
+            content = content.strip()
+        if content.endswith('```'):
+            content = content.rsplit('```', 1)[0].strip()
+
+        try:
+            data = json.loads(content)
+        except json.JSONDecodeError:
+            match = re.search(r'\{.*\}', content, re.DOTALL)
+            if not match:
+                return _fallback_course_structure(course_name, description)
+            data = json.loads(match.group(0))
+
+        modules = data.get('modules', [])
+        if not isinstance(modules, list) or not modules:
+            return _fallback_course_structure(course_name, description)
+
+        cleaned = []
+        for module in modules[:6]:
+            module_title = str(module.get('title', '')).strip() or 'Untitled Module'
+            module_description = str(module.get('description', '')).strip() or f'Learning block for {course_name}.'
+            lessons = module.get('lessons', [])
+            if not isinstance(lessons, list):
+                lessons = []
+
+            cleaned_lessons = []
+            for lesson in lessons[:8]:
+                lesson_title = str(lesson.get('title', '')).strip()
+                if not lesson_title:
+                    continue
+                lesson_description = str(lesson.get('description', '')).strip() or f'Learn {lesson_title}.'
+                cleaned_lessons.append({
+                    'title': lesson_title,
+                    'description': lesson_description,
+                })
+
+            if len(cleaned_lessons) < 3:
+                while len(cleaned_lessons) < 3:
+                    index = len(cleaned_lessons) + 1
+                    cleaned_lessons.append({
+                        'title': f'{module_title} Lesson {index}',
+                        'description': f'Practical progression step {index} in {module_title}.',
+                    })
+
+            cleaned.append({
+                'title': module_title,
+                'description': module_description,
+                'lessons': cleaned_lessons,
+            })
+
+        if len(cleaned) < 3:
+            return _fallback_course_structure(course_name, description)
+
+        return {'modules': cleaned}
+    except Exception:
+        return _fallback_course_structure(course_name, description)
+
+
+def _build_editorjs_content(lesson_title, lesson_description):
+    """Build minimal Editor.js content payload for a lesson."""
+    checklist_items = [
+        f'Review the objective of "{lesson_title}"',
+        'Take notes on key concepts and examples',
+        'Practice one real-world application immediately',
+    ]
+    return {
+        'time': int(timezone.now().timestamp() * 1000),
+        'blocks': [
+            {
+                'type': 'header',
+                'data': {
+                    'text': lesson_title,
+                    'level': 2,
+                },
+            },
+            {
+                'type': 'paragraph',
+                'data': {
+                    'text': lesson_description,
+                },
+            },
+            {
+                'type': 'list',
+                'data': {
+                    'style': 'unordered',
+                    'items': checklist_items,
+                },
+            },
+        ],
+        'version': '2.29.1',
+    }
+
+
+def _extract_json_payload(raw_text):
+    """Extract JSON payload from raw LLM output."""
+    if not raw_text:
+        return None
+
+    text = str(raw_text).strip()
+    if text.startswith('```'):
+        text = text.split('```', 1)[1]
+        if text.startswith('json'):
+            text = text[4:]
+        text = text.strip()
+    if text.endswith('```'):
+        text = text.rsplit('```', 1)[0].strip()
+
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        match = re.search(r'\{.*\}', text, re.DOTALL)
+        if not match:
+            return None
+        try:
+            return json.loads(match.group(0))
+        except Exception:
+            return None
+
+
+def generate_ai_lesson_metadata(course_name, module_title, lesson_title, lesson_description, course_type='sprint', coach_name='Sprint Coach'):
+    """Generate lesson metadata using OpenAI with robust fallback."""
+    fallback = {
+        'clean_title': lesson_title,
+        'short_summary': (lesson_description or f'Core lesson in {course_name}.')[:220],
+        'full_description': lesson_description or f'This lesson helps you apply {lesson_title} in practical scenarios.',
+        'outcomes': [
+            f'Understand the core ideas in {lesson_title}',
+            f'Apply {lesson_title} in practical exercises',
+            f'Build confidence through guided repetition',
+        ],
+        'coach_actions': [
+            'Summarize this lesson in 5 bullets',
+            'Turn this lesson into a 3-step action plan',
+            'Create a self-check quiz from this lesson',
+        ],
+    }
+
+    if not OPENAI_AVAILABLE or not os.getenv('OPENAI_API_KEY'):
+        return fallback
+
+    try:
+        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        prompt = f"""Generate lesson metadata as strict JSON.
+
+Course: {course_name}
+Course type: {course_type}
+Coach persona: {coach_name}
+Module: {module_title}
+Lesson title: {lesson_title}
+Lesson description seed: {lesson_description}
+
+Return strict JSON only with this schema:
+{{
+  "clean_title": "string",
+  "short_summary": "string up to 220 chars",
+  "full_description": "2-5 paragraphs",
+  "outcomes": ["string", "string", "string", "... up to 6"],
+  "coach_actions": ["string", "string", "string", "... up to 6"]
+}}
+"""
+        response = client.chat.completions.create(
+            model='gpt-4o-mini',
+            messages=[
+                {'role': 'system', 'content': 'You are an instructional designer. Return strict JSON only.'},
+                {'role': 'user', 'content': prompt},
+            ],
+            temperature=0.6,
+            max_tokens=2000,
+        )
+        payload = _extract_json_payload(response.choices[0].message.content or '')
+        if not isinstance(payload, dict):
+            return fallback
+
+        clean_title = str(payload.get('clean_title', '')).strip() or fallback['clean_title']
+        short_summary = str(payload.get('short_summary', '')).strip() or fallback['short_summary']
+        full_description = str(payload.get('full_description', '')).strip() or fallback['full_description']
+
+        outcomes = payload.get('outcomes', [])
+        if not isinstance(outcomes, list):
+            outcomes = []
+        outcomes = [str(item).strip() for item in outcomes if str(item).strip()][:6] or fallback['outcomes']
+
+        coach_actions = payload.get('coach_actions', [])
+        if not isinstance(coach_actions, list):
+            coach_actions = []
+        coach_actions = [str(item).strip() for item in coach_actions if str(item).strip()][:6] or fallback['coach_actions']
+
+        return {
+            'clean_title': clean_title,
+            'short_summary': short_summary[:220],
+            'full_description': full_description,
+            'outcomes': outcomes,
+            'coach_actions': coach_actions,
+        }
+    except Exception:
+        return fallback
+
+
+def generate_ai_lesson_content(course_name, module_title, metadata):
+    """Generate Editor.js lesson blocks with fallback."""
+    lesson_title = metadata.get('clean_title') or 'Lesson'
+    lesson_description = metadata.get('full_description') or metadata.get('short_summary') or ''
+    fallback = _build_editorjs_content(lesson_title, lesson_description)
+
+    if not OPENAI_AVAILABLE or not os.getenv('OPENAI_API_KEY'):
+        return fallback
+
+    try:
+        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        prompt = f"""Create rich lesson content as strict JSON for Editor.js.
+
+Course: {course_name}
+Module: {module_title}
+Lesson title: {lesson_title}
+Lesson summary: {metadata.get('short_summary', '')}
+Lesson description: {lesson_description}
+
+Return strict JSON only:
+{{
+  "blocks": [
+    {{"type":"header","data":{{"text":"...", "level":2}}}},
+    {{"type":"paragraph","data":{{"text":"..."}}}},
+    {{"type":"list","data":{{"style":"unordered","items":["...","..."]}}}},
+    {{"type":"checklist","data":{{"items":[{{"text":"...", "checked":false}}]}}}},
+    {{"type":"quote","data":{{"text":"...", "caption":"..."}}}}
+  ]
+}}
+
+Rules:
+- Include 8-16 blocks.
+- Do not include markdown code fences.
+- Keep content practical and learner-focused.
+"""
+        response = client.chat.completions.create(
+            model='gpt-4o-mini',
+            messages=[
+                {'role': 'system', 'content': 'You are a curriculum writer that returns strict JSON only.'},
+                {'role': 'user', 'content': prompt},
+            ],
+            temperature=0.7,
+            max_tokens=3200,
+        )
+        payload = _extract_json_payload(response.choices[0].message.content or '')
+        if not isinstance(payload, dict):
+            return fallback
+
+        raw_blocks = payload.get('blocks', [])
+        if not isinstance(raw_blocks, list) or not raw_blocks:
+            return fallback
+
+        allowed_types = {'header', 'paragraph', 'list', 'checklist', 'quote', 'delimiter'}
+        cleaned_blocks = []
+        for block in raw_blocks[:24]:
+            if not isinstance(block, dict):
+                continue
+            block_type = str(block.get('type', 'paragraph')).strip()
+            if block_type not in allowed_types:
+                continue
+            data = block.get('data', {})
+            if not isinstance(data, dict):
+                data = {}
+            cleaned_blocks.append({
+                'type': block_type,
+                'data': data,
+            })
+
+        if len(cleaned_blocks) < 3:
+            return fallback
+
+        return {
+            'time': int(timezone.now().timestamp() * 1000),
+            'blocks': cleaned_blocks,
+            'version': '2.29.1',
+        }
+    except Exception:
+        return fallback
+
+
+def _extract_text_from_editorjs(content):
+    """Extract plain text from Editor.js content blocks."""
+    if not isinstance(content, dict):
+        return ''
+    blocks = content.get('blocks', [])
+    if not isinstance(blocks, list):
+        return ''
+
+    fragments = []
+    for block in blocks:
+        if not isinstance(block, dict):
+            continue
+        data = block.get('data', {})
+        if not isinstance(data, dict):
+            continue
+
+        if 'text' in data and isinstance(data['text'], str):
+            fragments.append(data['text'])
+
+        items = data.get('items', [])
+        if isinstance(items, list):
+            for item in items:
+                if isinstance(item, str):
+                    fragments.append(item)
+                elif isinstance(item, dict):
+                    item_text = item.get('text') or item.get('content')
+                    if isinstance(item_text, str):
+                        fragments.append(item_text)
+                    nested = item.get('items', [])
+                    if isinstance(nested, list):
+                        for nested_item in nested:
+                            if isinstance(nested_item, str):
+                                fragments.append(nested_item)
+    return '\n'.join(fragments).strip()
+
+
+def _train_lesson_chatbot_from_text(lesson, transcript):
+    """Train lesson chatbot using webhook without failing the whole worker."""
+    transcript = (transcript or '').strip()
+    if len(transcript) < 40:
+        return False, 'Not enough transcript content for chatbot training'
+
+    training_webhook_url = os.getenv(
+        'AI_TRAINING_WEBHOOK_URL',
+        'https://katalyst-crm2.fly.dev/webhook/425e8e67-2aa6-4c50-b67f-0162e2496b51',
+    )
+
+    try:
+        lesson.transcription = transcript
+        lesson.ai_chatbot_training_status = 'training'
+        lesson.ai_chatbot_training_error = ''
+        lesson.save(update_fields=['transcription', 'ai_chatbot_training_status', 'ai_chatbot_training_error'])
+
+        payload = {
+            'transcript': transcript,
+            'lesson_id': lesson.id,
+            'lesson_title': lesson.title,
+            'course_name': lesson.course.name,
+            'lesson_slug': lesson.slug,
+        }
+        response = requests.post(
+            training_webhook_url,
+            json=payload,
+            timeout=30,
+            headers={'Content-Type': 'application/json'},
+        )
+        if response.status_code != 200:
+            lesson.ai_chatbot_training_status = 'failed'
+            lesson.ai_chatbot_training_error = f'Webhook status {response.status_code}'
+            lesson.save(update_fields=['ai_chatbot_training_status', 'ai_chatbot_training_error'])
+            return False, lesson.ai_chatbot_training_error
+
+        response_data = {}
+        try:
+            response_data = response.json()
+        except Exception:
+            response_data = {}
+
+        chatbot_webhook_id = (
+            response_data.get('chatbot_webhook_id')
+            or response_data.get('webhook_id')
+            or response_data.get('id')
+            or ''
+        )
+        if chatbot_webhook_id:
+            lesson.ai_chatbot_webhook_id = str(chatbot_webhook_id)
+        lesson.ai_chatbot_training_status = 'trained'
+        lesson.ai_chatbot_trained_at = timezone.now()
+        lesson.ai_chatbot_enabled = True
+        lesson.ai_chatbot_training_error = ''
+        lesson.save(
+            update_fields=[
+                'ai_chatbot_webhook_id',
+                'ai_chatbot_training_status',
+                'ai_chatbot_trained_at',
+                'ai_chatbot_enabled',
+                'ai_chatbot_training_error',
+            ]
+        )
+        return True, ''
+    except Exception as exc:
+        lesson.ai_chatbot_training_status = 'failed'
+        lesson.ai_chatbot_training_error = str(exc)
+        lesson.save(update_fields=['ai_chatbot_training_status', 'ai_chatbot_training_error'])
+        return False, str(exc)
+
+
+def generate_ai_final_exam_questions(course_name, lesson_summaries, num_questions=20):
+    """Generate a final exam question bank and return normalized list."""
+    def _fallback_questions():
+        questions = []
+        topics = lesson_summaries[:10] if lesson_summaries else [{'title': course_name, 'summary': 'Core course concepts'}]
+        idx = 1
+        for topic in topics:
+            if len(questions) >= max(8, min(30, num_questions)):
+                break
+            title = topic.get('title') or f'Topic {idx}'
+            questions.append({
+                'question': f'Which statement best reflects the core objective of "{title}"?',
+                'option_a': 'Apply concepts in a practical scenario',
+                'option_b': 'Memorize isolated definitions only',
+                'option_c': 'Skip implementation and focus on theory',
+                'option_d': 'Avoid reflection and feedback',
+                'correct_answer': 'A',
+                'explanation': f'The course emphasizes practical application for {title}.',
+            })
+            idx += 1
+        return questions
+
+    if not OPENAI_AVAILABLE or not os.getenv('OPENAI_API_KEY'):
+        return _fallback_questions()
+
+    try:
+        compact_summaries = '\n'.join(
+            [f"- {item.get('title', 'Lesson')}: {item.get('summary', '')[:300]}" for item in lesson_summaries[:40]]
+        )
+        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        prompt = f"""Create a cumulative final exam question bank for this course as strict JSON only.
+
+Course: {course_name}
+Question count target: {max(8, min(30, num_questions))}
+Lesson summaries:
+{compact_summaries}
+
+Return JSON:
+{{
+  "questions": [
+    {{
+      "question": "string",
+      "option_a": "string",
+      "option_b": "string",
+      "option_c": "string",
+      "option_d": "string",
+      "correct_answer": "A|B|C|D",
+      "explanation": "string"
+    }}
+  ]
+}}
+"""
+        response = client.chat.completions.create(
+            model='gpt-4o-mini',
+            messages=[
+                {'role': 'system', 'content': 'You create high-quality educational MCQs and return strict JSON only.'},
+                {'role': 'user', 'content': prompt},
+            ],
+            temperature=0.5,
+            max_tokens=3500,
+        )
+        payload = _extract_json_payload(response.choices[0].message.content or '')
+        if not isinstance(payload, dict):
+            return _fallback_questions()
+
+        question_rows = payload.get('questions', [])
+        if not isinstance(question_rows, list) or not question_rows:
+            return _fallback_questions()
+
+        cleaned = []
+        for row in question_rows[:40]:
+            if not isinstance(row, dict):
+                continue
+            question = str(row.get('question', '')).strip()
+            option_a = str(row.get('option_a', '')).strip()
+            option_b = str(row.get('option_b', '')).strip()
+            option_c = str(row.get('option_c', '')).strip()
+            option_d = str(row.get('option_d', '')).strip()
+            correct = str(row.get('correct_answer', 'A')).strip().upper()
+            explanation = str(row.get('explanation', '')).strip()
+            if not question or not option_a or not option_b:
+                continue
+            if correct not in {'A', 'B', 'C', 'D'}:
+                correct = 'A'
+            cleaned.append({
+                'question': question,
+                'option_a': option_a,
+                'option_b': option_b,
+                'option_c': option_c,
+                'option_d': option_d,
+                'correct_answer': correct,
+                'explanation': explanation,
+            })
+
+        return cleaned or _fallback_questions()
+    except Exception:
+        return _fallback_questions()
+
+
+def _generate_course_ai_content(course_id, course_name, description, course_type, coach_name):
+    """Background worker that generates modules, content, quizzes, and exam bank."""
+    close_old_connections()
+    try:
+        course = Course.objects.get(id=course_id)
+        _update_ai_gen_progress(course_id, 'generating_structure', 10, 'Designing module and lesson structure')
+        structure = generate_ai_course_structure(course_name, description, course_type, coach_name)
+        modules = structure.get('modules', [])
+
+        if not modules:
+            raise ValueError('AI returned an empty course structure')
+
+        total_lessons = sum(len(module.get('lessons', [])) for module in modules)
+        if total_lessons == 0:
+            raise ValueError('AI returned modules without lessons')
+
+        _update_ai_gen_progress(course_id, 'creating_modules', 18, 'Preparing modules and lesson shells')
+
+        lessons_done = 0
+        lesson_summaries = []
+        for module_index, module_data in enumerate(modules, start=1):
+            module_title = str(module_data.get('title', f'Module {module_index}')).strip()
+            module_description = str(module_data.get('description', '')).strip()
+            module = Module.objects.create(
+                course=course,
+                name=module_title,
+                description=module_description,
+                order=module_index,
+            )
+
+            lesson_items = module_data.get('lessons', [])
+            for lesson_index, lesson_data in enumerate(lesson_items, start=1):
+                lesson_title = str(lesson_data.get('title', f'{module_title} Lesson {lesson_index}')).strip()
+                lesson_description = str(lesson_data.get('description', '')).strip() or f'Learn {lesson_title}.'
+                base_slug = generate_slug(lesson_title) or f'lesson-{module_index}-{lesson_index}'
+                lesson_slug = base_slug
+                slug_suffix = 2
+                while Lesson.objects.filter(course=course, slug=lesson_slug).exists():
+                    lesson_slug = f'{base_slug}-{slug_suffix}'
+                    slug_suffix += 1
+
+                lesson_ratio = lessons_done / total_lessons
+                _update_ai_gen_progress(
+                    course_id,
+                    'generating_lesson_metadata',
+                    20 + int(lesson_ratio * 50),
+                    f'Generating metadata for lesson {lessons_done + 1} of {total_lessons}',
+                )
+                metadata = generate_ai_lesson_metadata(
+                    course_name=course.name,
+                    module_title=module_title,
+                    lesson_title=lesson_title,
+                    lesson_description=lesson_description,
+                    course_type=course_type,
+                    coach_name=coach_name,
+                )
+
+                _update_ai_gen_progress(
+                    course_id,
+                    'generating_lesson_content',
+                    24 + int(lesson_ratio * 50),
+                    f'Generating content for lesson {lessons_done + 1} of {total_lessons}',
+                )
+                lesson_content = generate_ai_lesson_content(
+                    course_name=course.name,
+                    module_title=module_title,
+                    metadata=metadata,
+                )
+
+                lesson = Lesson.objects.create(
+                    course=course,
+                    module=module,
+                    title=metadata.get('clean_title', lesson_title),
+                    slug=lesson_slug,
+                    description=metadata.get('full_description', lesson_description),
+                    order=lesson_index,
+                    lesson_type='video',
+                    ai_generation_status='generated',
+                    ai_clean_title=metadata.get('clean_title', lesson_title),
+                    ai_short_summary=metadata.get('short_summary', lesson_description[:220]),
+                    ai_full_description=metadata.get('full_description', lesson_description),
+                    ai_outcomes=metadata.get('outcomes', []),
+                    ai_coach_actions=metadata.get('coach_actions', []),
+                    content=lesson_content,
+                )
+
+                lesson_summaries.append({
+                    'title': lesson.title,
+                    'summary': lesson.ai_short_summary or lesson.description[:220],
+                })
+
+                _update_ai_gen_progress(
+                    course_id,
+                    'creating_assessments',
+                    28 + int((lessons_done / total_lessons) * 52),
+                    f'Creating quiz for lesson {lessons_done + 1} of {total_lessons}',
+                )
+                quiz = LessonQuiz.objects.create(
+                    lesson=lesson,
+                    title=f'{lesson_title} Quiz',
+                    passing_score=70,
+                )
+                try:
+                    generate_ai_quiz(lesson, quiz, num_questions=5)
+                except Exception:
+                    # Keep the quiz shell even if AI question generation fails.
+                    pass
+
+                _update_ai_gen_progress(
+                    course_id,
+                    'training_chatbot',
+                    32 + int((lessons_done / total_lessons) * 52),
+                    f'Training lesson chatbot {lessons_done + 1} of {total_lessons}',
+                )
+                transcript_text = (
+                    (lesson.ai_full_description or '')
+                    + '\n\n'
+                    + _extract_text_from_editorjs(lesson.content)
+                ).strip()
+                _train_lesson_chatbot_from_text(lesson, transcript_text)
+
+                lessons_done += 1
+                progress = 35 + int((lessons_done / total_lessons) * 50)
+                _update_ai_gen_progress(
+                    course_id,
+                    'creating_content',
+                    progress,
+                    f'Completed lesson pipeline {lessons_done} of {total_lessons}',
+                )
+
+        _update_ai_gen_progress(course_id, 'creating_final_exam', 92, 'Generating final exam question bank')
+        Exam.objects.get_or_create(
+            course=course,
+            defaults={
+                'title': f'{course.name} Final Exam',
+                'description': f'Comprehensive assessment for {course.name}.',
+                'passing_score': 70,
+            },
+        )
+        exam = Exam.objects.get(course=course)
+        final_questions = generate_ai_final_exam_questions(
+            course_name=course.name,
+            lesson_summaries=lesson_summaries,
+            num_questions=max(10, min(30, total_lessons * 2)),
+        )
+        if final_questions:
+            exam_payload = {
+                'generated_at': timezone.now().isoformat(),
+                'question_count': len(final_questions),
+                'questions': final_questions,
+            }
+            exam.description = (
+                f'Comprehensive assessment for {course.name}.\n\n'
+                'AI Question Bank JSON:\n'
+                f'{json.dumps(exam_payload, ensure_ascii=True)}'
+            )
+            exam.save(update_fields=['description'])
+
+        _update_ai_gen_progress(course_id, 'completed', 100, 'Course AI generation completed')
+    except Exception as exc:
+        _update_ai_gen_progress(course_id, 'failed', 100, 'AI generation failed', error=str(exc))
+    finally:
+        close_old_connections()
 
 
 @staff_member_required

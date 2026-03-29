@@ -152,6 +152,25 @@
         </main>
     </div>
     
+    {% if request.session.ai_generating_courses %}
+    <div id="ai-generation-widgets" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 space-y-3 w-[min(92vw,360px)]">
+        {% for item in request.session.ai_generating_courses %}
+        {% with course_id=item.id|default:item course_name=item.name|default:"Course" %}
+        <div class="ai-progress-widget bg-[#ffffff]/95 border border-teal-soft/20 rounded-xl p-4 shadow-xl" data-course-id="{{ course_id }}">
+            <div class="flex items-center justify-between gap-3">
+                <div class="text-sm font-semibold text-black truncate">{{ course_name }}</div>
+                <div class="text-xs text-gray-600 ai-progress-percent">0%</div>
+            </div>
+            <div class="mt-2 text-xs text-gray-700 ai-progress-status">Starting AI generation...</div>
+            <div class="mt-3 h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                <div class="ai-progress-bar h-2 bg-gradient-to-r from-teal-soft to-blue-soft rounded-full transition-all duration-500" style="width:0%"></div>
+            </div>
+        </div>
+        {% endwith %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <!-- Universal Preloader -->
     <div id="universal-preloader" class="fixed inset-0 z-50 hidden items-center justify-center bg-[#ffffff]/95 backdrop-blur-md">
         <div class="text-center">
@@ -270,6 +289,90 @@
                 document.body.style.overflow = '';
             }
         });
+    })();
+
+    // Floating AI generation progress widgets
+    (function() {
+        const widgets = document.querySelectorAll('.ai-progress-widget');
+        if (!widgets.length) {
+            return;
+        }
+
+        const unknownCounts = {};
+        const pollIntervalMs = 2500;
+
+        function removeWidget(widget) {
+            widget.classList.add('opacity-0', 'translate-y-2', 'transition-all', 'duration-300');
+            setTimeout(() => {
+                widget.remove();
+                const container = document.getElementById('ai-generation-widgets');
+                if (container && !container.querySelector('.ai-progress-widget')) {
+                    container.remove();
+                }
+            }, 300);
+        }
+
+        function updateWidget(widget, payload) {
+            const bar = widget.querySelector('.ai-progress-bar');
+            const status = widget.querySelector('.ai-progress-status');
+            const percent = widget.querySelector('.ai-progress-percent');
+            const progressValue = Math.max(0, Math.min(100, Number(payload.progress || 0)));
+
+            if (bar) {
+                bar.style.width = `${progressValue}%`;
+            }
+            if (percent) {
+                percent.textContent = `${progressValue}%`;
+            }
+            if (status) {
+                if (payload.status === 'failed' && payload.error) {
+                    status.textContent = payload.error;
+                } else {
+                    status.textContent = payload.current || payload.status || 'Working...';
+                }
+            }
+        }
+
+        async function pollWidget(widget) {
+            const courseId = widget.dataset.courseId;
+            if (!courseId) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/dashboard/api/ai-generation-status/${courseId}/`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                });
+                if (!response.ok) {
+                    return;
+                }
+
+                const data = await response.json();
+                updateWidget(widget, data);
+
+                if (data.status === 'unknown') {
+                    unknownCounts[courseId] = (unknownCounts[courseId] || 0) + 1;
+                } else {
+                    unknownCounts[courseId] = 0;
+                }
+
+                const tooManyUnknowns = (unknownCounts[courseId] || 0) >= 6;
+                if (data.status === 'completed' || data.status === 'failed' || data.status === 'not_found' || tooManyUnknowns) {
+                    setTimeout(() => removeWidget(widget), 1500);
+                }
+            } catch (error) {
+                // Ignore transient network errors; next poll will retry.
+            }
+        }
+
+        widgets.forEach(widget => pollWidget(widget));
+        setInterval(() => {
+            document.querySelectorAll('.ai-progress-widget').forEach(widget => pollWidget(widget));
+        }, pollIntervalMs);
     })();
     </script>
     

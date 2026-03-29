@@ -15,6 +15,7 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('register/teacher/', views.register_teacher_view, name='register_teacher'),
     path('logout/', views.logout_view, name='logout'),
+    path('teachers/<str:username>/', views.teacher_public_profile, name='teacher_public_profile'),
     path('courses/', views.courses, name='courses'),
     path('tawjehi/', views.tawjehi_page, name='tawjehi_page'),
     # Purchase and gift endpoints must come before course_detail and lesson_detail to avoid URL matching conflicts
@@ -41,6 +42,7 @@ urlpatterns = [
     path('dashboard/courses/<slug:course_slug>/lessons/', dashboard_views.dashboard_course_lessons, name='dashboard_course_lessons'),
     path('dashboard/courses/<slug:course_slug>/sample-certificate/', dashboard_views.dashboard_sample_certificate, name='dashboard_sample_certificate'),
     path('dashboard/courses/<slug:course_slug>/edit-certificate-template/', dashboard_views.dashboard_edit_certificate_template, name='dashboard_edit_certificate_template'),
+    path('dashboard/api/ai-generation-status/<int:course_id>/', dashboard_views.api_ai_generation_status, name='api_ai_generation_status'),
     path('dashboard/courses/<slug:course_slug>/upload-pdf/', views.upload_pdf_lessons, name='dashboard_upload_pdf_lessons'),
     path('dashboard/courses/<slug:course_slug>/clear-lessons/', views.clear_course_lessons, name='dashboard_clear_course_lessons'),
     path('dashboard/lessons/', dashboard_views.dashboard_lessons, name='dashboard_lessons'),
@@ -110,6 +112,7 @@ urlpatterns = [
     
     # Teacher URLs
     path('teacher/', teacher_views.teacher_dashboard, name='teacher_dashboard'),
+    path('teacher/profile/', teacher_views.teacher_profile, name='teacher_profile'),
     path('teacher/courses/', teacher_views.teacher_courses, name='teacher_courses'),
     path('teacher/courses/add/', teacher_views.teacher_add_course, name='teacher_add_course'),
     path('teacher/courses/<slug:course_slug>/', teacher_views.teacher_course_detail, name='teacher_course_detail'),

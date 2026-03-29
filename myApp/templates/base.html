@@ -65,7 +65,7 @@
   {% block extra_head %}{% endblock %}
 </head>
 
-<body class="min-h-screen bg-white text-ink-deep">
+<body class="min-h-screen bg-white text-ink-deep flex flex-col">
   <!-- Background atmosphere (consistent across hub pages) -->
   <div class="fixed inset-0 -z-10 overflow-hidden">
     <div class="absolute inset-0 bg-gradient-to-br from-white via-slate-50 to-slate-100"></div>
@@ -97,9 +97,7 @@
 
       <!-- Desktop links -->
       <div class="hidden md:flex items-center gap-2">
-        <a href="{% url 'courses' %}" class="px-3 py-2 rounded-xl text-sm text-black font-semibold text-gray-700 text-slate-700 hover:text-ink-deep hover:bg-white/70 transition">
-          Courses
-        </a>
+        
 
         {% if user.is_authenticated %}
           <a href="{% url 'student_dashboard' %}" class="px-3 py-2 rounded-xl text-sm text-black font-semibold text-gray-700 text-slate-700 hover:text-ink-deep hover:bg-white/70 transition">
@@ -117,11 +115,23 @@
         {% endif %}
 
         <div class="w-px h-6 bg-slate-200 mx-1"></div>
-
-        <a href="{% url 'logout' %}" class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
-          Log out
-          <i class="fas fa-arrow-right ml-2 text-xs"></i>
-        </a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'logout' %}" class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
+            Log out
+            <i class="fas fa-arrow-right ml-2 text-xs"></i>
+          </a>
+        {% else %}
+          <a href="{% url 'register' %}" class="px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 border border-slate-200 bg-white/80 hover:bg-white hover:border-slate-300 transition">
+            Sign up
+          </a>
+          <a href="{% url 'register_teacher' %}" class="px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:text-teal-600 hover:bg-teal-soft/10 transition">
+            Teach with us
+          </a>
+          <a href="{% url 'login' %}" class="inline-flex items-center justify-center rounded-2xl bg-coral-cta px-4 py-2 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/20 transition hover:-translate-y-0.5">
+            Log in
+            <i class="fas fa-arrow-right ml-2 text-xs"></i>
+          </a>
+        {% endif %}
       </div>
     </div>
 
@@ -147,9 +157,21 @@
           </a>
         {% endif %}
 
-        <a href="{% url 'logout' %}" class="block rounded-xl px-4 py-3 text-sm text-black font-extrabold text-white bg-coral-cta shadow-lg shadow-coral-cta/20">
-          Log out <i class="fas fa-arrow-right ml-2 text-xs"></i>
-        </a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'logout' %}" class="block rounded-xl px-4 py-3 text-sm text-black font-extrabold text-white bg-coral-cta shadow-lg shadow-coral-cta/20">
+            Log out <i class="fas fa-arrow-right ml-2 text-xs"></i>
+          </a>
+        {% else %}
+          <a href="{% url 'register' %}" class="block rounded-xl px-4 py-3 text-sm text-black font-semibold text-slate-700 border border-slate-200 bg-white hover:bg-slate-50 transition">
+            <i class="fas fa-user-plus mr-2 text-blue-soft"></i> Sign up
+          </a>
+          <a href="{% url 'register_teacher' %}" class="block rounded-xl px-4 py-3 text-sm text-black font-semibold text-slate-700 hover:bg-teal-soft/10 transition">
+            <i class="fas fa-chalkboard-teacher mr-2 text-teal-600"></i> Teach with us
+          </a>
+          <a href="{% url 'login' %}" class="block rounded-xl px-4 py-3 text-sm text-black font-extrabold text-white bg-coral-cta shadow-lg shadow-coral-cta/20">
+            Log in <i class="fas fa-arrow-right ml-2 text-xs"></i>
+          </a>
+        {% endif %}
       </div>
     </div>
   </nav>
@@ -175,9 +197,66 @@
   </script>
 
   <!-- Main -->
-  <main class="mx-auto max-w-6xl px-6 py-8 md:py-12">
+  <main class="flex-1 w-full mx-auto max-w-6xl px-6 py-8 md:py-12">
     {% block content %}{% endblock %}
   </main>
+
+  <!-- Site footer (override block site_footer in a child template to hide, e.g. lesson player for pre-recorded courses) -->
+  {% block site_footer %}
+  <footer class="mt-auto border-t border-slate-200/80 bg-white/80 backdrop-blur-xl">
+    <div class="mx-auto max-w-6xl px-6 py-10 md:py-12">
+      <div class="grid grid-cols-1 gap-10 md:grid-cols-12 md:gap-8">
+        <div class="md:col-span-5">
+          <a href="{% url 'home' %}" class="inline-flex items-center gap-3 mb-4">
+            <img
+              src="https://res.cloudinary.com/dwooadxdj/image/upload/v1771294639/copy_of_copy_of_fluentory_-_branding-05_ijgdpz_a6f568_7b4fc3.png"
+              alt="Fluentory"
+              class="h-9 w-auto"
+              loading="lazy"
+            >
+          </a>
+          <p class="text-sm text-slate-600 leading-relaxed max-w-sm">
+            Learn with confidence. Fluentory connects you with structured courses and expert instructors.
+          </p>
+        </div>
+        <div class="md:col-span-3">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-4">Explore</h3>
+          <ul class="space-y-3 text-sm">
+            <li><a href="{% url 'home' %}" class="text-slate-700 hover:text-teal-soft transition">Home</a></li>
+            <li><a href="{% url 'courses' %}" class="text-slate-700 hover:text-teal-soft transition">Courses</a></li>
+            {% if not user.is_authenticated %}
+            <li><a href="{% url 'login' %}" class="text-slate-700 hover:text-teal-soft transition">Log in</a></li>
+            <li><a href="{% url 'register' %}" class="text-slate-700 hover:text-teal-soft transition">Sign up</a></li>
+            <li><a href="{% url 'register_teacher' %}" class="text-slate-700 hover:text-teal-soft transition">Teach with us</a></li>
+            {% else %}
+            <li><a href="{% url 'student_dashboard' %}" class="text-slate-700 hover:text-teal-soft transition">Dashboard</a></li>
+            {% endif %}
+          </ul>
+        </div>
+        <div class="md:col-span-4">
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-4">Contact</h3>
+          <ul class="space-y-3 text-sm text-slate-600">
+            <li class="flex items-start gap-2">
+              <i class="fas fa-envelope mt-0.5 text-teal-soft"></i>
+              <a href="mailto:Fluentory.me@gmail.com" class="hover:text-teal-soft transition">Fluentory.me@gmail.com</a>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fas fa-phone mt-0.5 text-teal-soft"></i>
+              <span>+962 77 500 3006</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="mt-10 pt-8 border-t border-slate-200/70 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
+        <p>© {% now "Y" %} Fluentory. All rights reserved.</p>
+        <div class="flex items-center gap-6">
+          <span class="hidden sm:inline">Professional language learning</span>
+        </div>
+      </div>
+    </div>
+    {% block footer_extra %}{% endblock %}
+  </footer>
+  {% endblock %}
 
   <!-- Universal Preloader (simplified + brand aligned) -->
   <div id="student-preloader" class="fixed inset-0 z-50 hidden items-center justify-center bg-white/70 backdrop-blur-xl">

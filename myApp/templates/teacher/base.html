@@ -79,6 +79,10 @@
                     <i class="fas fa-video w-5"></i>
                     <span>Live Sessions</span>
                 </a>
+                <a href="{% url 'teacher_profile' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if request.resolver_match.url_name == 'teacher_profile' %}bg-teal-soft/20 text-black border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-black{% endif %}">
+                    <i class="fas fa-id-card w-5"></i>
+                    <span>Profile</span>
+                </a>
                 <a href="{% url 'student_dashboard' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-gray-700 hover:bg-teal-soft/10 hover:text-black">
                     <i class="fas fa-user-graduate w-5"></i>
                     <span>Student View</span>

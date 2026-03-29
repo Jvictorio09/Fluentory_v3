@@ -2,13 +2,19 @@ from django.contrib import admin
 from .models import (
     Course, Module, Lesson, UserProgress, CourseEnrollment, Exam, ExamAttempt, Certification,
     Cohort, CohortMember, Bundle, BundlePurchase, CourseAccess, CoursePurchase, GiftPurchase,
-    LearningPath, LearningPathCourse, LiveSession, Booking, TeacherRequest
+    LearningPath, LearningPathCourse, LiveSession, Booking, TeacherRequest, TeacherProfile
 )
 
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = ['name', 'course_type', 'delivery_type', 'status', 'coach_name', 'is_paid', 'price', 'currency', 'is_subscribers_only', 'created_at']
+
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == 'teachers':
+            from .utils.teacher import get_eligible_course_teacher_users
+            kwargs['queryset'] = get_eligible_course_teacher_users()
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
     list_filter = ['course_type', 'delivery_type', 'status', 'is_paid', 'is_subscribers_only', 'is_accredible_certified']
     search_fields = ['name', 'description']
     prepopulated_fields = {'slug': ('name',)}
@@ -24,7 +30,7 @@ class CourseAdmin(admin.ModelAdmin):
             'fields': ('is_paid', 'price', 'currency')
         }),
         ('Delivery', {
-            'fields': ('delivery_type', 'teachers', 'coach_name')
+            'fields': ('delivery_type', 'teachers', 'coach_name', 'created_by')
         }),
         ('Access & Enrollment', {
             'fields': ('visibility', 'enrollment_method', 'access_duration_type', 'access_duration_days', 'access_until_date', 'prerequisite_courses')
@@ -305,4 +311,11 @@ class TeacherRequestAdmin(admin.ModelAdmin):
             'fields': ('created_at', 'updated_at')
         }),
     )
+
+
+@admin.register(TeacherProfile)
+class TeacherProfileAdmin(admin.ModelAdmin):
+    list_display = ['user', 'headline', 'website', 'linkedin_url', 'updated_at']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name', 'headline', 'bio']
+    readonly_fields = ['updated_at']
 

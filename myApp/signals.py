@@ -12,6 +12,7 @@ from .models import (
     LeadGiftLink,
     CourseEnrollment,
     GiftPurchase,
+    LiveSession,
 )
 
 
@@ -128,4 +129,15 @@ def auto_link_gift_to_lead(sender, instance, created, **kwargs):
             description=f"Gift for {instance.course.name} automatically linked to lead",
             metadata={'gift_id': instance.id, 'course_id': instance.course.id, 'auto_linked': True}
         )
+
+
+@receiver(post_save, sender=LiveSession)
+def create_bookings_when_live_session_created(sender, instance, created, **kwargs):
+    """Enrolled students (course access) get a pending booking row for each new live session."""
+    if not created:
+        return
+    if instance.status == 'cancelled':
+        return
+    from .utils.access import ensure_live_session_bookings_for_session
+    ensure_live_session_bookings_for_session(instance)
 

@@ -169,6 +169,12 @@ LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/my-dashboard/'
 LOGOUT_REDIRECT_URL = '/login/'
 
+# Payments
+# Stripe keys are optional in development but required when SIMULATE_PAYMENT is false.
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
+STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY', '')
+STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
+
 # Payment simulation (for development/testing)
-# Set to False in production when using real payment providers
-SIMULATE_PAYMENT = True  # Auto-approve purchases without payment provider
+# Set SIMULATE_PAYMENT=false to enable real payment providers.
+SIMULATE_PAYMENT = os.getenv('SIMULATE_PAYMENT', 'true').strip().lower() in ('1', 'true', 'yes', 'on')

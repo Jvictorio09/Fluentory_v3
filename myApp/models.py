@@ -90,6 +90,14 @@ class Course(models.Model):
     
     # Teacher Assignment
     teachers = models.ManyToManyField(User, related_name='taught_courses', blank=True, help_text="Teachers assigned to this course")
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='courses_created',
+        help_text="User who created this course in the teacher UI; blank usually means company/catalog course",
+    )
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -1152,4 +1160,26 @@ class TeacherRequest(models.Model):
     
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.get_status_display()}"
+
+
+class TeacherProfile(models.Model):
+    """Public teacher profile shown to students."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='teacher_profile')
+    photo = models.URLField(null=True, blank=True, help_text="Cloudinary secure URL for teacher profile image")
+    photo_public_id = models.CharField(max_length=255, blank=True, help_text="Cloudinary public ID for cleanup")
+    headline = models.CharField(max_length=160, blank=True, help_text="Short professional headline")
+    bio = models.TextField(blank=True, help_text="Public biography shown to students")
+    accomplishments = models.TextField(
+        blank=True,
+        help_text="One accomplishment per line (displayed as bullet points)",
+    )
+    website = models.URLField(blank=True)
+    linkedin_url = models.URLField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['user__first_name', 'user__last_name', 'user__username']
+
+    def __str__(self):
+        return f"Profile: {self.user.get_full_name() or self.user.username}"
 

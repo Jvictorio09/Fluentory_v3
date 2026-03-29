@@ -8,16 +8,88 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.urls import reverse
+from django.contrib.auth import get_user_model
+from django.db.models import Count
 from django.utils import timezone
 from datetime import timedelta
+from io import BytesIO
 from .models import (
-    Course, Lesson, Module, LiveSession, Booking, UserProgress, CourseEnrollment, TeacherRequest
+    Course, Lesson, Module, LiveSession, Booking, UserProgress, CourseEnrollment, TeacherRequest, TeacherProfile
 )
 from .utils.teacher import (
     is_teacher, is_course_teacher, require_course_teacher, get_teacher_courses,
-    require_session_teacher, require_booking_teacher
+    get_teacher_course_scope, require_session_teacher, require_booking_teacher,
+    get_eligible_course_teacher_users,
 )
+
+try:
+    import cloudinary
+    import cloudinary.uploader
+    import cloudinary.api
+    CLOUDINARY_AVAILABLE = True
+except ImportError:
+    CLOUDINARY_AVAILABLE = False
+
+try:
+    from PIL import Image
+    PILLOW_AVAILABLE = True
+except ImportError:
+    PILLOW_AVAILABLE = False
+
+
+def _configure_cloudinary():
+    cloud_name = getattr(cloudinary.config(), 'cloud_name', '')
+    if cloud_name:
+        return
+    from django.conf import settings
+    import os
+    cloudinary.config(
+        cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME', ''),
+        api_key=os.getenv('CLOUDINARY_API_KEY', ''),
+        api_secret=os.getenv('CLOUDINARY_API_SECRET', ''),
+        secure=True,
+    )
+
+
+def _upload_teacher_photo_to_cloudinary(uploaded_file, username):
+    if not CLOUDINARY_AVAILABLE or not PILLOW_AVAILABLE:
+        raise ValueError('Image processing service is not available. Contact support.')
+
+    _configure_cloudinary()
+
+    try:
+        image = Image.open(uploaded_file)
+        image.load()
+    except Exception as exc:
+        raise ValueError('Invalid image file. Please upload a valid JPG, PNG, or WebP image.') from exc
+
+    if image.mode not in ('RGB', 'RGBA', 'L'):
+        image = image.convert('RGB')
+
+    webp_buffer = BytesIO()
+    image.save(webp_buffer, format='WEBP', quality=82, method=6)
+    webp_buffer.seek(0)
+
+    result = cloudinary.uploader.upload(
+        webp_buffer.getvalue(),
+        folder='teacher-profiles',
+        public_id=f'{username}_profile',
+        overwrite=True,
+        resource_type='image',
+        format='webp',
+    )
+    return result.get('secure_url', ''), result.get('public_id', '')
+
+
+def _delete_cloudinary_image(public_id):
+    if not public_id or not CLOUDINARY_AVAILABLE:
+        return
+    try:
+        _configure_cloudinary()
+        cloudinary.uploader.destroy(public_id, resource_type='image', invalidate=True)
+    except Exception:
+        pass
 
 
 def teacher_required(view_func):
@@ -67,8 +139,13 @@ def teacher_dashboard(request):
     """Teacher dashboard - overview with courses, sessions, bookings, stats"""
     user = request.user
     
-    # Get teacher's courses
-    courses = get_teacher_courses(user)
+    # Courses this teacher sees; split into self-created vs company-assigned
+    courses_scope = get_teacher_course_scope(user).annotate(
+        lesson_count=Count('lessons'),
+    ).order_by('-created_at')
+    my_courses = courses_scope.filter(created_by=user)
+    company_courses = courses_scope.exclude(created_by=user)
+    courses = courses_scope  # all, for session/booking filters
     
     # Get upcoming live sessions (next 30 days)
     now = timezone.now()
@@ -85,7 +162,8 @@ def teacher_dashboard(request):
     ).select_related('user', 'session', 'session__course').order_by('-booked_at')[:10]
     
     # Quick stats
-    total_courses = courses.count()
+    my_courses_count = my_courses.count()
+    company_courses_count = company_courses.count()
     total_sessions = LiveSession.objects.filter(course__in=courses).count()
     upcoming_sessions_count = LiveSession.objects.filter(
         course__in=courses,
@@ -97,17 +175,97 @@ def teacher_dashboard(request):
         session__course__in=courses,
         status='pending'
     ).count()
+
+    first_course = my_courses.first() or company_courses.first()
+    first_course_slug = first_course.slug if first_course else None
     
     return render(request, 'teacher/dashboard.html', {
         'courses': courses,
+        'my_courses': my_courses,
+        'company_courses': company_courses,
         'upcoming_sessions': upcoming_sessions,
         'recent_bookings': recent_bookings,
-        'total_courses': total_courses,
+        'my_courses_count': my_courses_count,
+        'company_courses_count': company_courses_count,
         'total_sessions': total_sessions,
         'upcoming_sessions_count': upcoming_sessions_count,
         'total_bookings': total_bookings,
         'pending_bookings': pending_bookings,
+        'first_course_slug': first_course_slug,
     })
+
+
+@login_required
+@teacher_required
+def teacher_profile(request):
+    """Teacher profile editor for public student-facing profile details."""
+    profile, created = TeacherProfile.objects.get_or_create(user=request.user)
+
+    if created and not profile.bio and not profile.headline:
+        approved_request = TeacherRequest.objects.filter(
+            user=request.user,
+            status='approved',
+        ).order_by('-updated_at').first()
+        if approved_request:
+            profile.bio = approved_request.bio or ''
+            profile.headline = approved_request.qualifications[:160] if approved_request.qualifications else ''
+            profile.save(update_fields=['bio', 'headline', 'updated_at'])
+
+    context = {
+        'profile': profile,
+        'public_profile_url': request.build_absolute_uri(
+            reverse('teacher_public_profile', kwargs={'username': request.user.username})
+        ),
+    }
+
+    if request.method == 'POST':
+        profile.headline = (request.POST.get('headline') or '').strip()
+        profile.bio = (request.POST.get('bio') or '').strip()
+        profile.accomplishments = (request.POST.get('accomplishments') or '').strip()
+        profile.website = (request.POST.get('website') or '').strip()
+        profile.linkedin_url = (request.POST.get('linkedin_url') or '').strip()
+
+        remove_photo = request.POST.get('remove_photo') == 'on'
+        uploaded_photo = request.FILES.get('photo')
+
+        if remove_photo and profile.photo:
+            _delete_cloudinary_image(profile.photo_public_id)
+            profile.photo = ''
+            profile.photo_public_id = ''
+
+        if uploaded_photo:
+            max_size_bytes = 8 * 1024 * 1024
+            allowed_types = {'image/jpeg', 'image/png', 'image/webp'}
+            content_type = (uploaded_photo.content_type or '').lower()
+
+            if uploaded_photo.size > max_size_bytes:
+                messages.error(request, 'Profile image is too large. Please upload an image up to 8 MB.')
+                return render(request, 'teacher/profile.html', context)
+
+            if content_type not in allowed_types:
+                messages.error(request, 'Unsupported image format. Please use JPG, PNG, or WebP.')
+                return render(request, 'teacher/profile.html', context)
+
+            try:
+                secure_url, public_id = _upload_teacher_photo_to_cloudinary(uploaded_photo, request.user.username)
+            except ValueError as error:
+                messages.error(request, str(error))
+                return render(request, 'teacher/profile.html', context)
+            except Exception:
+                messages.error(request, 'Could not upload your image right now. Please try again.')
+                return render(request, 'teacher/profile.html', context)
+
+            if profile.photo_public_id and profile.photo_public_id != public_id:
+                _delete_cloudinary_image(profile.photo_public_id)
+
+            profile.photo = secure_url
+            profile.photo_public_id = public_id
+
+        profile.save()
+        messages.success(request, 'Your public profile has been updated successfully.')
+        return redirect('teacher_profile')
+
+    return render(request, 'teacher/profile.html', context)
 
 
 # ========== COURSE MANAGEMENT ==========
@@ -116,13 +274,16 @@ def teacher_dashboard(request):
 @teacher_required
 def teacher_courses(request):
     """List courses the teacher owns/teaches"""
-    courses = get_teacher_courses(request.user).annotate(
+    base = get_teacher_course_scope(request.user).annotate(
         lesson_count=Count('lessons'),
         session_count=Count('live_sessions'),
     ).order_by('-created_at')
+    my_courses = base.filter(created_by=request.user)
+    company_courses = base.exclude(created_by=request.user)
     
     return render(request, 'teacher/courses.html', {
-        'courses': courses,
+        'my_courses': my_courses,
+        'company_courses': company_courses,
     })
 
 
@@ -169,6 +330,7 @@ def teacher_add_course(request):
             price=float(price) if price else None,
             currency=currency,
             preview_video_url=preview_video_url if preview_video_url else None,
+            created_by=request.user,
         )
         
         # Assign teacher to course (always assign creator, and additional teachers if live)
@@ -176,19 +338,13 @@ def teacher_add_course(request):
         if delivery_type == 'live':
             teacher_ids = request.POST.getlist('teachers')
             if teacher_ids:
-                from django.contrib.auth.models import User
-                teachers = User.objects.filter(id__in=teacher_ids)
-                course.teachers.add(*teachers)
+                extra = get_eligible_course_teacher_users().filter(id__in=teacher_ids)
+                course.teachers.add(*extra)
         
         messages.success(request, f'Course "{course.name}" has been created successfully.')
         return redirect('teacher_course_detail', course_slug=course.slug)
     
-    # Get all users who could be teachers
-    from django.contrib.auth.models import User
-    from django.db.models import Q
-    potential_teachers = User.objects.filter(
-        Q(is_staff=False) | Q(taught_courses__isnull=False)
-    ).distinct().order_by('username')
+    potential_teachers = get_eligible_course_teacher_users()
     
     return render(request, 'teacher/add_course.html', {
         'course_types': Course.COURSE_TYPES,
@@ -224,14 +380,18 @@ def teacher_course_detail(request, course_slug):
         
         # Update teacher assignment if live course
         if course.delivery_type == 'live':
-            teacher_ids = request.POST.getlist('teachers')
-            # Always include the current user (course creator)
-            if request.user.id not in [int(tid) for tid in teacher_ids]:
-                teacher_ids.append(str(request.user.id))
-            if teacher_ids:
-                from django.contrib.auth.models import User
-                teachers = User.objects.filter(id__in=teacher_ids)
-                course.teachers.set(teachers)
+            raw_ids = request.POST.getlist('teachers')
+            want_ids = set()
+            for tid in raw_ids:
+                try:
+                    want_ids.add(int(tid))
+                except (TypeError, ValueError):
+                    pass
+            want_ids.add(request.user.id)
+            valid = get_eligible_course_teacher_users().filter(id__in=want_ids)
+            final_ids = set(valid.values_list('id', flat=True))
+            final_ids.add(request.user.id)
+            course.teachers.set(get_user_model().objects.filter(id__in=final_ids))
         else:
             # For pre-recorded, only keep the creator
             course.teachers.set([request.user])
@@ -239,12 +399,7 @@ def teacher_course_detail(request, course_slug):
         messages.success(request, 'Course updated successfully.')
         return redirect('teacher_course_detail', course_slug=course.slug)
     
-    # Get all users who could be teachers
-    from django.contrib.auth.models import User
-    from django.db.models import Q
-    potential_teachers = User.objects.filter(
-        Q(is_staff=False) | Q(taught_courses__isnull=False)
-    ).distinct().order_by('username')
+    potential_teachers = get_eligible_course_teacher_users()
     
     return render(request, 'teacher/course_detail.html', {
         'course': course,

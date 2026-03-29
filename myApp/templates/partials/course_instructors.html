@@ -1,0 +1,93 @@
+{% if course_instructors %}
+    {% if compact %}
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-4">
+        <h3 class="text-sm font-bold text-gray-800 mb-3">Your Instructor{% if course_instructors|length > 1 %}s{% endif %}</h3>
+        <div class="space-y-3">
+            {% for instructor in course_instructors %}
+            <a href="{% url 'teacher_public_profile' instructor.user.username %}" class="flex items-center gap-3 group">
+                <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-100 border border-teal-soft/20 flex-shrink-0 flex items-center justify-center">
+                    {% if instructor.photo_url %}
+                    <img src="{{ instructor.photo_url }}" alt="{{ instructor.display_name }}" class="w-full h-full object-cover">
+                    {% else %}
+                    <span class="text-xs font-bold text-gray-500">{{ instructor.initials }}</span>
+                    {% endif %}
+                </div>
+                <div class="min-w-0">
+                    <p class="text-sm font-semibold text-gray-900 truncate group-hover:text-teal-soft transition">{{ instructor.display_name }}</p>
+                    {% if instructor.headline %}
+                    <p class="text-xs text-gray-600 line-clamp-1">{{ instructor.headline }}</p>
+                    {% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <section id="instructors" class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-8">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Meet Your Instructor{% if course_instructors|length > 1 %}s{% endif %}</h2>
+            <span class="text-xs uppercase tracking-wider text-gray-500">Professional Faculty</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {% for instructor in course_instructors %}
+            <article class="rounded-2xl border border-teal-soft/20 bg-gradient-to-br from-white to-cyan-50 p-5">
+                <div class="flex items-start gap-4 mb-4">
+                    <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-100 border border-teal-soft/30 flex-shrink-0 flex items-center justify-center">
+                        {% if instructor.photo_url %}
+                        <img src="{{ instructor.photo_url }}" alt="{{ instructor.display_name }}" class="w-full h-full object-cover">
+                        {% else %}
+                        <span class="text-lg font-bold text-gray-500">{{ instructor.initials }}</span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">
+                            <a href="{% url 'teacher_public_profile' instructor.user.username %}" class="hover:text-teal-soft transition">
+                                {{ instructor.display_name }}
+                            </a>
+                        </h3>
+                        {% if instructor.headline %}
+                        <p class="text-sm text-gray-600 mt-1">{{ instructor.headline }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if instructor.bio %}
+                <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-line mb-4">{{ instructor.bio }}</p>
+                {% endif %}
+
+                {% if instructor.accomplishments_lines %}
+                <div class="mb-4">
+                    <h4 class="text-xs uppercase tracking-wider text-gray-500 mb-2">Accomplishments</h4>
+                    <ul class="list-disc list-inside space-y-1 text-sm text-gray-700">
+                        {% for item in instructor.accomplishments_lines %}
+                        <li>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <div class="flex flex-wrap gap-3 text-sm">
+                    <a href="{% url 'teacher_public_profile' instructor.user.username %}" class="inline-flex items-center gap-2 text-teal-soft hover:text-teal-700">
+                        <i class="fas fa-user"></i>
+                        Full Profile
+                    </a>
+                    {% if instructor.website %}
+                    <a href="{{ instructor.website }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-teal-soft hover:text-teal-700">
+                        <i class="fas fa-globe"></i>
+                        Website
+                    </a>
+                    {% endif %}
+                    {% if instructor.linkedin_url %}
+                    <a href="{{ instructor.linkedin_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-teal-soft hover:text-teal-700">
+                        <i class="fab fa-linkedin"></i>
+                        LinkedIn
+                    </a>
+                    {% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+{% endif %}

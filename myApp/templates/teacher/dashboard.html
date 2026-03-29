@@ -5,93 +5,140 @@
 
 {% block content %}
 <!-- Stats Cards -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-black text-gray-700 mb-1">My Courses</p>
-                <p class="text-3xl font-bold text-gray-800">{{ total_courses }}</p>
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-8">
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-4 md:p-6">
+        <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-xs md:text-sm text-gray-700 mb-1">My courses</p>
+                <p class="text-2xl md:text-3xl font-bold text-gray-800">{{ my_courses_count }}</p>
+                <p class="text-[10px] md:text-xs text-gray-500 mt-1 hidden sm:block">Created by you</p>
             </div>
-            <div class="w-12 h-12 rounded-full bg-teal-soft/20 flex items-center justify-center">
-                <i class="fas fa-book text-black text-xl"></i>
-            </div>
-        </div>
-    </div>
-    
-    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-black text-gray-700 mb-1">Total Sessions</p>
-                <p class="text-3xl font-bold text-gray-800">{{ total_sessions }}</p>
-            </div>
-            <div class="w-12 h-12 rounded-full bg-blue-soft/20 flex items-center justify-center">
-                <i class="fas fa-video text-blue-soft text-xl"></i>
+            <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-teal-soft/20 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-user-edit text-black text-lg md:text-xl"></i>
             </div>
         </div>
     </div>
-    
-    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-black text-gray-700 mb-1">Upcoming</p>
-                <p class="text-3xl font-bold text-gray-800">{{ upcoming_sessions_count }}</p>
+
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-slate-200/80 rounded-xl p-4 md:p-6">
+        <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-xs md:text-sm text-gray-700 mb-1">Company</p>
+                <p class="text-2xl md:text-3xl font-bold text-gray-800">{{ company_courses_count }}</p>
+                <p class="text-[10px] md:text-xs text-gray-500 mt-1 hidden sm:block">Assigned to you</p>
             </div>
-            <div class="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                <i class="fas fa-calendar-alt text-yellow-500 text-xl"></i>
+            <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-slate-200/80 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-building text-slate-600 text-lg md:text-xl"></i>
             </div>
         </div>
     </div>
-    
-    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="text-sm text-black text-gray-700 mb-1">Pending Bookings</p>
-                <p class="text-3xl font-bold text-gray-800">{{ pending_bookings }}</p>
+
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-4 md:p-6">
+        <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-xs md:text-sm text-gray-700 mb-1">Sessions</p>
+                <p class="text-2xl md:text-3xl font-bold text-gray-800">{{ total_sessions }}</p>
             </div>
-            <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
-                <i class="fas fa-user-check text-green-500 text-xl"></i>
+            <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-soft/20 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-video text-blue-soft text-lg md:text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-4 md:p-6">
+        <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-xs md:text-sm text-gray-700 mb-1">Upcoming</p>
+                <p class="text-2xl md:text-3xl font-bold text-gray-800">{{ upcoming_sessions_count }}</p>
+            </div>
+            <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-calendar-alt text-yellow-500 text-lg md:text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-4 md:p-6">
+        <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-xs md:text-sm text-gray-700 mb-1">Pending</p>
+                <p class="text-2xl md:text-3xl font-bold text-gray-800">{{ pending_bookings }}</p>
+            </div>
+            <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-user-check text-green-500 text-lg md:text-xl"></i>
             </div>
         </div>
     </div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <!-- My Courses -->
+    <!-- Courses you created -->
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-bold text-gray-800">My Courses</h2>
-            <a href="{% url 'teacher_courses' %}" class="text-sm text-black text-black hover:text-teal-800">View All</a>
+            <div>
+                <h2 class="text-xl font-bold text-gray-800">My courses</h2>
+                <p class="text-xs text-gray-500 mt-1">Courses you created</p>
+            </div>
+            <a href="{% url 'teacher_courses' %}" class="text-sm text-black hover:text-teal-800">View all</a>
         </div>
-        {% if courses %}
+        {% if my_courses %}
         <div class="space-y-3">
-            {% for course in courses|slice:":5" %}
-            <a href="{% url 'teacher_course_detail' course.slug %}" class="block p-3 bg-[#ffffff]/40 rounded-lg hover:bg-teal-soft/10 transition-all">
-                <div class="flex items-center justify-between">
-                    <div class="flex-1">
-                        <h3 class="font-semibold text-gray-800">{{ course.name }}</h3>
-                        <p class="text-sm text-black text-gray-700">{{ course.lesson_count }} lessons</p>
-                    </div>
-                    <i class="fas fa-chevron-right text-gray-700"></i>
-                </div>
-            </a>
+            {% for course in my_courses|slice:":5" %}
+                {% include 'teacher/_course_dashboard_row.html' with course=course %}
             {% endfor %}
         </div>
         {% else %}
         <div class="text-center py-8">
             <i class="fas fa-book-open text-4xl text-gray-600 mb-3"></i>
-            <p class="text-gray-700 mb-4">No courses yet</p>
+            <p class="text-gray-700 mb-4">You have not created a course yet.</p>
             <a href="{% url 'teacher_add_course' %}" class="inline-block px-4 py-2 bg-teal-soft text-[#ffffff] rounded-lg font-medium hover:bg-teal-soft/90 transition-all text-gray-800">
-                Create Course
+                Create course
             </a>
         </div>
         {% endif %}
     </div>
-    
+
+    <!-- Company / catalog courses assigned to you -->
+    <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-slate-200/80 rounded-xl p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-xl font-bold text-gray-800">Company courses</h2>
+                <p class="text-xs text-gray-500 mt-1">Catalog courses assigned to you (not created in your teacher account)</p>
+            </div>
+            <a href="{% url 'teacher_courses' %}" class="text-sm text-black hover:text-teal-800">View all</a>
+        </div>
+        {% if company_courses %}
+        <div class="space-y-3">
+            {% for course in company_courses|slice:":5" %}
+                {% include 'teacher/_course_dashboard_row.html' with course=course %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+            <i class="fas fa-building text-4xl text-gray-400 mb-3"></i>
+            <p class="text-gray-600 text-sm">No company-assigned courses yet. When the team adds you to a catalog course, it will appear here.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid grid-cols-1 gap-6 mb-8">
     <!-- Upcoming Sessions -->
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <h2 class="text-xl font-bold text-gray-800">Upcoming Sessions</h2>
-            <a href="{% url 'teacher_live_sessions' %}" class="text-sm text-black text-black hover:text-teal-800">View All</a>
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                {% if first_course_slug %}
+                <a href="{% url 'teacher_live_session_create' first_course_slug %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-soft text-[#ffffff] text-sm font-semibold hover:bg-teal-soft/90 transition-all shadow-sm">
+                    <i class="fas fa-plus"></i>
+                    Add new session
+                </a>
+                {% else %}
+                <a href="{% url 'teacher_add_course' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-teal-soft/40 bg-white text-sm font-semibold text-gray-700 hover:bg-teal-soft/10 transition-all" title="Create a course first to schedule a session">
+                    <i class="fas fa-plus"></i>
+                    Add new session
+                </a>
+                {% endif %}
+                <a href="{% url 'teacher_live_sessions' %}" class="text-sm text-black hover:text-teal-800 font-medium">View all</a>
+            </div>
         </div>
         {% if upcoming_sessions %}
         <div class="space-y-3">
@@ -167,4 +214,3 @@
     {% endif %}
 </div>
 {% endblock %}
-

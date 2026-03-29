@@ -4,304 +4,701 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login - Fluentory</title>
+  <title>Login — Fluentory</title>
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Tailwind Config (Fluentory palette) -->
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Inter', 'sans-serif'] },
-          colors: {
-            // Core
-            'ink-deep': '#2b2f3a',
-            'teal-soft': '#52A8B5',
-            'blue-soft': '#4492B3',
-            'coral-cta': '#DE604D',
-            'success-soft': '#2C9F5F',
-          },
-          boxShadow: {
-            'soft': '0 18px 50px rgba(15, 23, 42, 0.10)',
-            'lift': '0 22px 70px rgba(15, 23, 42, 0.16)',
-          }
-        }
-      }
-    }
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    body { font-family: 'Inter', sans-serif; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* Subtle premium motion (not "gaming UI") */
-    @keyframes drift {
-      0%, 100% { transform: translate3d(0,0,0) }
-      50% { transform: translate3d(0,-14px,0) }
+    :root {
+      --ink:       #1a1d27;
+      --ink-mid:   #3d4155;
+      --ink-soft:  #7a7f96;
+      --teal:      #52A8B5;
+      --teal-dim:  #3d8a96;
+      --blue:      #4492B3;
+      --coral:     #DE604D;
+      --coral-dim: #c44d3b;
+      --bg:        #f5f4f0;
+      --card:      #ffffff;
+      --border:    rgba(26,29,39,0.10);
+      --border-focus: rgba(82,168,181,0.50);
     }
-    .drift { animation: drift 10s ease-in-out infinite; }
 
-    /* Soft grain for “expensive” texture */
-    .grain:before{
-      content:"";
-      position:absolute; inset:0;
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.14'/%3E%3C/svg%3E");
-      opacity:.12; mix-blend-mode:multiply; pointer-events:none;
+    html, body {
+      min-height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* Input focus ring aligned to brand */
-    .focus-ring:focus{
+    /* ── Layout ─────────────────────────────────────── */
+    .shell {
+      min-height: 100svh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    /* ── Left panel ─────────────────────────────────── */
+    .panel-left {
+      position: relative;
+      background: var(--ink);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 48px 52px;
+    }
+
+    .panel-left .noise {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.055'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Decorative gradient orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+    }
+    .orb-1 {
+      width: 420px; height: 420px;
+      top: -100px; right: -80px;
+      background: radial-gradient(circle, rgba(82,168,181,0.28) 0%, transparent 70%);
+      animation: pulse 9s ease-in-out infinite;
+    }
+    .orb-2 {
+      width: 360px; height: 360px;
+      bottom: -60px; left: -80px;
+      background: radial-gradient(circle, rgba(68,146,179,0.20) 0%, transparent 70%);
+      animation: pulse 12s ease-in-out infinite reverse;
+    }
+    .orb-3 {
+      width: 200px; height: 200px;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      background: radial-gradient(circle, rgba(222,96,77,0.12) 0%, transparent 70%);
+      animation: pulse 7s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.08); }
+    }
+
+    /* Diagonal rule */
+    .panel-left::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 1px;
+      height: 100%;
+      background: linear-gradient(to bottom, transparent, rgba(82,168,181,0.30) 40%, rgba(82,168,181,0.30) 60%, transparent);
+    }
+
+    .left-logo {
+      position: relative;
+      z-index: 1;
+    }
+    .left-logo img { height: 44px; width: auto; }
+
+    .left-body {
+      position: relative;
+      z-index: 1;
+    }
+
+    .left-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.20em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 20px;
+    }
+    .left-eyebrow span.dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--teal);
+      display: inline-block;
+    }
+
+    .left-headline {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(34px, 3.2vw, 46px);
+      line-height: 1.10;
+      color: #ffffff;
+      margin-bottom: 22px;
+    }
+    .left-headline em {
+      font-style: italic;
+      color: var(--teal);
+    }
+
+    .left-sub {
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.7;
+      color: rgba(255,255,255,0.45);
+      max-width: 340px;
+    }
+
+    /* Stats row */
+    .stats {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 32px;
+      padding-top: 36px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .stat-item {}
+    .stat-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 26px;
+      color: #fff;
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 10.5px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.35);
+      margin-top: 4px;
+    }
+
+    /* ── Right panel ─────────────────────────────────── */
+    .panel-right {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      background: var(--bg);
+    }
+
+    .form-wrap {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    /* Header above card */
+    .form-header {
+      margin-bottom: 32px;
+    }
+    .form-greeting {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      margin-bottom: 8px;
+    }
+    .form-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+    .form-title em {
+      font-style: italic;
+      color: var(--teal);
+    }
+
+    /* Card */
+    .card {
+      background: var(--card);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      padding: 36px 36px 32px;
+      box-shadow: 0 2px 3px rgba(26,29,39,0.04), 0 20px 60px rgba(26,29,39,0.07);
+      position: relative;
+    }
+
+    /* Top accent line */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 28px; right: 28px;
+      height: 2px;
+      background: linear-gradient(to right, transparent, var(--teal) 40%, var(--blue) 60%, transparent);
+      border-radius: 0 0 4px 4px;
+    }
+
+    /* Messages */
+    .messages { margin-bottom: 22px; display: flex; flex-direction: column; gap: 8px; }
+    .msg {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .msg.error   { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+    .msg.success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
+    .msg.info    { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; }
+    .msg i { margin-top: 1px; flex-shrink: 0; }
+
+    /* Fields */
+    .fields { display: flex; flex-direction: column; gap: 18px; }
+
+    .field-group {}
+    .field-label {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      margin-bottom: 8px;
+    }
+    .field-input-wrap {
+      position: relative;
+    }
+    .field-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--ink-soft);
+      font-size: 13px;
+      pointer-events: none;
+      transition: color 0.2s;
+    }
+    .field-input {
+      width: 100%;
+      height: 48px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 0 44px 0 42px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--ink);
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
       outline: none;
-      box-shadow: 0 0 0 3px rgba(82,168,181,0.18), 0 14px 35px rgba(68,146,179,0.12);
-      border-color: rgba(82,168,181,0.55);
-      background: rgba(255,255,255,0.92);
     }
+    .field-input::placeholder { color: rgba(26,29,39,0.30); }
+    .field-input:focus {
+      border-color: var(--border-focus);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(82,168,181,0.12);
+    }
+    .field-input:focus + .field-icon,
+    .field-input-wrap:focus-within .field-icon {
+      color: var(--teal);
+    }
+
+    .pw-toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--ink-soft);
+      font-size: 13px;
+      padding: 4px;
+      transition: color 0.2s;
+    }
+    .pw-toggle:hover { color: var(--ink); }
+
+    /* Row */
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 2px;
+    }
+    .remember-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--ink-mid);
+      cursor: pointer;
+      user-select: none;
+    }
+    .remember-label input[type="checkbox"] {
+      width: 16px; height: 16px;
+      border-radius: 4px;
+      accent-color: var(--teal);
+      cursor: pointer;
+    }
+    .forgot-link {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--teal-dim);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .forgot-link:hover { color: var(--teal); }
+
+    /* Submit */
+    .btn-submit {
+      position: relative;
+      width: 100%;
+      height: 50px;
+      margin-top: 24px;
+      border: none;
+      border-radius: 12px;
+      background: var(--coral);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      overflow: hidden;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 18px rgba(222,96,77,0.30);
+    }
+    .btn-submit::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.10) 0%, transparent 100%);
+      pointer-events: none;
+    }
+    .btn-submit:hover {
+      background: var(--coral-dim);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(222,96,77,0.36);
+    }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-submit:disabled { opacity: 0.75; cursor: not-allowed; transform: none; }
+    .btn-submit .arrow { transition: transform 0.2s; }
+    .btn-submit:hover .arrow { transform: translateX(3px); }
+
+    /* Trust micro */
+    .trust-micro {
+      text-align: center;
+      font-size: 11px;
+      color: var(--ink-soft);
+      margin-top: 14px;
+    }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 26px 0;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .divider span {
+      font-size: 10.5px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(26,29,39,0.30);
+      white-space: nowrap;
+    }
+
+    /* Secondary actions */
+    .secondary-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .btn-register {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 46px;
+      padding: 0 28px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(82,168,181,0.35);
+      background: rgba(82,168,181,0.06);
+      color: var(--teal-dim);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13.5px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-register:hover {
+      background: rgba(82,168,181,0.12);
+      border-color: rgba(82,168,181,0.55);
+      color: var(--teal);
+      transform: translateY(-1px);
+    }
+    .btn-register .arrow { transition: transform 0.2s; }
+    .btn-register:hover .arrow { transform: translateX(3px); }
+
+    .teacher-link {
+      font-size: 12.5px;
+      color: var(--ink-soft);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+    .teacher-link:hover { color: var(--ink-mid); }
+
+    /* Already logged in */
+    .already-in {
+      margin-top: 18px;
+      padding: 13px 15px;
+      border-radius: 10px;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      font-size: 12.5px;
+      color: #92400e;
+    }
+    .already-in a {
+      display: inline-block;
+      margin-top: 6px;
+      font-weight: 600;
+      color: var(--blue);
+      text-decoration: none;
+    }
+    .already-in a:hover { text-decoration: underline; }
+
+    /* Footer below card */
+    .form-footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* ── Responsive ──────────────────────────────────── */
+    @media (max-width: 800px) {
+      .shell { grid-template-columns: 1fr; }
+      .panel-left { display: none; }
+      .panel-right { background: var(--bg); padding: 32px 20px 48px; }
+      .card { padding: 28px 22px 26px; }
+    }
+
+    /* ── Entry animation ─────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .form-header  { animation: fadeUp 0.55s ease both; animation-delay: 0.05s; }
+    .card         { animation: fadeUp 0.55s ease both; animation-delay: 0.15s; }
+    .form-footer  { animation: fadeUp 0.55s ease both; animation-delay: 0.25s; }
   </style>
 </head>
 
-<body class="min-h-screen bg-white text-ink-deep">
-  <!-- Background: image + brand gradient wash -->
-  <div class="relative min-h-screen overflow-hidden">
-    <!-- Background image (swap to your own) -->
-    <div class="absolute inset-0">
-      <!-- Option A: local static image -->
-      <!-- <img src="{% static 'images/primo-login-bg.jpg' %}" alt="" class="h-full w-full object-cover object-center" /> -->
+<body>
+<div class="shell">
 
-      <!-- Option B: tasteful fallback gradient if you don't have an image -->
-      <div class="h-full w-full bg-gradient-to-br from-white via-slate-50 to-slate-100"></div>
+  <!-- ── Left panel ─────────────────────────── -->
+  <aside class="panel-left">
+    <div class="noise"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
 
-      <!-- Brand wash -->
-      <div class="absolute inset-0 bg-gradient-to-b from-white/35 via-white/55 to-white"></div>
+    <div class="left-logo">
+      <img
+        src="https://res.cloudinary.com/dwooadxdj/image/upload/v1771294639/copy_of_copy_of_fluentory_-_branding-05_ijgdpz_a6f568_7b4fc3.png"
+        alt="Fluentory"
+        loading="eager"
+      />
     </div>
 
-    <!-- Ambient glows (teal/blue only) -->
-    <div class="pointer-events-none absolute inset-0">
-      <div class="absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-gradient-to-br from-teal-soft/25 to-blue-soft/25 blur-3xl drift"></div>
-      <div class="absolute -bottom-52 right-[-140px] h-[560px] w-[560px] rounded-full bg-gradient-to-tr from-blue-soft/18 to-teal-soft/18 blur-3xl drift" style="animation-delay: 2.2s;"></div>
-      <div class="absolute inset-0 opacity-[0.10]"
-           style="background-image: linear-gradient(rgba(15,23,42,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.06) 1px, transparent 1px);
-                  background-size: 56px 56px;">
+    <div class="left-body">
+      <p class="left-eyebrow"><span class="dot"></span> Your language journey</p>
+      <h1 class="left-headline">
+        Learn languages<br>
+        the way they're<br>
+        <em>meant to be learned.</em>
+      </h1>
+      <p class="left-sub">
+        Accredited courses, expert instructors, and AI-powered tools — all in one place designed for real fluency.
+      </p>
+    </div>
+
+    <div class="stats">
+      <div class="stat-item">
+        <div class="stat-num">12k+</div>
+        <div class="stat-label">Active learners</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">94%</div>
+        <div class="stat-label">Completion rate</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">40+</div>
+        <div class="stat-label">Languages</div>
       </div>
     </div>
+  </aside>
 
-    <!-- Main -->
-    <div class="relative z-10 flex min-h-screen items-center justify-center px-6 py-14">
-      <div class="w-full max-w-md">
-        <!-- Brand -->
-        <div class="text-center">
-          <div class="mx-auto inline-flex items-center justify-center">
-            <!-- Replace with Fluentory logo -->
-            <img
-              src="https://res.cloudinary.com/dwooadxdj/image/upload/v1771294639/copy_of_copy_of_fluentory_-_branding-05_ijgdpz_a6f568_7b4fc3.png"
-              alt="Fluentory"
-              class="h-16 w-auto"
-              loading="eager"
-            />
+  <!-- ── Right panel ────────────────────────── -->
+  <main class="panel-right">
+    <div class="form-wrap">
+      <div class="form-header">
+        <p class="form-greeting">Welcome back</p>
+        <h2 class="form-title">Sign in to<br><em>Fluentory</em></h2>
+      </div>
+
+      <div class="card">
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="messages">
+          {% for message in messages %}
+          <div class="msg {{ message.tags }}">
+            <i class="fas {% if message.tags == 'error' %}fa-circle-exclamation{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %}"></i>
+            <span>{{ message }}</span>
           </div>
-
-          <p class="mt-4 text-sm text-black text-slate-600">
-            Welcome back. Sign in to continue learning.
-          </p>
-
-          <!-- Trust pill -->
-          <div class="mx-auto mt-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-4 py-1.5 text-[11px] font-semibold text-gray-700 text-slate-700 shadow-sm backdrop-blur">
-            <i class="fas fa-shield-check text-black"></i>
-            Lifetime access • Accredited certifications
-          </div>
+          {% endfor %}
         </div>
+        {% endif %}
 
-        <!-- Card -->
-        <div class="relative mt-10 rounded-3xl border border-slate-200/80 bg-white/75 shadow-soft backdrop-blur-xl overflow-hidden grain">
-          <!-- subtle top highlight -->
-          <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-teal-soft/40 to-transparent"></div>
+        <!-- Form -->
+        <form method="POST" action="{% url 'login' %}" id="loginForm">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.GET.next|default:'student_dashboard' }}">
 
-          <div class="relative p-7 sm:p-8">
-            <!-- Messages -->
-            {% if messages %}
-              <div class="mb-5 space-y-2">
-                {% for message in messages %}
-                  <div class="rounded-2xl border {% if message.tags == 'error' %}border-red-200 bg-red-50 text-red-700{% elif message.tags == 'success' %}border-green-200 bg-green-50 text-green-700{% else %}border-blue-200 bg-blue-50 text-blue-700{% endif %} px-4 py-3 text-sm text-black flex items-start gap-3">
-                    <i class="fas {% if message.tags == 'error' %}fa-circle-exclamation{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %} mt-0.5"></i>
-                    <span>{{ message }}</span>
-                  </div>
-                {% endfor %}
-              </div>
-            {% endif %}
-
-            <!-- Form -->
-            <form method="POST" action="{% url 'login' %}" class="space-y-5" id="loginForm">
-              {% csrf_token %}
-              <input type="hidden" name="next" value="{{ request.GET.next|default:'student_dashboard' }}">
-
-              <!-- Username -->
-              <div>
-                <label for="username" class="block text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-600">
-                  Username
-                </label>
-                <div class="relative mt-2">
-                  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                    <i class="fas fa-user text-slate-400"></i>
-                  </div>
-                  <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    required
-                    autofocus
-                    placeholder="Enter your username"
-                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-4 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
-                  />
-                </div>
-              </div>
-
-              <!-- Password -->
-              <div>
-                <label for="password" class="block text-[11px] font-semibold text-gray-700 tracking-[0.22em] uppercase text-slate-600">
-                  Password
-                </label>
-                <div class="relative mt-2">
-                  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                    <i class="fas fa-lock text-slate-400"></i>
-                  </div>
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    required
-                    placeholder="Enter your password"
-                    class="w-full rounded-2xl border border-slate-200 bg-white/85 py-3.5 pl-11 pr-12 text-sm text-black text-ink-deep placeholder:text-slate-400 transition focus-ring"
-                  />
-                  <!-- optional: toggle visibility (no extra libs) -->
-                  <button type="button" id="togglePw"
-                    class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-slate-600 transition"
-                    aria-label="Toggle password visibility">
-                    <i class="fas fa-eye"></i>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Remember / Forgot -->
-              <div class="flex items-center justify-between pt-1">
-                <label class="inline-flex items-center gap-2 text-sm text-black text-slate-600 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="remember"
-                    class="h-4 w-4 rounded border-slate-300 text-black focus:ring-teal-soft/30"
-                  />
-                  Remember me
-                </label>
-                <a href="#" class="text-sm text-black font-semibold text-gray-700 text-blue-soft hover:text-black transition">
-                  Forgot password?
-                </a>
-              </div>
-
-              <!-- Submit -->
-              <button
-                type="submit"
-                id="submitBtn"
-                class="group relative w-full overflow-hidden rounded-2xl bg-coral-cta px-5 py-3.5 text-sm text-black font-extrabold text-white shadow-lg shadow-coral-cta/25 transition hover:-translate-y-0.5 hover:shadow-lift focus:outline-none"
-              >
-                <span class="relative z-10 inline-flex items-center justify-center gap-2">
-                  <span id="btnText">Sign in</span>
-                  <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
-                </span>
-                <div class="absolute inset-0 bg-gradient-to-r from-coral-cta via-blue-soft to-teal-soft opacity-0 group-hover:opacity-25 transition"></div>
-              </button>
-
-              <!-- Micro trust line -->
-              <p class="text-center text-[11px] text-slate-500">
-                No subscription • Start anytime • 30-day money-back guarantee
-              </p>
-            </form>
-
-            <!-- Divider -->
-            <div class="my-7 flex items-center gap-3">
-              <div class="h-px flex-1 bg-slate-200"></div>
-              <span class="text-[11px] font-semibold text-gray-700 tracking-[0.18em] uppercase text-slate-400">New here?</span>
-              <div class="h-px flex-1 bg-slate-200"></div>
-            </div>
-
-            <!-- Create account -->
-            <div class="text-center">
-              <a href="{% url 'register' %}" class="group inline-flex items-center gap-2 rounded-2xl border border-teal-soft/30 bg-teal-soft/10 px-6 py-3 text-sm text-black font-extrabold text-teal-soft transition hover:bg-teal-soft/20 hover:border-teal-soft/50 hover:-translate-y-0.5 hover:shadow-lg">
-                <i class="fas fa-user-plus text-xs"></i>
-                Create an account
-                <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-1"></i>
-              </a>
-              
-              <!-- Register as Teacher Link -->
-              <div class="mt-4">
-                <a href="{% url 'register_teacher' %}" class="text-sm text-black text-slate-600 hover:text-slate-800 transition inline-flex items-center gap-2">
-                  <i class="fas fa-chalkboard-teacher text-xs"></i>
-                  Register as a Teacher
-                  <i class="fas fa-arrow-right text-xs"></i>
-                </a>
+          <div class="fields">
+            <!-- Username -->
+            <div class="field-group">
+              <label class="field-label" for="username">Username</label>
+              <div class="field-input-wrap">
+                <input
+                  class="field-input"
+                  type="text"
+                  id="username"
+                  name="username"
+                  placeholder="Enter your username"
+                  required autofocus
+                />
+                <i class="fas fa-user field-icon"></i>
               </div>
             </div>
 
-            {% if user.is_authenticated %}
-              <div class="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900">
-                <p class="text-xs">
-                  <i class="fas fa-circle-info mr-2"></i>
-                  You're already logged in as <strong>{{ user.username }}</strong>
-                </p>
-                <a href="{% url 'logout' %}" class="mt-2 inline-block text-xs font-semibold text-gray-700 text-blue-soft hover:text-black transition underline">
-                  Log out to sign in as a different user
-                </a>
+            <!-- Password -->
+            <div class="field-group">
+              <label class="field-label" for="password">Password</label>
+              <div class="field-input-wrap">
+                <input
+                  class="field-input"
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Enter your password"
+                  required
+                />
+                <i class="fas fa-lock field-icon"></i>
+                <button type="button" id="togglePw" class="pw-toggle" aria-label="Toggle password visibility">
+                  <i class="fas fa-eye"></i>
+                </button>
               </div>
-            {% endif %}
+            </div>
+
+            <!-- Remember / Forgot -->
+            <div class="field-row">
+              <label class="remember-label">
+                <input type="checkbox" name="remember" />
+                Remember me
+              </label>
+              <a href="#" class="forgot-link">Forgot password?</a>
+            </div>
           </div>
+
+          <!-- Submit -->
+          <button type="submit" class="btn-submit" id="submitBtn">
+            <span id="btnText">Sign in</span>
+            <i class="fas fa-arrow-right arrow"></i>
+          </button>
+
+          <p class="trust-micro">No subscription required &nbsp;·&nbsp; 30-day money-back guarantee</p>
+        </form>
+
+        <!-- Divider -->
+        <div class="divider"><span>New here?</span></div>
+
+        <!-- Secondary -->
+        <div class="secondary-actions">
+          <a href="{% url 'register' %}" class="btn-register">
+            <i class="fas fa-user-plus"></i>
+            Create an account
+            <i class="fas fa-arrow-right arrow"></i>
+          </a>
+          <a href="{% url 'register_teacher' %}" class="teacher-link">
+            <i class="fas fa-chalkboard-teacher"></i>
+            Register as a Teacher
+            <i class="fas fa-arrow-right" style="font-size:10px;"></i>
+          </a>
         </div>
 
-        <!-- Footer -->
-        <div class="mt-7 text-center">
-          <div class="inline-flex items-center gap-2 text-xs text-slate-500">
-            <i class="fas fa-lock text-slate-400"></i>
-            Secure login
-            <span class="text-slate-300">•</span>
-            256-bit SSL
-          </div>
+        {% if user.is_authenticated %}
+        <div class="already-in">
+          <i class="fas fa-circle-info"></i>
+          You're already signed in as <strong>{{ user.username }}</strong>.
+          <a href="{% url 'logout' %}">Log out to switch accounts</a>
         </div>
+        {% endif %}
+      </div>
+
+      <!-- Footer -->
+      <div class="form-footer">
+        <i class="fas fa-lock" style="font-size:10px;"></i>
+        Secure login &nbsp;·&nbsp; 256-bit SSL
       </div>
     </div>
-  </div>
+  </main>
 
-  <script>
-    // Password toggle
-    (function () {
-      const pw = document.getElementById('password');
-      const btn = document.getElementById('togglePw');
-      if (pw && btn) {
-        btn.addEventListener('click', () => {
-          const isPw = pw.type === 'password';
-          pw.type = isPw ? 'text' : 'password';
-          btn.innerHTML = isPw ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
-        });
-      }
-    })();
+</div>
 
-    // Submit loading state (clean, not flashy)
-    (function () {
-      const form = document.getElementById('loginForm');
-      const btn = document.getElementById('submitBtn');
-      const text = document.getElementById('btnText');
-      if (form && btn && text) {
-        form.addEventListener('submit', () => {
-          btn.disabled = true;
-          btn.classList.add('opacity-90', 'cursor-not-allowed');
-          text.innerHTML = 'Signing in… <i class="fas fa-spinner fa-spin ml-2"></i>';
-        });
-      }
-    })();
-  </script>
+<script>
+  // Password toggle
+  (function () {
+    const pw  = document.getElementById('password');
+    const btn = document.getElementById('togglePw');
+    if (!pw || !btn) return;
+    btn.addEventListener('click', () => {
+      const show = pw.type === 'password';
+      pw.type = show ? 'text' : 'password';
+      btn.innerHTML = show
+        ? '<i class="fas fa-eye-slash"></i>'
+        : '<i class="fas fa-eye"></i>';
+    });
+  })();
+
+  // Submit loading state
+  (function () {
+    const form = document.getElementById('loginForm');
+    const btn  = document.getElementById('submitBtn');
+    const text = document.getElementById('btnText');
+    if (!form || !btn || !text) return;
+    form.addEventListener('submit', () => {
+      btn.disabled = true;
+      text.textContent = 'Signing in…';
+      btn.querySelector('.arrow').className = 'fas fa-spinner fa-spin arrow';
+    });
+  })();
+</script>
 </body>
 </html>
