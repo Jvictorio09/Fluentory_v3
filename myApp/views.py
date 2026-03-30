@@ -41,12 +41,25 @@ from .models import (
     LiveSession,
     Booking,
 )
-from django.db.models import Avg, Count, Prefetch, Q
+from django.db.models import Avg, Count, Max, Prefetch, Q
 from django.db import models
 from django.utils import timezone
 from .utils.transcription import transcribe_video
-from .utils.access import has_course_access
-from .utils.teacher import get_course_instructors
+from .utils.access import has_course_access, grant_course_access, check_course_prerequisites
+from .utils.teacher import get_course_instructors, require_course_teacher
+
+
+def _lessons_list_redirect(request, course_slug):
+    """After saving a lesson: staff → creator list; teachers → teacher area list."""
+    if request.user.is_staff:
+        return redirect('course_lessons', course_slug=course_slug)
+    return redirect('teacher_course_lessons', course_slug=course_slug)
+
+
+def _lessons_back_url(request, course_slug):
+    if request.user.is_staff:
+        return reverse('course_lessons', args=[course_slug])
+    return reverse('teacher_course_lessons', args=[course_slug])
 
 
 def landing(request):
@@ -877,6 +890,34 @@ def course_detail(request, course_slug):
 
 
 @login_required
+@require_http_methods(["POST"])
+def enroll_free_course(request, course_slug):
+    """Self-enrollment for free (non-paid) courses: grants CourseAccess and legacy CourseEnrollment."""
+    from .utils.access import check_course_prerequisites, grant_course_access as grant_access
+    course = get_object_or_404(Course, slug=course_slug)
+    if course.is_paid and course.price is not None:
+        messages.error(request, 'This course requires payment.')
+        return redirect('course_detail', course_slug=course.slug)
+    has_access, _, _ = has_course_access(request.user, course)
+    if has_access:
+        messages.info(request, 'You already have access to this course.')
+        return redirect('course_detail', course_slug=course.slug)
+    prereqs_met, _ = check_course_prerequisites(request.user, course)
+    if not prereqs_met:
+        messages.error(request, 'Complete the prerequisite courses before enrolling.')
+        return redirect('course_detail', course_slug=course.slug)
+    grant_access(
+        request.user,
+        course,
+        'manual',
+        notes='Self-enrolled (free)',
+    )
+    CourseEnrollment.objects.get_or_create(user=request.user, course=course)
+    messages.success(request, f'You are enrolled in {course.name}.')
+    return redirect('course_detail', course_slug=course.slug)
+
+
+@login_required
 def lesson_detail(request, course_slug, lesson_slug):
     """Lesson detail page with three-column layout"""
     course = get_object_or_404(
@@ -1087,11 +1128,20 @@ def lesson_quiz_view(request, course_slug, lesson_slug):
             passed=passed,
         )
 
+        cert_is_last = False
+        certificate_url = None
+        if passed and quiz.is_required:
+            cert_is_last, certificate_url = _complete_lesson_and_maybe_certificate(
+                request.user, lesson
+            )
+
         result = {
             'score': round(score, 1),
             'passed': passed,
             'correct': correct,
             'total': total,
+            'is_last_lesson': cert_is_last,
+            'certificate_url': certificate_url,
         }
 
     return render(request, 'lesson_quiz.html', {
@@ -1129,17 +1179,29 @@ def course_lessons(request, course_slug):
     })
 
 
-@staff_member_required
+@login_required
 def add_lesson(request, course_slug):
     """Add new lesson - 3-step flow with video upload and transcription"""
     course = get_object_or_404(Course, slug=course_slug)
-    
+    require_course_teacher(request.user, course)
+
     if request.method == 'POST':
         # Handle form submission
+        skip_ai = request.POST.get('skip_ai')
         vimeo_url = request.POST.get('vimeo_url', '')
         working_title = request.POST.get('working_title', '')
         rough_notes = request.POST.get('rough_notes', '')
         transcription = request.POST.get('transcription', '')
+
+        if skip_ai and not (working_title or '').strip():
+            messages.error(
+                request,
+                'Enter a working title before creating a lesson manually (no AI).',
+            )
+            return render(request, 'creator/add_lesson.html', {
+                'course': course,
+                'lessons_back_url': _lessons_back_url(request, course_slug),
+            })
         
         # Extract Vimeo ID
         vimeo_id = extract_vimeo_id(vimeo_url) if vimeo_url else None
@@ -1270,22 +1332,51 @@ def add_lesson(request, course_slug):
             lesson.transcription_status = 'completed'
         
         lesson.save()
-        
-        # If content blocks were added, they're already saved in the lesson.content field
+
+        if skip_ai:
+            wt = (working_title or '').strip()
+            lesson.title = wt
+            lesson.description = (rough_notes or '').strip()
+            lesson.ai_clean_title = wt
+            lesson.ai_short_summary = ''
+            lesson.ai_full_description = lesson.description
+            lesson.ai_outcomes = []
+            lesson.ai_coach_actions = []
+            lesson.ai_generation_status = 'approved'
+            base_slug = generate_slug(wt) or 'lesson'
+            slug = base_slug
+            n = 2
+            while Lesson.objects.filter(course=course, slug=slug).exclude(pk=lesson.pk).exists():
+                slug = f'{base_slug}-{n}'
+                n += 1
+            lesson.slug = slug
+            max_other = Lesson.objects.filter(course=course).exclude(pk=lesson.pk).aggregate(
+                m=Max('order')
+            )['m']
+            lesson.order = (max_other + 1) if max_other is not None else 0
+            lesson.save()
+            messages.success(
+                request,
+                'Lesson created without AI. Use Edit to add video links and polish content anytime.',
+            )
+            return _lessons_list_redirect(request, course_slug)
+
         # Redirect to AI generation page (which will show the content blocks)
         return redirect('generate_lesson_ai', course_slug=course_slug, lesson_id=lesson.id)
     
     return render(request, 'creator/add_lesson.html', {
         'course': course,
+        'lessons_back_url': _lessons_back_url(request, course_slug),
     })
 
 
-@staff_member_required
+@login_required
 def generate_lesson_ai(request, course_slug, lesson_id):
     """Generate AI content for lesson"""
     course = get_object_or_404(Course, slug=course_slug)
     lesson = get_object_or_404(Lesson, id=lesson_id, course=course)
-    
+    require_course_teacher(request.user, course)
+
     if request.method == 'POST':
         action = request.POST.get('action')
         
@@ -1348,7 +1439,7 @@ def generate_lesson_ai(request, course_slug, lesson_id):
             
             lesson.save()
             
-            return redirect('course_lessons', course_slug=course_slug)
+            return _lessons_list_redirect(request, course_slug)
         
         elif action == 'edit':
             # Update with manual edits
@@ -1420,6 +1511,7 @@ def generate_lesson_ai(request, course_slug, lesson_id):
     return render(request, 'creator/generate_lesson_ai.html', {
         'course': course,
         'lesson': lesson,
+        'lessons_back_url': _lessons_back_url(request, course_slug),
     })
 
 
@@ -2261,6 +2353,80 @@ def update_video_progress(request, lesson_id):
         return JsonResponse({'error': f'Invalid data: {str(e)}'}, status=400)
 
 
+def _complete_lesson_and_maybe_certificate(user, lesson):
+    """Mark lesson complete; if this finishes the course and there is no final exam, issue certificate.
+
+    Shared by ``complete_lesson`` and by ``lesson_quiz_view`` when a required quiz is passed so the
+    last lesson does not require a separate "Finish Lesson" click for the certificate.
+    """
+    user_progress, _ = UserProgress.objects.get_or_create(
+        user=user,
+        lesson=lesson
+    )
+    user_progress.completed = True
+    user_progress.status = 'completed'
+    user_progress.completed_at = datetime.now()
+    user_progress.progress_percentage = 100
+    user_progress.save()
+
+    course = lesson.course
+    all_lessons = course.lessons.order_by('order', 'id')
+    is_last_lesson = False
+    certificate_url = None
+
+    if all_lessons.exists():
+        last_lesson = all_lessons.last()
+        if last_lesson.id == lesson.id:
+            completed_lessons_count = UserProgress.objects.filter(
+                user=user,
+                lesson__course=course,
+                completed=True
+            ).count()
+
+            if completed_lessons_count == all_lessons.count():
+                is_last_lesson = True
+
+                has_exam = Exam.objects.filter(course=course).exists()
+
+                certification, _ = Certification.objects.get_or_create(
+                    user=user,
+                    course=course,
+                    defaults={'status': 'not_eligible'}
+                )
+
+                if not has_exam:
+                    certification.status = 'passed'
+                    if not certification.issued_at:
+                        certification.issued_at = timezone.now()
+
+                    try:
+                        from .utils.certificate_generator import generate_certificate
+                        cert_result = generate_certificate(
+                            user=user,
+                            course=course,
+                            issued_date=certification.issued_at,
+                            upload_to_cloudinary=True
+                        )
+
+                        if cert_result and cert_result.get('certificate_url'):
+                            certification.accredible_certificate_url = cert_result['certificate_url']
+                            if cert_result.get('certificate_id'):
+                                certification.accredible_certificate_id = cert_result['certificate_id']
+                    except Exception as e:
+                        import logging
+                        logger = logging.getLogger(__name__)
+                        logger.error(f"Error generating certificate: {str(e)}")
+
+                    certification.save()
+
+                if certification.accredible_certificate_url:
+                    certificate_url = certification.accredible_certificate_url
+                else:
+                    certificate_url = reverse('student_course_progress', args=[course.slug])
+
+    return is_last_lesson, certificate_url
+
+
 @require_http_methods(["POST"])
 @login_required
 def complete_lesson(request, lesson_id):
@@ -2292,84 +2458,8 @@ def complete_lesson(request, lesson_id):
         # No quiz, proceed with completion
         pass
     
-    # Get or create UserProgress
-    user_progress, created = UserProgress.objects.get_or_create(
-        user=request.user,
-        lesson=lesson
-    )
+    is_last_lesson, certificate_url = _complete_lesson_and_maybe_certificate(request.user, lesson)
 
-    # Mark as completed
-    user_progress.completed = True
-    user_progress.status = 'completed'
-    user_progress.completed_at = datetime.now()
-    user_progress.progress_percentage = 100
-    user_progress.save()
-    
-    # Check if this is the last lesson in the course
-    course = lesson.course
-    all_lessons = course.lessons.order_by('order', 'id')
-    is_last_lesson = False
-    certificate_url = None
-    
-    if all_lessons.exists():
-        last_lesson = all_lessons.last()
-        if last_lesson.id == lesson.id:
-            # This is the last lesson, check if all lessons are now completed
-            completed_lessons_count = UserProgress.objects.filter(
-                user=request.user,
-                lesson__course=course,
-                completed=True
-            ).count()
-            
-            if completed_lessons_count == all_lessons.count():
-                is_last_lesson = True
-                
-                # Check if there's a final exam for this course
-                has_exam = Exam.objects.filter(course=course).exists()
-                
-                # Get or create certification
-                certification, created = Certification.objects.get_or_create(
-                    user=request.user,
-                    course=course,
-                    defaults={'status': 'not_eligible'}
-                )
-                
-                # If there's no exam, automatically issue the certificate
-                if not has_exam:
-                    certification.status = 'passed'
-                    if not certification.issued_at:
-                        certification.issued_at = timezone.now()
-                    
-                    # Generate certificate PDF and upload to Cloudinary
-                    try:
-                        from .utils.certificate_generator import generate_certificate
-                        cert_result = generate_certificate(
-                            user=request.user,
-                            course=course,
-                            issued_date=certification.issued_at,
-                            upload_to_cloudinary=True
-                        )
-                        
-                        if cert_result and cert_result.get('certificate_url'):
-                            # Store the generated certificate URL
-                            certification.accredible_certificate_url = cert_result['certificate_url']
-                            if cert_result.get('certificate_id'):
-                                certification.accredible_certificate_id = cert_result['certificate_id']
-                    except Exception as e:
-                        # Log error but don't fail certificate issuance
-                        import logging
-                        logger = logging.getLogger(__name__)
-                        logger.error(f"Error generating certificate: {str(e)}")
-                    
-                    certification.save()
-                
-                # Determine certificate URL
-                if certification.accredible_certificate_url:
-                    certificate_url = certification.accredible_certificate_url
-                else:
-                    # Redirect to course progress page to view certificate status
-                    certificate_url = reverse('student_course_progress', args=[course.slug])
-    
     return JsonResponse({
         'success': True,
         'message': 'Lesson marked as complete',

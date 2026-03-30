@@ -8,7 +8,7 @@
     <div class="max-w-[1600px] mx-auto px-6">
         <!-- Header -->
         <div class="mb-8">
-            <a href="{% url 'course_lessons' course.slug %}" class="text-teal-700 hover:text-teal-800 text-sm text-black mb-4 inline-flex items-center gap-2">
+            <a href="{% if lessons_back_url %}{{ lessons_back_url }}{% else %}{% url 'course_lessons' course.slug %}{% endif %}" class="text-teal-700 hover:text-teal-800 text-sm text-black mb-4 inline-flex items-center gap-2">
                 <i class="fas fa-arrow-left"></i> Back to {{ course.name }}
             </a>
             <h1 class="text-4xl font-bold mb-2 text-slate-900">Add New Lesson</h1>
@@ -221,18 +221,32 @@
                         <!-- Hidden transcription field -->
                         <input type="hidden" name="transcription" id="transcription-input">
 
-                        <!-- STEP 3: AI Generation Button -->
-                        <div class="border-t border-teal-soft/10 pt-8">
+                        <!-- STEP 3: Continue with AI or create manually -->
+                        <div class="border-t border-teal-soft/10 pt-8 space-y-4">
+                            <p class="text-sm font-medium text-slate-800 text-center">How do you want to finish this lesson?</p>
                             <button 
                                 type="submit"
                                 id="generate-btn"
                                 class="w-full px-6 py-4 bg-gradient-to-r from-teal-soft to-blue-soft text-[#ffffff] rounded-xl font-bold text-lg hover:shadow-2xl hover:shadow-teal-soft/30 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                             >
                                 <i class="fas fa-magic mr-2"></i>
-                                Generate Lesson Description & Outputs
+                                Continue with AI
                             </button>
-                            <p class="text-xs text-gray-700 mt-3 text-center">
-                                The AI will generate: clean title, summary, full description, outcomes, and recommended coach actions.
+                            <p class="text-xs text-gray-600 text-center -mt-1">
+                                Generates title, summary, full description, outcomes, and coach actions from your notes and video.
+                            </p>
+                            <button
+                                type="submit"
+                                name="skip_ai"
+                                value="1"
+                                id="manual-create-btn"
+                                class="w-full px-6 py-3.5 rounded-xl font-semibold text-slate-800 bg-white border-2 border-slate-200 hover:border-teal-soft/50 hover:bg-teal-soft/5 transition-all"
+                            >
+                                <i class="fas fa-edit mr-2"></i>
+                                Create manually (no AI)
+                            </button>
+                            <p class="text-xs text-gray-500 text-center -mt-1">
+                                Saves the lesson now using your working title and notes. You can add video and polish content on the next screen.
                             </p>
                         </div>
                     </form>
@@ -862,6 +876,13 @@
                 generateBtn.disabled = false;
             }
         }
+    }
+
+    const lessonForm = document.getElementById('lesson-form');
+    if (lessonForm && typeof serializeContentBlocks === 'function') {
+        lessonForm.addEventListener('submit', function() {
+            serializeContentBlocks();
+        });
     }
     
 </script>

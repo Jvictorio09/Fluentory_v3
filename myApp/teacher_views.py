@@ -436,7 +436,7 @@ def teacher_course_lessons(request, course_slug):
     course = get_object_or_404(Course, slug=course_slug)
     require_course_teacher(request.user, course)
     
-    lessons = course.lessons.all()
+    lessons = course.lessons.order_by('order', 'id')
     modules = course.modules.all()
     
     return render(request, 'teacher/course_lessons.html', {

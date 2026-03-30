@@ -660,10 +660,10 @@
         </div>
       </div>
       <div class="fld-hero-actions">
-        <a href="{% url 'student_certifications' %}" class="fld-btn btn-primary">
+        <a href="{% url 'student_certifications' %}" class="fld-btn fld-btn-primary">
           <i class="fas fa-certificate"></i> My Certifications
         </a>
-        <a href="{% url 'student_dashboard' %}" class="fld-btn btn-ghost">
+        <a href="{% url 'student_dashboard' %}" class="fld-btn fld-btn-ghost">
           <i class="fas fa-compass"></i> Browse courses
         </a>
       </div>
@@ -841,7 +841,7 @@
       <div class="fld-empty-icon"><i class="fas fa-book-open"></i></div>
       <h3 class="fld-empty-title">No courses yet</h3>
       <p class="fld-empty-sub">You don't have access to any courses yet.<br>Browse the catalog or contact support.</p>
-      <a href="{% url 'student_dashboard' %}" class="fld-btn btn-primary" style="display:inline-flex">
+      <a href="{% url 'student_dashboard' %}" class="fld-btn fld-btn-primary" style="display:inline-flex">
         Browse courses <i class="fas fa-arrow-right"></i>
       </a>
     </div>
@@ -898,6 +898,16 @@
             </a>
           {% endif %}
         </div>
+        {% elif not data.course.is_paid %}
+        <div class="fld-unlock-price">
+          <div>
+            <div class="fld-unlock-price-num" style="color:var(--emerald)">Free</div>
+            <div class="fld-unlock-price-label">No payment required · Lifetime access</div>
+          </div>
+          <a href="{% url 'course_detail' data.course.slug %}" class="fld-btn fld-btn-continue" style="flex:none">
+            Enroll now <i class="fas fa-arrow-right" style="font-size:.65rem"></i>
+          </a>
+        </div>
         {% endif %}
 
         {% if data.bundles %}
@@ -928,8 +938,6 @@
           <a href="{% url 'course_detail' data.course.slug %}" class="fld-btn fld-btn-outline-card">Course Details</a>
           {% if data.bundles %}
             <a href="{% url 'student_dashboard' %}" class="fld-btn fld-btn-continue">View bundles <i class="fas fa-arrow-right" style="font-size:.65rem"></i></a>
-          {% elif not data.course.is_paid %}
-            <a href="{% url 'student_dashboard' %}" class="fld-btn fld-btn-continue">Browse all <i class="fas fa-arrow-right" style="font-size:.65rem"></i></a>
           {% endif %}
         </div>
 

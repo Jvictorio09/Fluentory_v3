@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{# Quiz flow: hide global site footer (same idea as the lesson player). #}
+{% block site_footer %}{% endblock %}
+
 {% block title %}{{ lesson.title }} - Quiz{% endblock %}
 
 {% block content %}
@@ -75,6 +78,17 @@
                         >
                             <span>Continue to Next Lesson</span>
                             <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    {% elif result.passed and result.certificate_url %}
+                    <div class="mt-6 pt-6 border-t border-green-500/30">
+                        <p class="text-gray-700 mb-3">You have completed this course.</p>
+                        <a
+                            href="{{ result.certificate_url }}"
+                            class="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-teal-soft to-blue-soft hover:from-teal-soft/90 hover:to-blue-soft/90 text-[#ffffff] font-bold rounded-xl transition-all transform hover:scale-105 shadow-lg"
+                        >
+                            <span>View certificate</span>
+                            <i class="fas fa-award"></i>
                         </a>
                     </div>
                     {% endif %}

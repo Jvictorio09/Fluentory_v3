@@ -11,19 +11,30 @@
 </div>
 
 <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
-    <h2 class="text-2xl font-bold text-gray-800 mb-6">Lessons</h2>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">Lessons</h2>
+            <p class="text-sm text-gray-600 mt-1">Add with AI assistance or create manually—your choice on the next page.</p>
+        </div>
+        <a href="{% url 'add_lesson' course.slug %}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-teal-soft text-white font-semibold text-sm hover:bg-teal-soft/90 transition-all shadow-sm shrink-0">
+            <i class="fas fa-plus"></i> Add lesson
+        </a>
+    </div>
     
     {% if lessons %}
     <div class="space-y-3">
         {% for lesson in lessons %}
         <div class="p-4 bg-[#ffffff]/40 rounded-lg border border-teal-soft/10">
-            <div class="flex items-center justify-between">
-                <div class="flex-1">
+            <div class="flex items-center justify-between gap-4 flex-wrap">
+                <div class="flex-1 min-w-0">
                     <h3 class="font-semibold text-gray-800">{{ lesson.title }}</h3>
                     <p class="text-sm text-black text-gray-700 mt-1">{{ lesson.description|truncatewords:20 }}</p>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-shrink-0">
                     <span class="text-xs text-gray-600">Order: {{ lesson.order }}</span>
+                    <a href="{% url 'generate_lesson_ai' course.slug lesson.id %}" class="px-3 py-1.5 bg-teal-soft/10 border border-teal-soft/30 rounded-lg text-xs font-medium text-gray-800 hover:bg-teal-soft/20 transition-all">
+                        Edit
+                    </a>
                 </div>
             </div>
         </div>
@@ -33,7 +44,10 @@
     <div class="text-center py-12">
         <i class="fas fa-video text-4xl text-gray-600 mb-4"></i>
         <p class="text-gray-700 mb-4">No lessons yet for this course.</p>
-        <p class="text-sm text-black text-gray-600">Lessons can be added through the admin dashboard.</p>
+        <p class="text-sm text-black text-gray-600 mb-6">Create your first lesson with AI—or skip AI and build it manually.</p>
+        <a href="{% url 'add_lesson' course.slug %}" class="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-teal-soft text-white font-semibold hover:bg-teal-soft/90 transition-all">
+            <i class="fas fa-plus"></i> Add lesson
+        </a>
     </div>
     {% endif %}
 </div>

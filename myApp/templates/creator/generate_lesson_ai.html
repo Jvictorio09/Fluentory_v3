@@ -7,7 +7,7 @@
 <div class="max-w-5xl mx-auto">
     <!-- Header -->
     <div class="mb-8">
-        <a href="{% url 'course_lessons' course.slug %}" class="text-teal-700 hover:text-teal-800 text-sm text-black mb-4 inline-block">
+        <a href="{% if lessons_back_url %}{{ lessons_back_url }}{% else %}{% url 'course_lessons' course.slug %}{% endif %}" class="text-teal-700 hover:text-teal-800 text-sm text-black mb-4 inline-block">
             <i class="fas fa-arrow-left mr-2"></i> Back to {{ course.name }}
         </a>
         <h1 class="text-3xl font-bold mb-2">AI Autogeneration Panel</h1>

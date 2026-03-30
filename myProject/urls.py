@@ -21,6 +21,7 @@ urlpatterns = [
     # Purchase and gift endpoints must come before course_detail and lesson_detail to avoid URL matching conflicts
     path('courses/<slug:course_slug>/purchase/', views.initiate_purchase, name='initiate_purchase'),
     path('courses/<slug:course_slug>/gift/', views.gift_course, name='gift_course'),
+    path('courses/<slug:course_slug>/enroll-free/', views.enroll_free_course, name='enroll_free_course'),
     path('courses/<slug:course_slug>/', views.course_detail, name='course_detail'),
     path('courses/<slug:course_slug>/<slug:lesson_slug>/', views.lesson_detail, name='lesson_detail'),
     path('courses/<slug:course_slug>/<slug:lesson_slug>/quiz/', views.lesson_quiz_view, name='lesson_quiz'),
