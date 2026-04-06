@@ -1,0 +1,105 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Partner Dashboard - Fluentory{% endblock %}
+{% block page_title %}Partner Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+  <section class="rounded-2xl border border-teal-soft/20 bg-gradient-to-r from-[#ffffff] to-[#f8fafc] p-6 sm:p-8 shadow-sm">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+      <div>
+        <p class="text-xs uppercase tracking-widest text-gray-500">Partner Performance</p>
+        <h2 class="mt-2 text-2xl sm:text-3xl font-bold text-black">
+          {{ profile.partner_name|default:"Partner Account" }}
+        </h2>
+        <p class="mt-2 text-sm text-gray-600">
+          Region: <span class="font-semibold text-gray-800">{{ profile.region|default:"Global" }}</span>
+          {% if profile.commission_rate %}
+          <span class="mx-2 text-gray-400">•</span>
+          Commission: <span class="font-semibold text-gray-800">{{ profile.commission_rate }}%</span>
+          {% endif %}
+        </p>
+      </div>
+      <a href="{% url 'partner_dashboard_api' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-teal-soft/30 text-sm font-medium text-gray-700 hover:bg-teal-soft/10 transition">
+        <i class="fas fa-database"></i>
+        API Metrics
+      </a>
+    </div>
+  </section>
+
+  <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+    <article class="rounded-xl bg-white border border-slate-200 p-5 shadow-sm">
+      <p class="text-xs uppercase tracking-wide text-gray-500">Total Revenue</p>
+      <p class="mt-3 text-2xl font-bold text-black">{{ total_revenue }}</p>
+      <p class="mt-2 text-xs text-emerald-600"><i class="fas fa-arrow-trend-up mr-1"></i> Performance to date</p>
+    </article>
+    <article class="rounded-xl bg-white border border-slate-200 p-5 shadow-sm">
+      <p class="text-xs uppercase tracking-wide text-gray-500">Active Students</p>
+      <p class="mt-3 text-2xl font-bold text-black">{{ active_students }}</p>
+      <p class="mt-2 text-xs text-gray-500">Currently unlocked learners</p>
+    </article>
+    <article class="rounded-xl bg-white border border-slate-200 p-5 shadow-sm">
+      <p class="text-xs uppercase tracking-wide text-gray-500">Courses Sold</p>
+      <p class="mt-3 text-2xl font-bold text-black">{{ courses_sold }}</p>
+      <p class="mt-2 text-xs text-gray-500">Distinct course purchases</p>
+    </article>
+    <article class="rounded-xl bg-white border border-slate-200 p-5 shadow-sm">
+      <p class="text-xs uppercase tracking-wide text-gray-500">Weekly Growth</p>
+      <p class="mt-3 text-2xl font-bold text-black">{{ weekly_growth }}</p>
+      <p class="mt-2 text-xs text-blue-600"><i class="fas fa-chart-line mr-1"></i> Last 7 days</p>
+    </article>
+  </section>
+
+  <section class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <div class="xl:col-span-2 rounded-2xl bg-white border border-slate-200 shadow-sm p-5 sm:p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-black">Regional Performance</h3>
+        <span class="text-xs text-gray-500">Sorted by revenue</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-gray-500 border-b border-slate-200">
+              <th class="py-2 pr-4 font-medium">Region</th>
+              <th class="py-2 pr-4 font-medium">Revenue</th>
+              <th class="py-2 pr-4 font-medium">Sales</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in regional_performance %}
+            <tr class="border-b border-slate-100">
+              <td class="py-3 pr-4 font-medium text-gray-800">{{ row.region|default:"Unknown" }}</td>
+              <td class="py-3 pr-4 text-gray-700">{{ row.total }}</td>
+              <td class="py-3 pr-4 text-gray-700">{{ row.count }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="3" class="py-6 text-center text-gray-500">No regional sales data yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <aside class="rounded-2xl bg-white border border-slate-200 shadow-sm p-5 sm:p-6">
+      <h3 class="text-lg font-semibold text-black mb-4">Quick Actions</h3>
+      <div class="space-y-3">
+        <a href="{% url 'dashboard_analytics' %}" class="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3 hover:bg-slate-50 transition">
+          <span class="text-sm font-medium text-gray-700">View Global Analytics</span>
+          <i class="fas fa-arrow-right text-gray-400"></i>
+        </a>
+        <a href="{% url 'dashboard_leads' %}" class="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3 hover:bg-slate-50 transition">
+          <span class="text-sm font-medium text-gray-700">Open CRM Leads</span>
+          <i class="fas fa-arrow-right text-gray-400"></i>
+        </a>
+        <a href="{% url 'dashboard_students' %}" class="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3 hover:bg-slate-50 transition">
+          <span class="text-sm font-medium text-gray-700">Review Students</span>
+          <i class="fas fa-arrow-right text-gray-400"></i>
+        </a>
+      </div>
+    </aside>
+  </section>
+</div>
+{% endblock %}
+

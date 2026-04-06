@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-6xl mx-auto px-6 py-8">
+  <h1 class="text-2xl font-semibold mb-6">Site Settings</h1>
+  <form method="post" class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-8">
+    {% csrf_token %}
+    <input class="border rounded px-3 py-2" name="key" placeholder="settings.key">
+    <input class="border rounded px-3 py-2" name="value" placeholder="value">
+    <select class="border rounded px-3 py-2" name="value_type">
+      <option value="string">string</option>
+      <option value="int">int</option>
+      <option value="float">float</option>
+      <option value="bool">bool</option>
+      <option value="json">json</option>
+    </select>
+    <button class="rounded bg-teal-600 text-white px-4 py-2" type="submit">Save</button>
+  </form>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white rounded shadow p-4">
+      <h2 class="font-medium mb-3">System Settings</h2>
+      <ul class="space-y-2 text-sm">
+        {% for row in settings_rows %}
+        <li><strong>{{ row.key }}</strong> = {{ row.value }} ({{ row.value_type }})</li>
+        {% empty %}
+        <li>No settings saved yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="bg-white rounded shadow p-4">
+      <h2 class="font-medium mb-3">Currencies</h2>
+      <ul class="space-y-2 text-sm">
+        {% for c in currencies %}
+        <li>{{ c.code }} - {{ c.name }} {% if c.is_default %}(default){% endif %}</li>
+        {% empty %}
+        <li>No currencies configured.</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="bg-white rounded shadow p-4">
+      <h2 class="font-medium mb-3">Languages</h2>
+      <ul class="space-y-2 text-sm">
+        {% for l in languages %}
+        <li>{{ l.code }} - {{ l.name }} {% if l.is_rtl %}(RTL){% endif %}</li>
+        {% empty %}
+        <li>No languages configured.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

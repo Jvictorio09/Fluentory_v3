@@ -40,6 +40,9 @@ from .models import (
     GiftPurchase,
     LiveSession,
     Booking,
+    VideoAccessToken,
+    CourseBadge,
+    AnalyticsEvent,
 )
 from django.db.models import Avg, Count, Max, Prefetch, Q
 from django.db import models
@@ -47,6 +50,10 @@ from django.utils import timezone
 from .utils.transcription import transcribe_video
 from .utils.access import has_course_access, grant_course_access, check_course_prerequisites
 from .utils.teacher import get_course_instructors, require_course_teacher
+from .services.invoicing import issue_invoice_for_purchase
+from .services.notifications import queue_notification
+from .services.automation import queue_sequence
+from .services.payments import create_checkout_for_purchase
 
 
 def _lessons_list_redirect(request, course_slug):
@@ -228,6 +235,11 @@ def home(request):
             'has_any_progress': False,
             'progress_percentage': 0,
             'is_favorited': False,
+            'active_badges': list(
+                course.badges.filter(
+                    is_active=True
+                ).values_list('badge_type', flat=True)
+            ),
         }
         
         if user:
@@ -612,6 +624,11 @@ def register_teacher_view(request):
                 motivation=motivation,
                 status='pending'
             )
+            queue_sequence(
+                trigger_key='teacher.application.submitted',
+                user=user,
+                payload={'teacher_request_id': teacher_request.id, 'email': teacher_request.email},
+            )
             
             # Send confirmation email
             from .utils.email import send_teacher_request_email
@@ -627,6 +644,21 @@ def register_teacher_view(request):
             messages.error(request, f'Error creating account: {str(e)}')
     
     return render(request, 'register_teacher.html')
+
+
+def become_teacher_page(request):
+    """Join-us page with teacher benefits and commission model details."""
+    benefits = [
+        "Teach global students with flexible schedules",
+        "Transparent commission and payout dashboard",
+        "Course hosting, marketing, and admin support",
+        "AI-assisted lesson creation tools",
+    ]
+    default_commission = "40%"
+    return render(request, 'become_teacher.html', {
+        'benefits': benefits,
+        'default_commission': default_commission,
+    })
 
 
 def logout_view(request):
@@ -724,6 +756,16 @@ def course_detail(request, course_slug):
             ),
         ),
         slug=course_slug,
+    )
+    if not request.session.session_key:
+        request.session.save()
+    AnalyticsEvent.objects.create(
+        event_name='course_view',
+        user=request.user if request.user.is_authenticated else None,
+        session_key=request.session.session_key or '',
+        course=course,
+        campaign=request.GET.get('utm_campaign', '') or '',
+        metadata={'path': request.path, 'source': request.GET.get('utm_source', '')},
     )
     user_has_access = False
     first_lesson = course.lessons.order_by('order', 'id').first()
@@ -1062,6 +1104,8 @@ def lesson_detail(request, course_slug, lesson_slug):
         except Exception:
             lesson_blocks = []
 
+    playback_token_obj = VideoAccessToken.issue(lesson=lesson, user=request.user, ttl_seconds=900)
+
     return render(request, 'lesson.html', {
         'course': course,
         'lesson': lesson,
@@ -1081,6 +1125,8 @@ def lesson_detail(request, course_slug, lesson_slug):
         'latest_quiz_attempt': latest_quiz_attempt,
         'quiz_passed': quiz_passed,
         'youtube_video_id': youtube_video_id,
+        'video_access_token': playback_token_obj.token,
+        'video_access_token_expires_at': playback_token_obj.expires_at,
     })
 
 
@@ -2459,6 +2505,22 @@ def complete_lesson(request, lesson_id):
         pass
     
     is_last_lesson, certificate_url = _complete_lesson_and_maybe_certificate(request.user, lesson)
+    queue_notification(
+        event_key='lesson.completed',
+        user=request.user,
+        payload={'lesson_id': lesson.id, 'course_id': lesson.course_id},
+    )
+    queue_sequence(
+        trigger_key='course.progress.updated',
+        user=request.user,
+        payload={'lesson_id': lesson.id, 'course_id': lesson.course_id},
+    )
+    if certificate_url:
+        queue_notification(
+            event_key='certificate.issued',
+            user=request.user,
+            payload={'course_id': lesson.course_id, 'certificate_url': certificate_url},
+        )
 
     return JsonResponse({
         'success': True,
@@ -2982,6 +3044,9 @@ def student_dashboard(request):
     total_lessons_all = sum(c['total_lessons'] for c in my_courses_data)
     completed_lessons_all = sum(c['completed_lessons'] for c in my_courses_data)
     overall_progress = int((completed_lessons_all / total_lessons_all * 100)) if total_lessons_all > 0 else 0
+    latest_placement_attempt = request.user.placement_attempts.select_related(
+        'recommended_course', 'recommended_learning_path'
+    ).first()
     
     return render(request, 'student/dashboard.html', {
         'course_data': my_courses_data,  # Renamed for backward compatibility
@@ -2995,6 +3060,7 @@ def student_dashboard(request):
         'overall_progress': overall_progress,
         'filter_favorites': filter_favorites,
         'sort_by': sort_by,
+        'latest_placement_attempt': latest_placement_attempt,
     })
 
 
@@ -3985,6 +4051,17 @@ def _finalize_purchase(purchase, provider='manual', provider_id='', status='paid
     if status == 'paid':
         purchase.paid_at = timezone.now()
         purchase.save()
+        issue_invoice_for_purchase(purchase)
+        queue_notification(
+            event_key='payment.confirmed',
+            user=purchase.user,
+            payload={'purchase_id': purchase.id, 'course_name': purchase.course.name},
+        )
+        queue_sequence(
+            trigger_key='purchase.completed',
+            user=purchase.user,
+            payload={'purchase_id': purchase.id, 'course_id': purchase.course_id},
+        )
 
         try:
             gift = GiftPurchase.objects.get(course_purchase=purchase)
@@ -4054,9 +4131,17 @@ def initiate_purchase(request, course_slug):
         }, status=400)
     
     simulate_payment = getattr(settings, 'SIMULATE_PAYMENT', True)
+    selected_provider = (request.POST.get('provider') or request.GET.get('provider') or 'stripe').strip().lower()
+    if selected_provider not in {'stripe', 'paypal'}:
+        selected_provider = 'stripe'
     stripe_enabled = (
         not simulate_payment
         and bool(getattr(settings, 'STRIPE_SECRET_KEY', ''))
+    )
+    paypal_enabled = (
+        not simulate_payment
+        and bool(getattr(settings, 'PAYPAL_CLIENT_ID', ''))
+        and bool(getattr(settings, 'PAYPAL_SECRET', ''))
     )
 
     # Check if there's already a pending or paid purchase
@@ -4073,6 +4158,24 @@ def initiate_purchase(request, course_slug):
                 'error': 'You already have a paid purchase for this course'
             }, status=400)
         else:
+            if selected_provider == 'paypal' and paypal_enabled:
+                idempotency_key = request.headers.get('X-Idempotency-Key', '')
+                result, _txn = create_checkout_for_purchase(
+                    purchase=existing_purchase,
+                    provider='paypal',
+                    request=request,
+                    idempotency_key=idempotency_key,
+                )
+                return JsonResponse({
+                    'success': True,
+                    'purchase_id': existing_purchase.id,
+                    'amount': str(existing_purchase.amount),
+                    'currency': existing_purchase.currency,
+                    'status': existing_purchase.status,
+                    'provider': 'paypal',
+                    'checkout_url': result.get('checkout_url', ''),
+                    'message': 'Redirecting to PayPal checkout...',
+                })
             if stripe_enabled:
                 try:
                     checkout_session = _create_stripe_checkout_session(request, existing_purchase)
@@ -4119,6 +4222,7 @@ def initiate_purchase(request, course_slug):
         purchase.provider = 'simulated'
         purchase.provider_id = f'sim_{purchase.id}_{int(timezone.now().timestamp())}'
         purchase.save()
+        issue_invoice_for_purchase(purchase)
         
         # Grant course access immediately
         from .utils.access import grant_purchase_access
@@ -4132,6 +4236,28 @@ def initiate_purchase(request, course_slug):
             'status': 'paid',
             'message': 'Purchase completed successfully! Access granted.',
             'redirect': _build_purchase_redirect(course),
+        })
+
+    if selected_provider == 'paypal' and paypal_enabled:
+        idempotency_key = request.headers.get('X-Idempotency-Key', '')
+        result, _txn = create_checkout_for_purchase(
+            purchase=purchase,
+            provider='paypal',
+            request=request,
+            idempotency_key=idempotency_key,
+        )
+        purchase.provider = 'paypal'
+        purchase.provider_id = result.get('provider_payment_id', '')
+        purchase.save(update_fields=['provider', 'provider_id'])
+        return JsonResponse({
+            'success': True,
+            'purchase_id': purchase.id,
+            'amount': str(purchase.amount),
+            'currency': purchase.currency,
+            'status': purchase.status,
+            'provider': 'paypal',
+            'checkout_url': result.get('checkout_url', ''),
+            'message': 'Redirecting to PayPal Checkout...',
         })
 
     if stripe_enabled:

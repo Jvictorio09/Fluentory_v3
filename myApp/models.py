@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.core.signing import Signer
+from datetime import timedelta
 import json
 import secrets
 
@@ -1182,4 +1184,580 @@ class TeacherProfile(models.Model):
 
     def __str__(self):
         return f"Profile: {self.user.get_full_name() or self.user.username}"
+
+
+class FeatureFlag(models.Model):
+    """Runtime feature switches for phased rollouts."""
+    key = models.CharField(max_length=120, unique=True)
+    description = models.CharField(max_length=255, blank=True)
+    is_enabled = models.BooleanField(default=False)
+    rollout_percentage = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['key']
+
+    def __str__(self):
+        return f"{self.key}={'on' if self.is_enabled else 'off'}"
+
+
+class SystemSetting(models.Model):
+    """Mutable application settings for non-technical admins."""
+    key = models.CharField(max_length=120, unique=True)
+    value = models.TextField(blank=True)
+    value_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('string', 'String'),
+            ('int', 'Integer'),
+            ('float', 'Float'),
+            ('bool', 'Boolean'),
+            ('json', 'JSON'),
+        ],
+        default='string',
+    )
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['key']
+
+    def __str__(self):
+        return self.key
+
+    def parsed_value(self):
+        if self.value_type == 'int':
+            return int(self.value or 0)
+        if self.value_type == 'float':
+            return float(self.value or 0)
+        if self.value_type == 'bool':
+            return str(self.value).strip().lower() in {'1', 'true', 'yes', 'on'}
+        if self.value_type == 'json':
+            try:
+                return json.loads(self.value or '{}')
+            except Exception:
+                return {}
+        return self.value
+
+
+class AuditLog(models.Model):
+    """Immutable audit trail for sensitive actions."""
+    actor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    action = models.CharField(max_length=120, db_index=True)
+    entity_type = models.CharField(max_length=120, blank=True)
+    entity_id = models.CharField(max_length=120, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.action} @ {self.created_at.isoformat()}"
+
+
+class CurrencyConfig(models.Model):
+    """Supported checkout/display currencies and conversion factors."""
+    code = models.CharField(max_length=3, unique=True)
+    name = models.CharField(max_length=100)
+    is_active = models.BooleanField(default=True)
+    is_default = models.BooleanField(default=False)
+    conversion_rate_to_usd = models.DecimalField(max_digits=12, decimal_places=6, default=1)
+    symbol = models.CharField(max_length=8, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['code']
+
+    def __str__(self):
+        return self.code
+
+
+class Language(models.Model):
+    """Languages available in UI and CMS."""
+    code = models.CharField(max_length=12, unique=True)
+    name = models.CharField(max_length=80)
+    is_active = models.BooleanField(default=True)
+    is_default = models.BooleanField(default=False)
+    is_rtl = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
+
+class CMSPage(models.Model):
+    """Editable CMS page with localization and revision support."""
+    slug = models.SlugField(unique=True)
+    title = models.CharField(max_length=200)
+    body = models.JSONField(default=dict, blank=True)
+    seo_title = models.CharField(max_length=255, blank=True)
+    seo_description = models.CharField(max_length=255, blank=True)
+    is_published = models.BooleanField(default=True)
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['slug']
+
+    def __str__(self):
+        return self.slug
+
+
+class CMSPageTranslation(models.Model):
+    """Language-specific variant for CMS pages."""
+    page = models.ForeignKey(CMSPage, on_delete=models.CASCADE, related_name='translations')
+    language = models.ForeignKey(Language, on_delete=models.CASCADE, related_name='cms_pages')
+    title = models.CharField(max_length=200)
+    body = models.JSONField(default=dict, blank=True)
+    seo_title = models.CharField(max_length=255, blank=True)
+    seo_description = models.CharField(max_length=255, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['page', 'language']
+        ordering = ['page__slug', 'language__code']
+
+    def __str__(self):
+        return f"{self.page.slug}:{self.language.code}"
+
+
+class CMSPageRevision(models.Model):
+    """Version history for critical CMS content changes."""
+    page = models.ForeignKey(CMSPage, on_delete=models.CASCADE, related_name='revisions')
+    editor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    snapshot = models.JSONField(default=dict)
+    note = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+class PaymentTransaction(models.Model):
+    """Provider-agnostic payment transaction record."""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('authorized', 'Authorized'),
+        ('captured', 'Captured'),
+        ('failed', 'Failed'),
+        ('refunded', 'Refunded'),
+        ('partially_refunded', 'Partially Refunded'),
+    ]
+    provider = models.CharField(max_length=30, db_index=True)
+    provider_payment_id = models.CharField(max_length=200, blank=True, db_index=True)
+    idempotency_key = models.CharField(max_length=120, blank=True, db_index=True)
+    purchase = models.ForeignKey(CoursePurchase, on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    currency = models.CharField(max_length=3, default='USD')
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='pending')
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.provider}:{self.provider_payment_id or self.id}"
+
+
+class RefundRequest(models.Model):
+    """Full or partial refund tracking."""
+    STATUS_CHOICES = [
+        ('requested', 'Requested'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('processed', 'Processed'),
+        ('failed', 'Failed'),
+    ]
+    purchase = models.ForeignKey(CoursePurchase, on_delete=models.CASCADE, related_name='refund_requests')
+    transaction = models.ForeignKey(PaymentTransaction, on_delete=models.SET_NULL, null=True, blank=True, related_name='refund_requests')
+    requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='requested_refunds')
+    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_refunds')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    reason = models.CharField(max_length=255, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='requested')
+    provider_refund_id = models.CharField(max_length=200, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+class Invoice(models.Model):
+    """Invoice/receipt artifacts generated for purchases."""
+    purchase = models.OneToOneField(CoursePurchase, on_delete=models.CASCADE, related_name='invoice')
+    invoice_number = models.CharField(max_length=50, unique=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3, default='USD')
+    file_url = models.URLField(blank=True)
+    payload = models.JSONField(default=dict, blank=True)
+    issued_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-issued_at']
+
+    def __str__(self):
+        return self.invoice_number
+
+
+class TeacherPayout(models.Model):
+    """Teacher payout history records."""
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='teacher_payouts')
+    period_start = models.DateField()
+    period_end = models.DateField()
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    currency = models.CharField(max_length=3, default='USD')
+    status = models.CharField(max_length=20, default='pending')
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-period_end', '-created_at']
+
+
+class PartnerProfile(models.Model):
+    """Partner role profile and settlement details."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='partner_profile')
+    partner_name = models.CharField(max_length=200)
+    region = models.CharField(max_length=120, blank=True)
+    commission_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.partner_name
+
+
+class PartnerCourseSale(models.Model):
+    """Revenue attribution per partner/course sale."""
+    partner = models.ForeignKey(PartnerProfile, on_delete=models.CASCADE, related_name='sales')
+    purchase = models.ForeignKey(CoursePurchase, on_delete=models.CASCADE, related_name='partner_sales')
+    commission_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    region = models.CharField(max_length=120, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+class StudentTeacherNote(models.Model):
+    """Teacher notes linked to a specific student in a course."""
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='student_notes')
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='teacher_notes')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='student_notes')
+    note = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+
+
+class CourseBadge(models.Model):
+    """Merchandising badges such as best-seller/new."""
+    BADGE_CHOICES = [
+        ('best_seller', 'Best Seller'),
+        ('new', 'New'),
+        ('featured', 'Featured'),
+    ]
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='badges')
+    badge_type = models.CharField(max_length=20, choices=BADGE_CHOICES)
+    starts_at = models.DateTimeField(null=True, blank=True)
+    ends_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ['course', 'badge_type']
+
+
+class VideoAccessToken(models.Model):
+    """Short-lived signed token for secure video playback links."""
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='access_tokens')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='video_access_tokens')
+    token = models.CharField(max_length=255, unique=True, db_index=True)
+    expires_at = models.DateTimeField(db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    @classmethod
+    def issue(cls, lesson, user, ttl_seconds=900):
+        signer = Signer()
+        payload = f"{lesson.id}:{user.id}:{int(timezone.now().timestamp())}"
+        token = signer.sign(payload)
+        return cls.objects.create(
+            lesson=lesson,
+            user=user,
+            token=token,
+            expires_at=timezone.now() + timedelta(seconds=ttl_seconds),
+        )
+
+
+class CourseReview(models.Model):
+    """Student ratings/reviews for courses with moderation status."""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='course_reviews')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='reviews')
+    rating = models.PositiveSmallIntegerField()
+    review_text = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    moderated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='moderated_course_reviews')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'course']
+        ordering = ['-created_at']
+
+
+class TeacherReview(models.Model):
+    """Student ratings/reviews for teachers with moderation status."""
+    STATUS_CHOICES = CourseReview.STATUS_CHOICES
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='teacher_reviews')
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviews_received')
+    course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True, related_name='teacher_reviews')
+    rating = models.PositiveSmallIntegerField()
+    review_text = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    moderated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='moderated_teacher_reviews')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+class Voucher(models.Model):
+    """Promo codes with campaign logic and limits."""
+    code = models.CharField(max_length=40, unique=True)
+    description = models.CharField(max_length=255, blank=True)
+    discount_type = models.CharField(max_length=20, choices=[('percent', 'Percent'), ('fixed', 'Fixed')], default='percent')
+    discount_value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    usage_limit = models.PositiveIntegerField(default=0, help_text="0 means unlimited")
+    used_count = models.PositiveIntegerField(default=0)
+    starts_at = models.DateTimeField(null=True, blank=True)
+    ends_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    campaign = models.CharField(max_length=80, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['code']
+
+    def can_use(self):
+        now = timezone.now()
+        if not self.is_active:
+            return False
+        if self.starts_at and now < self.starts_at:
+            return False
+        if self.ends_at and now > self.ends_at:
+            return False
+        if self.usage_limit and self.used_count >= self.usage_limit:
+            return False
+        return True
+
+
+class VoucherRedemption(models.Model):
+    """Usage tracking for promo/voucher codes."""
+    voucher = models.ForeignKey(Voucher, on_delete=models.CASCADE, related_name='redemptions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='voucher_redemptions')
+    purchase = models.ForeignKey(CoursePurchase, on_delete=models.SET_NULL, null=True, blank=True, related_name='voucher_redemptions')
+    discounted_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+class CheckoutOffer(models.Model):
+    """Upsell/cross-sell offer shown around checkout."""
+    OFFER_TYPES = [
+        ('upsell', 'Upsell'),
+        ('cross_sell', 'Cross-sell'),
+        ('bundle', 'Bundle'),
+    ]
+    title = models.CharField(max_length=160)
+    offer_type = models.CharField(max_length=20, choices=OFFER_TYPES)
+    trigger_course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='triggered_offers')
+    target_course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='offered_in')
+    discount_percent = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+class NotificationTemplate(models.Model):
+    """Template definitions for event-driven notifications."""
+    channel = models.CharField(max_length=20, default='email')
+    event_key = models.CharField(max_length=120, db_index=True)
+    subject_template = models.CharField(max_length=255, blank=True)
+    body_template = models.TextField()
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['channel', 'event_key']
+
+
+class NotificationEvent(models.Model):
+    """Queued notification events to process asynchronously."""
+    event_key = models.CharField(max_length=120, db_index=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    payload = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=20, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+class EmailSequenceRule(models.Model):
+    """Automation rules for behavior-triggered email sequences."""
+    trigger_key = models.CharField(max_length=120, unique=True)
+    delay_minutes = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    template = models.ForeignKey(NotificationTemplate, on_delete=models.SET_NULL, null=True, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+
+    def __str__(self):
+        return self.trigger_key
+
+
+class EmailSequenceLog(models.Model):
+    """Execution log for behavior-based emails."""
+    rule = models.ForeignKey(EmailSequenceRule, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    payload = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=20, default='queued')
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+class PlacementTest(models.Model):
+    """AI level placement test definition."""
+    name = models.CharField(max_length=160, default='English Placement Test')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+
+class PlacementQuestion(models.Model):
+    """Question bank for placement tests."""
+    test = models.ForeignKey(PlacementTest, on_delete=models.CASCADE, related_name='questions')
+    question_text = models.TextField()
+    question_type = models.CharField(max_length=20, default='mcq')
+    options = models.JSONField(default=list, blank=True)
+    correct_answer = models.CharField(max_length=255, blank=True)
+    difficulty = models.CharField(max_length=20, default='A2')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'id']
+
+
+class PlacementAttempt(models.Model):
+    """Stored test result and recommended learning path."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='placement_attempts')
+    test = models.ForeignKey(PlacementTest, on_delete=models.CASCADE, related_name='attempts')
+    answers = models.JSONField(default=dict, blank=True)
+    score = models.FloatField(default=0)
+    level = models.CharField(max_length=20, blank=True)
+    recommended_course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True, related_name='placement_recommendations')
+    recommended_learning_path = models.ForeignKey(LearningPath, on_delete=models.SET_NULL, null=True, blank=True, related_name='placement_recommendations')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+class FAQItem(models.Model):
+    """FAQ content block with optional short video answer."""
+    question = models.CharField(max_length=255)
+    answer = models.TextField()
+    short_video_url = models.URLField(blank=True)
+    language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'id']
+
+
+class SocialLink(models.Model):
+    """Central social links for footer/course/contact sections."""
+    platform = models.CharField(max_length=40)
+    url = models.URLField()
+    location = models.CharField(max_length=40, default='global')
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['location', 'order', 'id']
+
+
+class AnalyticsEvent(models.Model):
+    """Event stream for visitor, conversion and funnel analysis."""
+    event_name = models.CharField(max_length=120, db_index=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, db_index=True)
+    session_key = models.CharField(max_length=120, blank=True, db_index=True)
+    course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
+    campaign = models.CharField(max_length=120, blank=True, db_index=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+
+class TeacherAvailability(models.Model):
+    """Recurring teacher availability for booking slot calculations."""
+    teacher = models.ForeignKey(User, on_delete=models.CASCADE, related_name='availabilities')
+    weekday = models.PositiveSmallIntegerField(help_text="0=Monday ... 6=Sunday")
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    timezone_name = models.CharField(max_length=80, default='UTC')
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['teacher_id', 'weekday', 'start_time']
+
+
+class BookingChangeRequest(models.Model):
+    """Track cancellation/reschedule requests and policy outcomes."""
+    REQUEST_TYPES = [
+        ('cancel', 'Cancel'),
+        ('reschedule', 'Reschedule'),
+    ]
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='change_requests')
+    request_type = models.CharField(max_length=20, choices=REQUEST_TYPES)
+    requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    reason = models.CharField(max_length=255, blank=True)
+    requested_datetime = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    decision_note = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 

@@ -59,10 +59,14 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'myApp.middleware.LanguageSwitchMiddleware',
+    'myApp.middleware.CurrencySwitchMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'myApp.middleware.FeatureFlagMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'myApp.middleware.AnalyticsEventMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -79,6 +83,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'myApp.context_processors.platform_context',
             ],
         },
     },
@@ -134,13 +139,21 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
+
+LANGUAGES = [
+    ('en', 'English'),
+    ('ar', 'Arabic'),
+    ('es', 'Spanish'),
+]
 
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
 USE_TZ = True
+
+LOCALE_PATHS = [BASE_DIR / 'locale']
 
 
 # Static files (CSS, JavaScript, Images)
@@ -174,7 +187,13 @@ LOGOUT_REDIRECT_URL = '/login/'
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
 STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY', '')
 STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
+PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID', '')
+PAYPAL_SECRET = os.getenv('PAYPAL_SECRET', '')
+PAYPAL_MODE = os.getenv('PAYPAL_MODE', 'sandbox')
 
 # Payment simulation (for development/testing)
 # Set SIMULATE_PAYMENT=false to enable real payment providers.
 SIMULATE_PAYMENT = os.getenv('SIMULATE_PAYMENT', 'true').strip().lower() in ('1', 'true', 'yes', 'on')
+
+# Multi-currency defaults
+SUPPORTED_CURRENCIES = os.getenv('SUPPORTED_CURRENCIES', 'USD,EUR,SAR,AED,JOD,GBP').split(',')

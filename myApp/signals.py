@@ -13,7 +13,11 @@ from .models import (
     CourseEnrollment,
     GiftPurchase,
     LiveSession,
+    CoursePurchase,
+    NotificationEvent,
 )
+from .services.notifications import queue_notification
+from .services.automation import queue_sequence
 
 
 @receiver(post_save, sender=CourseEnrollment)
@@ -140,4 +144,31 @@ def create_bookings_when_live_session_created(sender, instance, created, **kwarg
         return
     from .utils.access import ensure_live_session_bookings_for_session
     ensure_live_session_bookings_for_session(instance)
+    queue_notification(
+        event_key='booking.created',
+        payload={'session_id': instance.id, 'course_id': instance.course_id, 'title': instance.title},
+    )
+
+
+@receiver(post_save, sender=CoursePurchase)
+def purchase_event_signal(sender, instance, created, **kwargs):
+    """Event hooks for payment and lifecycle automations."""
+    if created:
+        queue_sequence(
+            trigger_key='purchase.started',
+            user=instance.user,
+            payload={'purchase_id': instance.id, 'course_id': instance.course_id},
+        )
+        return
+    if instance.status == 'paid':
+        queue_notification(
+            event_key='payment.confirmed',
+            user=instance.user,
+            payload={'purchase_id': instance.id, 'course_id': instance.course_id},
+        )
+        queue_sequence(
+            trigger_key='purchase.completed',
+            user=instance.user,
+            payload={'purchase_id': instance.id, 'course_id': instance.course_id},
+        )
 

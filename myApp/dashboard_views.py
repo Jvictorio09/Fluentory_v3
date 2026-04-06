@@ -47,6 +47,10 @@ from .models import (
     BundlePurchase,
     Cohort,
     CohortMember,
+    SystemSetting,
+    CurrencyConfig,
+    Language,
+    PartnerProfile,
 )
 from django.contrib import messages
 from django.db import models
@@ -189,21 +193,21 @@ def dashboard_students(request):
     search_query = request.GET.get('search', '')
     sort_by = request.GET.get('sort', 'recent')  # recent, progress, name, enrolled
     
-    # Get all users including admin/staff
-    # Show all users who have activity OR all users if none have activity
-    students_query = User.objects.all()
-    
-    # Auto-enroll admin/staff users in all active courses if they don't have enrollments
-    admin_users = students_query.filter(Q(is_staff=True) | Q(is_superuser=True))
-    active_courses = Course.objects.filter(status='active')
-    
-    for admin_user in admin_users:
-        for course in active_courses:
-            CourseEnrollment.objects.get_or_create(
-                user=admin_user,
-                course=course,
-                defaults={'payment_type': 'full'}
-            )
+    # Students-only scope:
+    # - Exclude staff/superusers
+    # - Exclude teacher users (approved teacher request OR assigned as course teacher)
+    approved_teacher_ids = TeacherRequest.objects.filter(
+        status='approved'
+    ).values_list('user_id', flat=True)
+    assigned_teacher_ids = Course.objects.filter(
+        teachers__isnull=False
+    ).values_list('teachers__id', flat=True).distinct()
+
+    students_query = User.objects.exclude(
+        Q(is_staff=True) | Q(is_superuser=True)
+    ).exclude(
+        Q(id__in=approved_teacher_ids) | Q(id__in=assigned_teacher_ids)
+    ).distinct()
     
     # Apply search filter
     if search_query:
@@ -3681,4 +3685,56 @@ def dashboard_sample_certificate(request, course_slug=None):
     )
     response['Content-Disposition'] = 'inline; filename="sample_certificate.pdf"'
     return response
+
+
+@staff_member_required
+def dashboard_site_settings(request):
+    """Manage site-wide settings for languages, currencies, and email rules."""
+    if request.method == 'POST':
+        key = (request.POST.get('key') or '').strip()
+        value = request.POST.get('value', '')
+        value_type = request.POST.get('value_type', 'string')
+        if key:
+            row, _ = SystemSetting.objects.get_or_create(key=key)
+            row.value = value
+            row.value_type = value_type
+            row.updated_by = request.user
+            row.save()
+            messages.success(request, f'Setting "{key}" updated.')
+        return redirect('dashboard_site_settings')
+
+    settings_rows = SystemSetting.objects.all().order_by('key')
+    currencies = CurrencyConfig.objects.all().order_by('code')
+    languages = Language.objects.all().order_by('name')
+    return render(request, 'dashboard/site_settings.html', {
+        'settings_rows': settings_rows,
+        'currencies': currencies,
+        'languages': languages,
+    })
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def dashboard_assign_partner(request, user_id):
+    """Assign or update partner profile details for a user."""
+    user = get_object_or_404(User, id=user_id)
+    partner_name = request.POST.get('partner_name', user.get_full_name() or user.username).strip()
+    region = request.POST.get('region', '').strip()
+    commission_rate = request.POST.get('commission_rate', '0')
+    try:
+        commission_rate = float(commission_rate)
+    except (TypeError, ValueError):
+        commission_rate = 0
+
+    profile, _ = PartnerProfile.objects.get_or_create(
+        user=user,
+        defaults={'partner_name': partner_name},
+    )
+    profile.partner_name = partner_name
+    profile.region = region
+    profile.commission_rate = commission_rate
+    profile.is_active = request.POST.get('is_active', 'on') == 'on'
+    profile.save()
+    messages.success(request, f'Partner profile updated for {user.username}.')
+    return redirect('dashboard_student_detail', user_id=user.id)
 

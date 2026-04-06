@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-5xl mx-auto px-6 py-8">
+  <h1 class="text-2xl font-semibold mb-6">CMS Editor: {{ page.slug }}</h1>
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+    <div>
+      <label class="block text-sm mb-1">Title</label>
+      <input class="w-full border rounded px-3 py-2" name="title" value="{{ page.title }}">
+    </div>
+    <div>
+      <label class="block text-sm mb-1">Body JSON</label>
+      <textarea class="w-full border rounded px-3 py-2 h-56" name="body">{{ page.body|safe }}</textarea>
+    </div>
+    <div>
+      <label class="block text-sm mb-1">SEO title</label>
+      <input class="w-full border rounded px-3 py-2" name="seo_title" value="{{ page.seo_title }}">
+    </div>
+    <div>
+      <label class="block text-sm mb-1">SEO description</label>
+      <textarea class="w-full border rounded px-3 py-2 h-24" name="seo_description">{{ page.seo_description }}</textarea>
+    </div>
+    <div>
+      <label class="block text-sm mb-1">Revision note</label>
+      <input class="w-full border rounded px-3 py-2" name="note" placeholder="Describe this change">
+    </div>
+    <button class="px-4 py-2 rounded bg-teal-600 text-white" type="submit">Save Page</button>
+  </form>
+</div>
+{% endblock %}
+

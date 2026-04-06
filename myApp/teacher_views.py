@@ -10,12 +10,13 @@ from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from django.db.models import Count
+from django.db.models import Count, Avg
 from django.utils import timezone
 from datetime import timedelta
 from io import BytesIO
 from .models import (
-    Course, Lesson, Module, LiveSession, Booking, UserProgress, CourseEnrollment, TeacherRequest, TeacherProfile
+    Course, Lesson, Module, LiveSession, Booking, UserProgress, CourseEnrollment, TeacherRequest, TeacherProfile,
+    TeacherPayout, NotificationEvent, CourseReview, TeacherReview
 )
 from .utils.teacher import (
     is_teacher, is_course_teacher, require_course_teacher, get_teacher_courses,
@@ -175,6 +176,20 @@ def teacher_dashboard(request):
         session__course__in=courses,
         status='pending'
     ).count()
+    payout_history = TeacherPayout.objects.filter(teacher=user).order_by('-period_end')[:10]
+    pending_messages = NotificationEvent.objects.filter(
+        user=user,
+        status='pending',
+        event_key__in=['student.message', 'booking.confirmed', 'booking.cancelled']
+    ).count()
+    avg_course_rating = CourseReview.objects.filter(
+        course__in=courses,
+        status='approved',
+    ).aggregate(avg=Avg('rating'))['avg'] or 0
+    avg_teacher_rating = TeacherReview.objects.filter(
+        teacher=user,
+        status='approved',
+    ).aggregate(avg=Avg('rating'))['avg'] or 0
 
     first_course = my_courses.first() or company_courses.first()
     first_course_slug = first_course.slug if first_course else None
@@ -192,6 +207,10 @@ def teacher_dashboard(request):
         'total_bookings': total_bookings,
         'pending_bookings': pending_bookings,
         'first_course_slug': first_course_slug,
+        'payout_history': payout_history,
+        'pending_messages': pending_messages,
+        'avg_course_rating': round(avg_course_rating, 2),
+        'avg_teacher_rating': round(avg_teacher_rating, 2),
     })
 
 

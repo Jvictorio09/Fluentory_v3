@@ -5,6 +5,8 @@ from django.conf.urls.static import static
 from myApp import views
 from myApp import dashboard_views
 from myApp import teacher_views
+from myApp import partner_views
+from myApp import feature_views
 
 urlpatterns = [
     # Public-facing URLs
@@ -14,6 +16,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
     path('register/teacher/', views.register_teacher_view, name='register_teacher'),
+    path('join-us/', views.become_teacher_page, name='become_teacher_page'),
     path('logout/', views.logout_view, name='logout'),
     path('teachers/<str:username>/', views.teacher_public_profile, name='teacher_public_profile'),
     path('courses/', views.courses, name='courses'),
@@ -36,6 +39,7 @@ urlpatterns = [
     # Dashboard URLs (Admin-facing, for developers)
     path('dashboard/', dashboard_views.dashboard_home, name='dashboard_home'),
     path('dashboard/analytics/', dashboard_views.dashboard_analytics, name='dashboard_analytics'),
+    path('dashboard/settings/', dashboard_views.dashboard_site_settings, name='dashboard_site_settings'),
     path('dashboard/courses/', dashboard_views.dashboard_courses, name='dashboard_courses'),
     path('dashboard/courses/add/', dashboard_views.dashboard_add_course, name='dashboard_add_course'),
     path('dashboard/courses/<slug:course_slug>/', dashboard_views.dashboard_course_detail, name='dashboard_course_detail'),
@@ -75,6 +79,7 @@ urlpatterns = [
     path('dashboard/students/<int:user_id>/revoke-access/', dashboard_views.revoke_course_access_view, name='dashboard_revoke_access'),
     path('dashboard/students/<int:user_id>/grant-bundle/', dashboard_views.grant_bundle_access_view, name='dashboard_grant_bundle'),
     path('dashboard/students/<int:user_id>/add-cohort/', dashboard_views.add_to_cohort_view, name='dashboard_add_cohort'),
+    path('dashboard/students/<int:user_id>/assign-partner/', dashboard_views.dashboard_assign_partner, name='dashboard_assign_partner'),
     
     # Creator/Lesson Upload Flow (kept for lesson creation)
     path('creator/', views.creator_dashboard, name='creator_dashboard'),
@@ -126,6 +131,10 @@ urlpatterns = [
     path('teacher/sessions/<int:session_id>/cancel/', teacher_views.teacher_live_session_cancel, name='teacher_live_session_cancel'),
     path('teacher/sessions/<int:session_id>/bookings/', teacher_views.teacher_session_bookings, name='teacher_session_bookings'),
     path('teacher/bookings/<int:booking_id>/attendance/', teacher_views.teacher_mark_attendance, name='teacher_mark_attendance'),
+
+    # Partner URLs
+    path('partner/', partner_views.partner_dashboard, name='partner_dashboard'),
+    path('partner/api/metrics/', partner_views.partner_dashboard_api, name='partner_dashboard_api'),
     
     # CRM Lead Management
     path('dashboard/crm/leads/', dashboard_views.dashboard_leads, name='dashboard_leads'),
@@ -143,6 +152,27 @@ urlpatterns = [
     path('dashboard/teacher-requests/<int:request_id>/', dashboard_views.dashboard_teacher_request_detail, name='dashboard_teacher_request_detail'),
     path('dashboard/teacher-requests/<int:request_id>/approve/', dashboard_views.dashboard_teacher_request_approve, name='dashboard_teacher_request_approve'),
     path('dashboard/teacher-requests/<int:request_id>/reject/', dashboard_views.dashboard_teacher_request_reject, name='dashboard_teacher_request_reject'),
+
+    # Rollout feature routes
+    path('dashboard/cms/pages/<slug:slug>/', feature_views.cms_page_editor, name='cms_page_editor'),
+    path('pages/<slug:slug>/', feature_views.cms_public_page, name='cms_public_page'),
+    path('dashboard/analytics/snapshot/', feature_views.analytics_snapshot, name='analytics_snapshot'),
+    path('dashboard/notifications/trigger/', feature_views.trigger_notification_event, name='trigger_notification_event'),
+    path('dashboard/purchases/<int:purchase_id>/invoice/', feature_views.regenerate_invoice, name='regenerate_invoice'),
+    path('dashboard/refunds/<int:refund_id>/process/', feature_views.process_refund_request, name='process_refund_request'),
+    path('payments/purchases/<int:purchase_id>/refund/', feature_views.create_refund_request, name='create_refund_request'),
+    path('payments/courses/<slug:course_slug>/voucher/', feature_views.apply_voucher, name='apply_voucher'),
+    path('api/reviews/course/<int:course_id>/', feature_views.submit_course_review, name='submit_course_review'),
+    path('api/reviews/teacher/<int:teacher_id>/', feature_views.submit_teacher_review, name='submit_teacher_review'),
+    path('dashboard/reviews/<str:review_type>/<int:review_id>/moderate/', feature_views.moderate_review, name='moderate_review'),
+    path('api/placement-test/', feature_views.placement_test_view, name='placement_test_view'),
+    path('api/faq/', feature_views.faq_page, name='faq_page'),
+    path('api/social-links/', feature_views.social_links, name='social_links'),
+    path('api/teacher-notes/<int:student_id>/<int:course_id>/', feature_views.teacher_note_create, name='teacher_note_create'),
+    path('api/checkout-offers/<int:course_id>/', feature_views.checkout_offers, name='checkout_offers'),
+    path('api/lessons/<int:lesson_id>/video-token/', feature_views.issue_video_token, name='issue_video_token'),
+    path('api/teachers/<int:teacher_id>/available-slots/', feature_views.available_teacher_slots, name='available_teacher_slots'),
+    path('api/bookings/<int:booking_id>/change-request/', feature_views.booking_change_request, name='booking_change_request'),
     
     # Admin (optional - can be removed if not needed)
     path('admin/', admin.site.urls),
