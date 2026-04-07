@@ -110,6 +110,7 @@ urlpatterns = [
     path('api/generate-course-content/', views.generate_course_content_webhook, name='generate_course_content_webhook'),
     
     # Purchase system endpoints (purchase URL moved above to avoid conflicts)
+    path('api/webhook/', views.stripe_webhook, name='stripe_webhook'),
     path('api/purchase/webhook/', views.purchase_webhook, name='purchase_webhook'),
     
     # Gift purchase endpoints (gift URL moved above to avoid conflicts)

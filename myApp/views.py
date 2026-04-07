@@ -2304,67 +2304,6 @@ def update_video_progress(request, lesson_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)
     
     try:
-        stripe_signature = request.headers.get('Stripe-Signature', '')
-        stripe_webhook_secret = getattr(settings, 'STRIPE_WEBHOOK_SECRET', '')
-
-        if stripe_signature and stripe_webhook_secret and STRIPE_AVAILABLE:
-            stripe.api_key = getattr(settings, 'STRIPE_SECRET_KEY', '')
-            try:
-                event = stripe.Webhook.construct_event(
-                    payload=request.body,
-                    sig_header=stripe_signature,
-                    secret=stripe_webhook_secret,
-                )
-            except Exception as exc:
-                return JsonResponse({'success': False, 'error': f'Invalid Stripe signature: {str(exc)}'}, status=400)
-
-            event_type = event.get('type')
-            event_obj = (event.get('data') or {}).get('object') or {}
-            metadata = event_obj.get('metadata') or {}
-            purchase_id = metadata.get('purchase_id') or event_obj.get('client_reference_id')
-            provider_id = event_obj.get('payment_intent') or event_obj.get('id') or ''
-
-            if not purchase_id:
-                return JsonResponse({'success': True, 'message': f'Ignored Stripe event {event_type} without purchase_id'})
-
-            try:
-                purchase = CoursePurchase.objects.get(id=purchase_id)
-            except CoursePurchase.DoesNotExist:
-                return JsonResponse({
-                    'success': False,
-                    'error': f'Purchase {purchase_id} not found'
-                }, status=404)
-
-            if event_type in {'checkout.session.completed', 'checkout.session.async_payment_succeeded', 'payment_intent.succeeded'}:
-                return JsonResponse(
-                    _finalize_purchase(
-                        purchase=purchase,
-                        provider='stripe',
-                        provider_id=str(provider_id),
-                        status='paid',
-                    )
-                )
-            if event_type in {'checkout.session.async_payment_failed', 'payment_intent.payment_failed'}:
-                return JsonResponse(
-                    _finalize_purchase(
-                        purchase=purchase,
-                        provider='stripe',
-                        provider_id=str(provider_id),
-                        status='failed',
-                    )
-                )
-            if event_type in {'charge.refunded'}:
-                return JsonResponse(
-                    _finalize_purchase(
-                        purchase=purchase,
-                        provider='stripe',
-                        provider_id=str(provider_id),
-                        status='refunded',
-                    )
-                )
-
-            return JsonResponse({'success': True, 'message': f'Ignored Stripe event type: {event_type}'})
-
         data = json.loads(request.body)
         watch_percentage = float(data.get('watch_percentage', 0))
         timestamp = float(data.get('timestamp', 0))
@@ -4286,6 +4225,81 @@ def initiate_purchase(request, course_slug):
         'success': False,
         'error': 'No active payment provider configured. Set SIMULATE_PAYMENT=true or configure Stripe keys.',
     }, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def stripe_webhook(request):
+    """Stripe Checkout webhooks (configure URL: /api/webhook/)."""
+    if request.method == 'GET':
+        return JsonResponse({
+            'detail': 'Stripe sends payment events to this URL via POST. Use this exact path in the Stripe Dashboard.',
+        })
+    stripe_signature = request.headers.get('Stripe-Signature', '')
+    stripe_webhook_secret = getattr(settings, 'STRIPE_WEBHOOK_SECRET', '')
+    if not STRIPE_AVAILABLE:
+        return JsonResponse({'error': 'Stripe package is not installed.'}, status=503)
+    if not stripe_webhook_secret:
+        return JsonResponse({'error': 'STRIPE_WEBHOOK_SECRET is not configured.'}, status=503)
+    if not stripe_signature:
+        return JsonResponse({'error': 'Missing Stripe-Signature header.'}, status=400)
+
+    stripe.api_key = getattr(settings, 'STRIPE_SECRET_KEY', '')
+    try:
+        event = stripe.Webhook.construct_event(
+            payload=request.body,
+            sig_header=stripe_signature,
+            secret=stripe_webhook_secret,
+        )
+    except Exception as exc:
+        return JsonResponse({'success': False, 'error': f'Invalid Stripe signature: {str(exc)}'}, status=400)
+
+    event_type = event.get('type')
+    event_obj = (event.get('data') or {}).get('object') or {}
+    metadata = event_obj.get('metadata') or {}
+    purchase_id = metadata.get('purchase_id') or event_obj.get('client_reference_id')
+    provider_id = event_obj.get('payment_intent') or event_obj.get('id') or ''
+
+    if not purchase_id:
+        return JsonResponse({'success': True, 'message': f'Ignored Stripe event {event_type} without purchase_id'})
+
+    try:
+        purchase = CoursePurchase.objects.get(id=purchase_id)
+    except CoursePurchase.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': f'Purchase {purchase_id} not found',
+        }, status=404)
+
+    if event_type in {'checkout.session.completed', 'checkout.session.async_payment_succeeded', 'payment_intent.succeeded'}:
+        return JsonResponse(
+            _finalize_purchase(
+                purchase=purchase,
+                provider='stripe',
+                provider_id=str(provider_id),
+                status='paid',
+            )
+        )
+    if event_type in {'checkout.session.async_payment_failed', 'payment_intent.payment_failed'}:
+        return JsonResponse(
+            _finalize_purchase(
+                purchase=purchase,
+                provider='stripe',
+                provider_id=str(provider_id),
+                status='failed',
+            )
+        )
+    if event_type in {'charge.refunded'}:
+        return JsonResponse(
+            _finalize_purchase(
+                purchase=purchase,
+                provider='stripe',
+                provider_id=str(provider_id),
+                status='refunded',
+            )
+        )
+
+    return JsonResponse({'success': True, 'message': f'Ignored Stripe event type: {event_type}'})
 
 
 @csrf_exempt
