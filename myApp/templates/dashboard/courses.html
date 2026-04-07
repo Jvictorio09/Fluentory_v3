@@ -12,6 +12,15 @@
   font-family: 'Sora', sans-serif;
 }
 
+.mc-eyebrow {
+  font-size: .62rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: #8f98a3;
+  font-weight: 700;
+  margin-bottom: .45rem;
+}
+
 /* ── Page header */
 .mc-header {
   display: flex;
@@ -22,14 +31,15 @@
   flex-wrap: wrap;
 }
 .mc-header-left h2 {
-  font-size: 1.4rem;
+  font-size: 3rem;
   font-weight: 800;
   color: #0f1923;
-  margin: 0 0 .25rem;
+  margin: 0 0 .1rem;
   letter-spacing: -.02em;
+  line-height: 1;
 }
 .mc-header-left p {
-  font-size: .82rem;
+  font-size: .9rem;
   color: #8492a6;
   margin: 0;
 }
@@ -58,6 +68,115 @@
   transform: translateY(-1px);
 }
 .mc-btn-new i { font-size: .75rem; }
+
+/* ── Stats strip */
+.mc-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid #e7eaee;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 1.4rem;
+  background: #fff;
+}
+.mc-stat {
+  padding: 1rem 1.1rem .9rem;
+  border-right: 1px solid #e7eaee;
+}
+.mc-stat:last-child { border-right: 0; }
+.mc-stat-num {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 2rem;
+  line-height: 1;
+  color: #0f1923;
+  margin-bottom: .4rem;
+}
+.mc-stat-label {
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #9aa3ad;
+}
+
+/* ── Shared link analytics widget */
+.mc-share-box {
+  background: #fff;
+  border: 1px solid #e7eaee;
+  border-radius: 10px;
+  padding: 1rem 1.05rem;
+  margin-bottom: 1.2rem;
+}
+.mc-share-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .7rem;
+  margin-bottom: .7rem;
+}
+.mc-share-title {
+  font-size: .86rem;
+  font-weight: 700;
+  color: #0f1923;
+}
+.mc-share-summary {
+  font-size: .72rem;
+  color: #7f8b98;
+}
+.mc-share-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .6rem;
+  margin-bottom: .8rem;
+}
+.mc-share-metric {
+  border: 1px solid #edf1f4;
+  border-radius: 8px;
+  padding: .65rem .7rem;
+  background: #fbfcfd;
+}
+.mc-share-num {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 1.3rem;
+  line-height: 1;
+  color: #0f1923;
+}
+.mc-share-label {
+  margin-top: .25rem;
+  font-size: .62rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #96a2ae;
+  font-weight: 700;
+}
+.mc-share-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.mc-share-table th,
+.mc-share-table td {
+  text-align: left;
+  font-size: .72rem;
+  padding: .5rem .35rem;
+  border-top: 1px solid #f1f4f6;
+}
+.mc-share-table thead th {
+  border-top: 0;
+  color: #95a0ab;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-size: .6rem;
+}
+.mc-share-table td {
+  color: #4a5562;
+}
+.mc-share-table .mc-share-course a {
+  color: #0f1923;
+  font-weight: 600;
+  text-decoration: none;
+}
+.mc-share-table .mc-share-course a:hover { text-decoration: underline; }
 
 /* ── Grid */
 .mc-grid {
@@ -167,6 +286,7 @@
   color: #8492a6;
   line-height: 1.55;
   margin: 0 0 1rem;
+  line-clamp: 2;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -186,9 +306,9 @@
 /* ── Action bar — bottom of card */
 .mc-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr auto auto;
-  gap: .5rem;
-  padding: .85rem 1.25rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 34px 34px 34px;
+  gap: .55rem;
+  padding: .85rem 1rem;
   border-top: 1px solid #f1f5f9;
   background: #fafbfc;
   align-items: center;
@@ -212,6 +332,7 @@
   cursor: pointer;
   transition: background .14s, border-color .14s, color .14s;
   white-space: nowrap;
+  min-width: 0;
 }
 .mc-action-btn:hover {
   background: #f1f5f9;
@@ -223,6 +344,7 @@
 .mc-action-icon {
   width: 34px;
   height: 34px;
+  min-width: 34px;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -274,18 +396,96 @@
 }
 .mc-empty h3 { font-size: 1.1rem; font-weight: 700; color: #0f1923; margin: 0 0 .4rem; }
 .mc-empty p  { font-size: .82rem; color: #8492a6; margin: 0 0 1.5rem; }
+
+@media (max-width: 900px) {
+  .mc-header-left h2 { font-size: 2.1rem; }
+  .mc-stats { grid-template-columns: 1fr 1fr; }
+  .mc-stat:nth-child(2n) { border-right: 0; }
+  .mc-stat:nth-child(-n+2) { border-bottom: 1px solid #e7eaee; }
+  .mc-share-metrics { grid-template-columns: 1fr; }
+  .mc-actions { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 34px 34px 34px; }
+}
 </style>
 
 <div class="mc-wrap">
 
   <div class="mc-header">
     <div class="mc-header-left">
-      <h2>All Courses</h2>
+      <div class="mc-eyebrow">Instructor Dashboard</div>
+      <h2>Courses</h2>
       <p>Create and manage your course programs</p>
     </div>
     <a href="{% url 'dashboard_add_course' %}" class="mc-btn-new">
       <i class="fas fa-plus"></i> New Course
     </a>
+  </div>
+
+  <div class="mc-stats">
+    <div class="mc-stat">
+      <div class="mc-stat-num">{{ total_courses }}</div>
+      <div class="mc-stat-label">Total courses</div>
+    </div>
+    <div class="mc-stat">
+      <div class="mc-stat-num">{{ active_courses }}</div>
+      <div class="mc-stat-label">Active</div>
+    </div>
+    <div class="mc-stat">
+      <div class="mc-stat-num">{{ draft_courses }}</div>
+      <div class="mc-stat-label">Draft</div>
+    </div>
+    <div class="mc-stat">
+      <div class="mc-stat-num">{{ enrolled_students }}</div>
+      <div class="mc-stat-label">Enrolled students</div>
+    </div>
+  </div>
+
+  <div class="mc-share-box">
+    <div class="mc-share-header">
+      <div class="mc-share-title">Shared Link Performance</div>
+      <div class="mc-share-summary">Tracks copied dashboard links and signup conversions</div>
+    </div>
+
+    <div class="mc-share-metrics">
+      <div class="mc-share-metric">
+        <div class="mc-share-num">{{ shared_link_visits }}</div>
+        <div class="mc-share-label">Visits</div>
+      </div>
+      <div class="mc-share-metric">
+        <div class="mc-share-num">{{ shared_link_registrations }}</div>
+        <div class="mc-share-label">Registrations</div>
+      </div>
+      <div class="mc-share-metric">
+        <div class="mc-share-num">{{ shared_link_conversion_rate }}%</div>
+        <div class="mc-share-label">Conversion rate</div>
+      </div>
+    </div>
+
+    <table class="mc-share-table">
+      <thead>
+        <tr>
+          <th>Course</th>
+          <th>Visits</th>
+          <th>Registrations</th>
+          <th>Conversion</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in shared_link_course_rows %}
+        <tr>
+          <td class="mc-share-course">
+            <a href="{% url 'course_detail' row.course_slug %}" target="_blank" rel="noopener noreferrer">{{ row.course_name }}</a>
+          </td>
+          <td>{{ row.visits }}</td>
+          <td>{{ row.registrations }}</td>
+          <td>{{ row.conversion }}%</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4">No shared-link activity yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 
   <div class="mc-grid">
@@ -339,6 +539,11 @@
         <a href="{% url 'dashboard_course_lessons' course.slug %}" class="mc-action-btn">
           <i class="fas fa-list" style="font-size:.7rem"></i> Lessons
         </a>
+        <button type="button" class="mc-action-icon js-copy-share-link"
+                data-share-path="{% url 'course_detail' course.slug %}"
+                title="Copy share link">
+          <i class="fas fa-link"></i>
+        </button>
         <a href="{% url 'course_detail' course.slug %}" target="_blank" rel="noopener noreferrer"
            class="mc-action-icon" title="Preview">
           <i class="fas fa-eye"></i>
@@ -366,4 +571,24 @@
   </div>
 
 </div>
+<script>
+  document.querySelectorAll('.js-copy-share-link').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const path = btn.getAttribute('data-share-path') || '';
+      const shareUrl = `${window.location.origin}${path}?shared=1&utm_source=course_share&utm_campaign=dashboard_share`;
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        const oldTitle = btn.title;
+        btn.title = 'Copied!';
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(() => {
+          btn.title = oldTitle;
+          btn.innerHTML = '<i class="fas fa-link"></i>';
+        }, 1200);
+      } catch (e) {
+        window.prompt('Copy this course link:', shareUrl);
+      }
+    });
+  });
+</script>
 {% endblock %}

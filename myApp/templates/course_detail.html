@@ -4,433 +4,410 @@
 {% block title %}{{ course.name }} - Swedish Wealth Institute{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto">
-    <!-- Course Header -->
-    <div class="mb-8">
-        <h1 class="text-4xl md:text-5xl font-semibold mb-4 text-gray-800">{{ course.name }}</h1>
-        <p class="text-xl text-gray-700 max-w-3xl">{{ course.short_description }}</p>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+
+  .course-detail-page,
+  .course-detail-page * { box-sizing: border-box; }
+
+  .course-detail-page {
+    --ink: #0d0d0d;
+    --ink-muted: #5a5750;
+    --ink-faint: #9b9890;
+    --surface: #faf9f7;
+    --surface-2: #f3f1ed;
+    --surface-3: #e8e5df;
+    --accent: #1a6b55;
+    --accent-light: #e8f2ef;
+    --rule: rgba(13,13,13,0.1);
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-weight: 300;
+    border-radius: 10px;
+  }
+
+  .course-detail-page .page { max-width: 1100px; margin: 0 auto; padding: 48px 32px 80px; }
+  .course-detail-page .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 48px; font-weight: 500; }
+  .course-detail-page .breadcrumb span { color: var(--ink-muted); }
+  .course-detail-page .course-header { margin-bottom: 56px; max-width: 720px; }
+  .course-detail-page .category-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); background: var(--accent-light); padding: 5px 12px; border-radius: 2px; margin-bottom: 20px; font-weight: 500; }
+  .course-detail-page .category-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  .course-detail-page .course-title { font-family: var(--font-display); font-size: clamp(34px, 5vw, 58px); font-weight: 500; line-height: 1.12; color: var(--ink); letter-spacing: -0.02em; margin-bottom: 20px; }
+  .course-detail-page .course-tagline { font-size: 17px; line-height: 1.65; color: var(--ink-muted); font-weight: 300; max-width: 600px; }
+  .course-detail-page .layout { display: grid; grid-template-columns: 1fr 340px; gap: 48px; align-items: start; }
+
+  .course-detail-page .video-wrap { background: var(--ink); border-radius: 4px; overflow: hidden; aspect-ratio: 16/9; margin-bottom: 40px; position: relative; }
+  .course-detail-page .video-wrap iframe,
+  .course-detail-page .video-wrap video,
+  .course-detail-page .video-wrap img { width: 100%; height: 100%; object-fit: cover; border: 0; }
+  .course-detail-page .media-image-wrap { border-radius: 4px; overflow: hidden; margin-bottom: 40px; border: 0.5px solid var(--rule); background: #fff; }
+  .course-detail-page .media-image-wrap img { width: 100%; height: auto; display: block; }
+  .course-detail-page .video-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1a1a18 0%, #2c2c28 100%); }
+  .course-detail-page .video-label { position: absolute; bottom: 16px; left: 16px; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.6); }
+
+  .course-detail-page .section { margin-bottom: 40px; }
+  .course-detail-page .section-label { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+  .course-detail-page .section-label::after { content: ''; flex: 1; height: 0.5px; background: var(--rule); }
+  .course-detail-page .section-body { font-size: 15px; line-height: 1.75; color: var(--ink-muted); font-weight: 300; white-space: pre-line; }
+
+  .course-detail-page .curriculum { background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+  .course-detail-page .curriculum-header { padding: 24px 28px 20px; border-bottom: 0.5px solid var(--rule); display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .course-detail-page .curriculum-title { font-family: var(--font-display); font-size: 22px; font-weight: 500; }
+  .course-detail-page .curriculum-meta { font-size: 12px; color: var(--ink-faint); }
+  .course-detail-page .module { border-bottom: 0.5px solid var(--rule); }
+  .course-detail-page .module:last-child { border-bottom: none; }
+  .course-detail-page .module-name { padding: 16px 28px; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); font-weight: 500; background: var(--surface-3); }
+  .course-detail-page .lesson { display: flex; align-items: center; gap: 16px; padding: 14px 28px; border-top: 0.5px solid var(--rule); }
+  .course-detail-page .lesson-num { font-size: 11px; color: var(--ink-faint); font-variant-numeric: tabular-nums; min-width: 24px; }
+  .course-detail-page .lesson-title { font-size: 14px; color: var(--ink); font-weight: 400; margin-bottom: 2px; }
+  .course-detail-page .lesson-duration { font-size: 11px; color: var(--ink-faint); }
+  .course-detail-page .lesson-icon { width: 28px; height: 28px; border-radius: 50%; border: 0.5px solid var(--rule); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  .course-detail-page .stats-strip { display: flex; border: 0.5px solid var(--rule); border-radius: 4px; overflow: hidden; margin-bottom: 40px; }
+  .course-detail-page .stat { flex: 1; padding: 18px 20px; text-align: center; border-right: 0.5px solid var(--rule); }
+  .course-detail-page .stat:last-child { border-right: none; }
+  .course-detail-page .stat-num { font-family: var(--font-display); font-size: 22px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+  .course-detail-page .stat-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); margin-top: 3px; font-weight: 400; }
+
+  .course-detail-page .session-note { background: var(--accent-light); border-radius: 2px; padding: 14px 18px; margin-bottom: 20px; font-size: 13px; color: var(--accent); line-height: 1.6; }
+  .course-detail-page .session-note.locked { background: #fff4db; color: #7b5b20; }
+  .course-detail-page .session-card { border: 0.5px solid var(--rule); border-radius: 4px; padding: 18px 20px; margin-bottom: 10px; display: flex; gap: 16px; align-items: flex-start; }
+  .course-detail-page .session-date { text-align: center; min-width: 52px; padding: 8px; background: var(--surface-2); border-radius: 2px; }
+  .course-detail-page .session-month { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  .course-detail-page .session-day { font-family: var(--font-display); font-size: 24px; font-weight: 700; color: var(--ink); line-height: 1; margin-top: 2px; }
+  .course-detail-page .session-info { flex: 1; min-width: 0; }
+  .course-detail-page .session-title { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+  .course-detail-page .session-time { font-size: 12px; color: var(--ink-faint); }
+  .course-detail-page .session-status { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; font-weight: 500; white-space: nowrap; }
+  .course-detail-page .status-scheduled { background: var(--accent-light); color: var(--accent); }
+  .course-detail-page .status-completed { background: var(--surface-3); color: var(--ink-faint); }
+  .course-detail-page .status-live { background: #fff4db; color: #8a6623; }
+  .course-detail-page .session-action { margin-top: 8px; font-size: 12px; }
+  .course-detail-page .session-action a { color: var(--accent); font-weight: 500; text-decoration: none; }
+  .course-detail-page .session-action a:hover { text-decoration: underline; }
+
+  .course-detail-page .sidebar { position: sticky; top: 32px; }
+  .course-detail-page .sidebar-card { background: #fff; border: 0.5px solid var(--rule); border-radius: 4px; overflow: hidden; box-shadow: 0 2px 24px rgba(0,0,0,0.04); }
+  .course-detail-page .sidebar-top { padding: 28px 28px 0; }
+  .course-detail-page .price-label { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 8px; font-weight: 500; }
+  .course-detail-page .price { font-family: var(--font-display); font-size: 42px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; line-height: 1; }
+  .course-detail-page .price-sub { font-size: 12px; color: var(--ink-faint); margin-top: 8px; margin-bottom: 24px; line-height: 1.4; }
+  .course-detail-page .btn-primary { display: block; width: 100%; padding: 15px 24px; background: var(--ink); color: #fff; font-family: var(--font-body); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; border: none; cursor: pointer; border-radius: 2px; transition: all 0.2s; text-align: center; text-decoration: none; }
+  .course-detail-page .btn-primary:hover { background: #2a2a28; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+  .course-detail-page .btn-secondary { display: block; width: 100%; padding: 13px 24px; background: transparent; color: var(--ink); font-family: var(--font-body); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; border: 0.5px solid var(--rule); cursor: pointer; border-radius: 2px; transition: all 0.2s; text-align: center; text-decoration: none; margin-top: 10px; }
+  .course-detail-page .btn-secondary:hover { border-color: var(--ink-muted); }
+  .course-detail-page .sidebar-divider { height: 0.5px; background: var(--rule); margin: 24px 0 0; }
+  .course-detail-page .includes { padding: 20px 28px 28px; }
+  .course-detail-page .includes-title { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; margin-bottom: 16px; }
+  .course-detail-page .include-item { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; font-size: 13px; color: var(--ink-muted); border-bottom: 0.5px solid rgba(13,13,13,0.05); line-height: 1.5; }
+  .course-detail-page .include-item:last-child { border-bottom: none; }
+  .course-detail-page .include-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 8px; }
+  .course-detail-page .guarantee { margin: 20px 28px 28px; padding: 16px; background: var(--accent-light); border-radius: 2px; }
+  .course-detail-page .guarantee strong { display: block; font-weight: 500; margin-bottom: 4px; color: var(--accent); }
+  .course-detail-page .guarantee p { font-size: 11px; line-height: 1.6; color: var(--accent); }
+
+  .course-detail-page .empty-box { border: 0.5px solid var(--rule); border-radius: 4px; background: #fff; padding: 20px; color: var(--ink-muted); font-size: 14px; line-height: 1.6; }
+
+  @media (max-width: 860px) {
+    .course-detail-page .page { padding: 28px 16px 48px; }
+    .course-detail-page .layout { grid-template-columns: 1fr; gap: 28px; }
+    .course-detail-page .sidebar { position: static; }
+    .course-detail-page .stats-strip { flex-wrap: wrap; }
+    .course-detail-page .stat { min-width: 50%; border-right: 0; border-bottom: 0.5px solid var(--rule); }
+    .course-detail-page .stat:nth-last-child(-n+2) { border-bottom: 0; }
+    .course-detail-page .session-card { flex-direction: column; }
+  }
+</style>
+
+<div class="course-detail-page">
+  <div class="page">
+    <div class="breadcrumb">
+      <span>Courses</span>
+      <svg width="12" height="12" viewBox="0 0 12 12"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round"/></svg>
+      <span>{% if course.category %}{{ course.category }}{% else %}All categories{% endif %}</span>
+      <svg width="12" height="12" viewBox="0 0 12 12"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round"/></svg>
+      {{ course.name }}
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        <!-- Main Content (2 columns) -->
-        <div class="lg:col-span-2 space-y-8">
-            <!-- Preview Video or Thumbnail -->
-            {% if preview_video_embed_url %}
-            <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl overflow-hidden shadow-lg">
-                <div class="aspect-video bg-gray-900 relative">
-                    {% if is_youtube %}
-                    <iframe 
-                        id="youtube-preview" 
-                        class="w-full h-full" 
-                        src="{{ preview_video_embed_url }}" 
-                        title="YouTube video player" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                        referrerpolicy="strict-origin-when-cross-origin"
-                        allowfullscreen>
-                    </iframe>
-                    <div id="youtube-error" class="hidden absolute inset-0 flex items-center justify-center bg-gray-900 text-white p-4">
-                        <div class="text-center">
-                            <p class="text-lg font-semibold mb-2">Video cannot be embedded</p>
-                            <p class="text-sm text-black mb-4">Please check that the video allows embedding in its privacy settings.</p>
-                            <a href="{{ course.preview_video_url }}" target="_blank" class="text-teal-soft hover:text-teal-400 underline">Watch on YouTube</a>
-                        </div>
-                    </div>
-                    {% elif is_vimeo or is_google_drive %}
-                    <iframe class="w-full h-full" src="{{ preview_video_embed_url }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                    {% elif is_cloudinary or is_direct %}
-                    <video class="w-full h-full" controls>
-                        <source src="{{ preview_video_embed_url }}" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                    {% else %}
-                    <iframe class="w-full h-full" src="{{ preview_video_embed_url }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                    {% endif %}
-                </div>
-            </div>
-            {% elif course.thumbnail %}
-            <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl overflow-hidden shadow-lg">
-                <img src="{{ course.thumbnail.url }}" alt="{{ course.name }}" class="w-full h-auto object-cover">
-            </div>
+    <div class="course-header">
+      <div class="category-badge">
+        {% if course.delivery_type == 'live' %}Live{% else %}On-demand{% endif %}
+        {% if course.category %}&middot; {{ course.category }}{% endif %}
+      </div>
+      <h1 class="course-title">{{ course.name }}</h1>
+      {% if course.short_description %}
+      <p class="course-tagline">{{ course.short_description }}</p>
+      {% endif %}
+    </div>
+
+    <div class="layout">
+      <div>
+        {% if preview_video_embed_url %}
+        <div class="video-wrap">
+            {% if is_youtube %}
+            <iframe
+              id="youtube-preview"
+              src="{{ preview_video_embed_url }}"
+              title="YouTube video player"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen>
+            </iframe>
+            {% elif is_vimeo or is_google_drive %}
+            <iframe src="{{ preview_video_embed_url }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            {% elif is_cloudinary or is_direct %}
+            <video controls>
+              <source src="{{ preview_video_embed_url }}" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+            {% else %}
+            <iframe src="{{ preview_video_embed_url }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             {% endif %}
+          <div class="video-label">Course preview</div>
+        </div>
+        {% elif course.thumbnail %}
+        <div class="media-image-wrap">
+          <img src="{{ course.thumbnail.url }}" alt="{{ course.name }}">
+        </div>
+        {% endif %}
 
-            <!-- Course Description -->
-            <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-8">
-                <h2 class="text-2xl font-bold mb-4 text-black text-gray-800">About This Course</h2>
-                <div class="prose prose-gray max-w-none">
-                    <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ course.description }}</p>
-                </div>
-            </div>
-
-            {% include 'partials/course_instructors.html' with compact=False %}
-
-            <!-- Course Curriculum (pre-recorded lessons and/or live sessions) -->
-            {% if course.modules.exists or course.lessons.exists or live_sessions_with_join %}
-            <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-8">
-                <h2 class="text-2xl font-bold mb-6 text-gray-800">Course curriculum</h2>
-
-                {% if live_sessions_with_join %}
-                <div class="mb-8 {% if course.modules.exists or course.lessons.exists %}pb-8 border-b border-gray-200{% endif %}">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                        <i class="fas fa-video text-teal-soft"></i>
-                        Live sessions
-                    </h3>
-                    {% if user_has_access %}
-                    <div class="mb-4 rounded-xl border border-teal-soft/25 bg-teal-soft/10 px-4 py-3 text-sm text-gray-800 ml-0 sm:ml-7">
-                        <p class="font-semibold text-teal-900"><i class="fas fa-info-circle mr-2"></i>How to attend</p>
-                        <p class="mt-1 text-gray-700">Use the join link (and password, if any) for each session below at the scheduled time. Add these times to your calendar.</p>
-                    </div>
-                    {% else %}
-                    <div class="mb-4 rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-950 ml-0 sm:ml-7">
-                        <p class="font-semibold"><i class="fas fa-lock mr-2"></i>Join links are for enrolled students</p>
-                        <p class="mt-1 text-amber-900/90">You can see dates and titles below. After you enroll, return to this page to open the meeting link and password for each session.</p>
-                    </div>
-                    {% endif %}
-                    <p class="text-sm text-gray-600 mb-4 ml-0 sm:ml-7">Live classes for this course—same role as lessons in a pre-recorded course.</p>
-                    <div class="space-y-4 ml-0 sm:ml-7">
-                        {% for row in live_sessions_with_join %}
-                        {% with session=row.session %}
-                        <div class="rounded-xl border border-gray-200/90 bg-white/50 p-4 shadow-sm">
-                            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                <div class="min-w-0 flex-1">
-                                    <div class="font-semibold text-gray-900">{{ session.title }}</div>
-                                    <div class="text-xs text-gray-600 mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                                        <span>
-                                            <i class="fas fa-clock mr-1"></i>{{ session.scheduled_at|date:"M j, Y" }} at {{ session.scheduled_at|time:"g:i A" }}
-                                        </span>
-                                        {% if session.duration_minutes %}
-                                        <span>{{ session.duration_minutes }} min</span>
-                                        {% endif %}
-                                        {% if session.status == 'completed' %}
-                                        <span class="text-emerald-700 font-medium">Completed</span>
-                                        {% elif session.status == 'in_progress' %}
-                                        <span class="text-amber-700 font-medium">In progress</span>
-                                        {% elif session.status == 'scheduled' %}
-                                        <span class="text-slate-600 font-medium">Scheduled</span>
-                                        {% endif %}
-                                    </div>
-                                    {% if session.description %}
-                                    <p class="text-xs text-gray-600 mt-2 whitespace-pre-line">{{ session.description }}</p>
-                                    {% endif %}
-                                    {% if session.capacity %}
-                                    <p class="text-xs text-gray-500 mt-2">
-                                        <i class="fas fa-users mr-1"></i>
-                                        {{ session.bookings.all|length }} / {{ session.capacity }} seats booked
-                                        {% if session.capacity and session.bookings.all|length >= session.capacity %}
-                                        <span class="text-amber-800 font-medium"> (full)</span>
-                                        {% endif %}
-                                    </p>
-                                    {% endif %}
-                                    {% if row.user_booking %}
-                                    <p class="text-xs text-emerald-800 font-medium mt-2">
-                                        <i class="fas fa-check-circle mr-1"></i> You have a booking for this session ({{ row.user_booking.get_status_display }}).
-                                    </p>
-                                    {% endif %}
-                                </div>
-                                <div class="shrink-0 w-full sm:w-auto sm:max-w-[220px]">
-                                    {% if user_has_access %}
-                                        {% if session.status == 'scheduled' or session.status == 'in_progress' %}
-                                            {% if session.meeting_link %}
-                                            <a href="{{ session.meeting_link }}" target="_blank" rel="noopener noreferrer"
-                                               class="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-teal-soft px-4 py-2.5 text-sm font-bold text-white shadow hover:bg-teal-soft/90 transition">
-                                                <i class="fas fa-video"></i> Join live session
-                                            </a>
-                                            {% else %}
-                                            <p class="text-xs text-gray-600 text-center sm:text-left">Your instructor will add a join link before the session.</p>
-                                            {% endif %}
-                                            {% if session.meeting_password %}
-                                            <div class="mt-2 rounded-lg bg-slate-100 px-3 py-2 text-xs text-gray-800">
-                                                <span class="font-semibold text-gray-600">Meeting password:</span>
-                                                <code class="ml-1 break-all">{{ session.meeting_password }}</code>
-                                            </div>
-                                            {% endif %}
-                                        {% elif session.status == 'completed' %}
-                                            {% if session.meeting_link %}
-                                            <a href="{{ session.meeting_link }}" target="_blank" rel="noopener noreferrer" class="text-xs text-teal-soft font-semibold hover:underline">Past session link (may still be useful)</a>
-                                            {% endif %}
-                                        {% endif %}
-                                    {% else %}
-                                        <p class="text-xs text-gray-500 text-center sm:text-right">Enroll to unlock the join link{% if session.meeting_password %} and password{% endif %}.</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        {% endwith %}
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-                
-                {% if course.modules.exists %}
-                    {% for module in course.modules.all %}
-                    <div class="mb-6 last:mb-0">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                            <i class="fas fa-folder-open text-teal-soft"></i>
-                            {{ module.name }}
-                        </h3>
-                        {% if module.description %}
-                        <p class="text-sm text-black text-gray-600 mb-3 ml-7">{{ module.description }}</p>
-                        {% endif %}
-                        
-                        <div class="space-y-2 ml-7">
-                            {% for lesson in module.lessons.all %}
-                            <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition">
-                                <i class="fas fa-play-circle text-teal-soft mt-1"></i>
-                                <div class="flex-1">
-                                    <div class="font-medium text-gray-800">{{ lesson.title }}</div>
-                                    {% if lesson.video_duration %}
-                                    <div class="text-xs text-gray-600 mt-1">
-                                        <i class="fas fa-clock mr-1"></i>{{ lesson.video_duration }} min
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                {% elif course.lessons.exists %}
-                    <!-- Lessons without modules -->
-                    <div class="space-y-2">
-                        {% for lesson in course.lessons.all %}
-                        <div class="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition">
-                            <i class="fas fa-play-circle text-teal-soft mt-1"></i>
-                            <div class="flex-1">
-                                <div class="font-medium text-gray-800">{{ lesson.title }}</div>
-                                {% if lesson.video_duration %}
-                                <div class="text-xs text-gray-600 mt-1">
-                                    <i class="fas fa-clock mr-1"></i>{{ lesson.video_duration }} min
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-
-                <div class="mt-6 pt-6 border-t border-gray-200 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-black text-gray-600">
-                    {% if live_sessions_with_join %}
-                    {% with n=live_sessions_with_join|length %}
-                    <span><i class="fas fa-video mr-2"></i>{{ n }} live session{{ n|pluralize }}</span>
-                    {% endwith %}
-                    {% endif %}
-                    {% if course.get_lesson_count %}
-                    <span><i class="fas fa-play-circle mr-2"></i>{{ course.get_lesson_count }} video lesson{{ course.get_lesson_count|pluralize }}</span>
-                    {% endif %}
-                    {% if course.modules.exists %}
-                    <span><i class="fas fa-folder mr-2"></i>{{ course.modules.count }} module{{ course.modules.count|pluralize }}</span>
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
+        <div class="stats-strip">
+          <div class="stat">
+            <div class="stat-num">{% if live_sessions_with_join %}{{ live_sessions_with_join|length }}{% else %}0{% endif %}</div>
+            <div class="stat-label">Live sessions</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">{{ course.get_lesson_count|default:"0" }}</div>
+            <div class="stat-label">Video lessons</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">{% if course.modules.exists %}{{ course.modules.count }}{% else %}&infin;{% endif %}</div>
+            <div class="stat-label">{% if course.modules.exists %}Modules{% else %}Lifetime access{% endif %}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-num">{% if course.is_accredible_certified %}CEU{% else %}SWI{% endif %}</div>
+            <div class="stat-label">{% if course.is_accredible_certified %}Accredited{% else %}Certificate{% endif %}</div>
+          </div>
         </div>
 
-        <!-- Sidebar (1 column) -->
-        <div class="lg:col-span-1">
-            <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-8 sticky top-8">
-                {% if show_purchase %}
-                <!-- Purchase Section -->
-                <div class="text-center">
-                    <div class="mb-6">
-                        <h2 class="text-2xl font-bold mb-2 text-gray-800">Get Lifetime Access</h2>
-                        <p class="text-3xl font-bold text-teal-soft mb-4">
-                            {{ course.price|floatformat:2 }} {{ course.currency }}
-                        </p>
-                        {% if course.delivery_type == 'live' %}
-                        <p class="text-sm text-black text-gray-700 mb-6">One-time payment • Lifetime access to live sessions, materials, and any recordings your instructor provides</p>
-                        {% else %}
-                        <p class="text-sm text-black text-gray-700 mb-6">One-time payment • Lifetime access to all lessons, quizzes, and certificates</p>
-                        {% endif %}
-                    </div>
-                    
-                    {% if user.is_authenticated %}
-                    {% if user_has_access %}
-                    {% if first_lesson %}
-                    <a href="{% url 'lesson_detail' course.slug first_lesson.slug %}" class="block w-full px-8 py-4 bg-teal-soft text-white rounded-full font-bold hover:bg-teal-soft/90 transition-all text-lg mb-3 text-center">
-                        <i class="fas fa-play mr-2"></i> Start Course
-                    </a>
-                    {% elif course.delivery_type == 'live' and live_sessions_with_join %}
-                    <a href="{% url 'student_dashboard' %}" class="block w-full px-8 py-4 bg-teal-soft text-white rounded-full font-bold hover:bg-teal-soft/90 transition-all text-lg mb-3 text-center">
-                        <i class="fas fa-check-circle mr-2"></i> You’re enrolled — open dashboard
-                    </a>
-                    <p class="text-xs text-gray-600 mb-3">Join links and passwords for each session are on this page below.</p>
-                    {% else %}
-                    <a href="{% url 'student_dashboard' %}" class="block w-full px-8 py-4 bg-teal-soft text-white rounded-full font-bold hover:bg-teal-soft/90 transition-all text-lg mb-3 text-center">
-                        <i class="fas fa-check-circle mr-2"></i> You Own This Course
-                    </a>
-                    {% endif %}
-                    {% else %}
-                    <button id="purchase-btn" class="w-full px-8 py-4 bg-teal-soft text-white rounded-full font-bold hover:bg-teal-soft/90 transition-all text-lg mb-3">
-                        <i class="fas fa-shopping-cart mr-2"></i> Buy Course Now
-                    </button>
-                    {% endif %}
-                    <a href="{% url 'gift_course' course.slug %}" class="block w-full px-8 py-4 bg-white border-2 border-teal-soft text-teal-soft rounded-full font-bold hover:bg-teal-soft/10 transition-all text-lg mb-4 text-center">
-                        <i class="fas fa-gift mr-2"></i> Gift This Course
-                    </a>
-                    <p class="text-xs text-gray-600">
-                        <i class="fas fa-lock mr-1"></i> Secure payment processing
-                    </p>
-                    {% else %}
-                    <a href="{% url 'login' %}?next={% url 'course_detail' course.slug %}" class="block w-full px-8 py-4 bg-teal-soft text-white rounded-full font-bold hover:bg-teal-soft/90 transition-all text-lg mb-3 text-center">
-                        <i class="fas fa-sign-in-alt mr-2"></i> Login to Purchase
-                    </a>
-                    <a href="{% url 'login' %}?next={% url 'gift_course' course.slug %}" class="block w-full px-8 py-4 bg-white border-2 border-teal-soft text-teal-soft rounded-full font-bold hover:bg-teal-soft/10 transition-all text-lg mb-4 text-center">
-                        <i class="fas fa-gift mr-2"></i> Gift This Course
-                    </a>
-                    {% endif %}
-                </div>
+        <div class="section">
+          <div class="section-label">About this course</div>
+          <p class="section-body">{{ course.description }}</p>
+        </div>
 
-                <!-- Course Features (what’s included: live vs pre-recorded) -->
-                <div class="mt-8 pt-8 border-t border-gray-200">
-                    <h3 class="font-semibold text-gray-800 mb-4">What's included</h3>
-                    <ul class="space-y-3 text-sm text-black text-gray-700">
-                        {% if course.delivery_type == 'live' %}
-                            {% if live_sessions_with_join %}
-                            {% with n=live_sessions_with_join|length %}
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check-circle text-teal-soft mt-0.5"></i>
-                                <span><strong>{{ n }}</strong> scheduled live session{{ n|pluralize }} (same role as lessons in this live course)</span>
-                            </li>
-                            {% endwith %}
-                            {% else %}
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check-circle text-teal-soft mt-0.5"></i>
-                                <span>Live instructor-led sessions (schedule appears in your dashboard when sessions are published)</span>
-                            </li>
-                            {% endif %}
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check-circle text-teal-soft mt-0.5"></i>
-                                <span>Live teaching, Q&amp;A, and follow-up materials your instructor shares</span>
-                            </li>
-                            {% if course.get_lesson_count %}
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check-circle text-teal-soft mt-0.5"></i>
-                                <span>{{ course.get_lesson_count }} on-demand video lesson{{ course.get_lesson_count|pluralize }}</span>
-                            </li>
-                            {% endif %}
-                            {% if course.modules.exists %}
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check-circle text-teal-soft mt-0.5"></i>
-                                <span>{{ course.modules.count }} learning module{{ course.modules.count|pluralize }}</span>
-                            </li>
-                            {% endif %}
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check-circle text-teal-soft mt-0.5"></i>
-                                <span>Lifetime access to this course and materials</span>
-                            </li>
-                            {% if course.is_accredible_certified %}
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check-circle text-teal-soft mt-0.5"></i>
-                                <span>Accredited certificate</span>
-                            </li>
-                            {% endif %}
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check-circle text-teal-soft mt-0.5"></i>
-                                <span>Downloadable resources (when your instructor provides them)</span>
-                            </li>
-                        {% else %}
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check-circle text-teal-soft mt-0.5"></i>
-                                <span>{{ course.get_lesson_count }} video lesson{{ course.get_lesson_count|pluralize }}</span>
-                            </li>
-                            {% if course.modules.exists %}
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check-circle text-teal-soft mt-0.5"></i>
-                                <span>{{ course.modules.count }} learning module{{ course.modules.count|pluralize }}</span>
-                            </li>
-                            {% endif %}
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check-circle text-teal-soft mt-0.5"></i>
-                                <span>Lifetime access</span>
-                            </li>
-                            {% if course.is_accredible_certified %}
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check-circle text-teal-soft mt-0.5"></i>
-                                <span>Accredited certificate</span>
-                            </li>
-                            {% endif %}
-                            <li class="flex items-start gap-2">
-                                <i class="fas fa-check-circle text-teal-soft mt-0.5"></i>
-                                <span>Downloadable resources</span>
-                            </li>
-                        {% endif %}
-                    </ul>
+        {% include 'partials/course_instructors.html' with compact=False %}
+
+        {% if live_sessions_with_join %}
+        <div class="section">
+          <div class="section-label">Live sessions</div>
+          {% if user_has_access %}
+          <div class="session-note">
+            <strong style="font-weight:500;">How to attend -</strong> Join links and passwords appear below at the scheduled time.
+          </div>
+          {% else %}
+          <div class="session-note locked">
+            <strong style="font-weight:500;">Enrollment required -</strong> Session links and passwords unlock after enrollment.
+          </div>
+          {% endif %}
+
+          {% for row in live_sessions_with_join %}
+          {% with session=row.session %}
+          <div class="session-card"{% if session.status == 'completed' %} style="opacity:0.6;"{% endif %}>
+            <div class="session-date">
+              <div class="session-month">{{ session.scheduled_at|date:"M" }}</div>
+              <div class="session-day">{{ session.scheduled_at|date:"j" }}</div>
+            </div>
+            <div class="session-info">
+              <div class="session-title">{{ session.title }}</div>
+              <div class="session-time">{{ session.scheduled_at|date:"g:i A" }}{% if session.duration_minutes %} · {{ session.duration_minutes }} min{% endif %}</div>
+              {% if session.description %}
+              <div class="session-action">{{ session.description }}</div>
+              {% endif %}
+              {% if user_has_access %}
+                {% if session.status == 'scheduled' or session.status == 'in_progress' %}
+                  {% if session.meeting_link %}
+                  <div class="session-action">
+                    <a href="{{ session.meeting_link }}" target="_blank" rel="noopener noreferrer"><i class="fas fa-video mr-1"></i>Join live session</a>
+                  </div>
+                  {% else %}
+                  <div class="session-action">Your instructor will add a join link before this session.</div>
+                  {% endif %}
+                  {% if session.meeting_password %}
+                  <div class="session-action">Meeting password: <code>{{ session.meeting_password }}</code></div>
+                  {% endif %}
+                {% elif session.status == 'completed' and session.meeting_link %}
+                <div class="session-action"><a href="{{ session.meeting_link }}" target="_blank" rel="noopener noreferrer">Past session link</a></div>
+                {% endif %}
+              {% else %}
+              <div class="session-action">Enroll to unlock join links{% if session.meeting_password %} and passwords{% endif %}.</div>
+              {% endif %}
+            </div>
+            {% if session.status == 'completed' %}
+            <div class="session-status status-completed">Completed</div>
+            {% elif session.status == 'in_progress' %}
+            <div class="session-status status-live">Live</div>
+            {% else %}
+            <div class="session-status status-scheduled">Upcoming</div>
+            {% endif %}
+          </div>
+          {% endwith %}
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if course.modules.exists or course.lessons.exists %}
+        <div class="section">
+          <div class="section-label">On-demand curriculum</div>
+          <div class="curriculum">
+            <div class="curriculum-header">
+              <div class="curriculum-title">Course modules</div>
+              <div class="curriculum-meta">{{ course.get_lesson_count|default:"0" }} lesson{{ course.get_lesson_count|pluralize }}</div>
+            </div>
+
+            {% if course.modules.exists %}
+              {% for module in course.modules.all %}
+              <div class="module">
+                <div class="module-name">{{ module.name }}</div>
+                {% for lesson in module.lessons.all %}
+                <div class="lesson">
+                  <div class="lesson-num">{% cycle "01" "02" "03" "04" "05" "06" "07" "08" "09" "10" "11" "12" "13" "14" "15" "16" %}</div>
+                  <div class="lesson-icon">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 1l7 4-7 4V1z" fill="currentColor"/></svg>
+                  </div>
+                  <div>
+                    <div class="lesson-title">{{ lesson.title }}</div>
+                    <div class="lesson-duration">{% if lesson.video_duration %}{{ lesson.video_duration }} min{% else %}Lesson{% endif %}</div>
+                  </div>
                 </div>
+                {% empty %}
+                <div class="lesson">
+                  <div class="lesson-num">--</div>
+                  <div class="lesson-icon">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 1l7 4-7 4V1z" fill="currentColor"/></svg>
+                  </div>
+                  <div>
+                    <div class="lesson-title">Lessons will appear here soon.</div>
+                    <div class="lesson-duration">Coming soon</div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="module">
+                <div class="module-name">Course lessons</div>
+                {% for lesson in course.lessons.all %}
+                <div class="lesson">
+                  <div class="lesson-num">{% cycle "01" "02" "03" "04" "05" "06" "07" "08" "09" "10" "11" "12" "13" "14" "15" "16" %}</div>
+                  <div class="lesson-icon">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 1l7 4-7 4V1z" fill="currentColor"/></svg>
+                  </div>
+                  <div>
+                    <div class="lesson-title">{{ lesson.title }}</div>
+                    <div class="lesson-duration">{% if lesson.video_duration %}{{ lesson.video_duration }} min{% else %}Lesson{% endif %}</div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if not course.modules.exists and not course.lessons.exists and not live_sessions_with_join %}
+        <div class="empty-box">
+          This course does not have lessons or live sessions yet.
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="sidebar">
+        <div class="sidebar-card">
+          <div class="sidebar-top">
+            {% if show_purchase %}
+            <div class="price-label">One-time payment</div>
+            <div class="price">{{ course.price|floatformat:2 }} {{ course.currency }}</div>
+            <div class="price-sub">
+              {% if course.delivery_type == 'live' %}
+              Lifetime access to live sessions, materials, and any recordings your instructor provides.
+              {% else %}
+              Lifetime access to lessons, quizzes, and certificates.
+              {% endif %}
+            </div>
+
+            {% if user.is_authenticated %}
+              {% if user_has_access %}
+                {% if first_lesson %}
+                <a href="{% url 'lesson_detail' course.slug first_lesson.slug %}" class="btn-primary"><i class="fas fa-play mr-2"></i>Start course</a>
+                {% elif course.delivery_type == 'live' and live_sessions_with_join %}
+                <a href="{% url 'student_dashboard' %}" class="btn-primary"><i class="fas fa-check-circle mr-2"></i>Open dashboard</a>
                 {% else %}
-                <!-- Free Course / No Purchase Needed -->
-                <div class="text-center">
-                    <i class="fas fa-book-open text-6xl text-gray-600 mb-4"></i>
-                    {% if course.lessons.exists %}
-                    <p class="text-gray-700 mb-6">
-                        This course is available.
-                        {% if user.is_authenticated %}
-                        <a href="{% url 'lesson_detail' course.slug course.lessons.first.slug %}" class="text-teal-soft hover:text-teal-800 font-semibold">Start learning now!</a>
-                        {% else %}
-                        <a href="{% url 'login' %}?next={% url 'course_detail' course.slug %}" class="text-teal-soft hover:text-teal-800 font-semibold">Login to access</a>
-                        {% endif %}
-                    </p>
-                    {% elif course.delivery_type == 'live' and live_sessions_with_join %}
-                    <p class="text-gray-700 mb-4">
-                        This live course includes scheduled sessions. Scroll down for session times{% if user.is_authenticated and user_has_access %} and join links{% endif %}.
-                    </p>
-                    {% if user.is_authenticated %}
-                        {% if user_has_access %}
-                        <a href="{% url 'student_dashboard' %}" class="block w-full px-8 py-4 bg-teal-soft text-white rounded-full font-bold hover:bg-teal-soft/90 transition-all text-lg mb-6 text-center">
-                            <i class="fas fa-th-large mr-2"></i> Open dashboard
-                        </a>
-                        {% else %}
-                        <form method="post" action="{% url 'enroll_free_course' course.slug %}" class="mb-6">
-                            {% csrf_token %}
-                            <button type="submit" class="w-full px-8 py-4 bg-teal-soft text-white rounded-full font-bold hover:bg-teal-soft/90 transition-all text-lg">
-                                <i class="fas fa-user-plus mr-2"></i> Enroll now
-                            </button>
-                        </form>
-                        {% endif %}
-                    {% else %}
-                    <a href="{% url 'login' %}?next={% url 'course_detail' course.slug %}" class="block w-full px-8 py-4 bg-teal-soft text-white rounded-full font-bold hover:bg-teal-soft/90 transition-all text-lg mb-6 text-center">
-                        <i class="fas fa-sign-in-alt mr-2"></i> Log in to enroll
-                    </a>
-                    {% endif %}
-                    {% else %}
-                    <p class="text-gray-700 mb-6">
-                        This course doesn’t have any lessons or live sessions yet.
-                    </p>
-                    {% endif %}
-                    <a href="{% url 'student_dashboard' %}" class="inline-block px-6 py-3 bg-teal-soft text-white rounded-full font-bold hover:bg-teal-soft/90 transition-all">
-                        Back to Courses
-                    </a>
-                </div>
+                <a href="{% url 'student_dashboard' %}" class="btn-primary"><i class="fas fa-check-circle mr-2"></i>You own this course</a>
                 {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
+              {% else %}
+              <button id="purchase-btn" class="btn-primary"><i class="fas fa-shopping-cart mr-2"></i>Enrol in this course</button>
+              {% endif %}
+              <a href="{% url 'gift_course' course.slug %}" class="btn-secondary"><i class="fas fa-gift mr-2"></i>Gift this course</a>
+            {% else %}
+            <a href="{% url 'login' %}?next={% url 'course_detail' course.slug %}" class="btn-primary"><i class="fas fa-sign-in-alt mr-2"></i>Login to purchase</a>
+            <a href="{% url 'login' %}?next={% url 'gift_course' course.slug %}" class="btn-secondary"><i class="fas fa-gift mr-2"></i>Gift this course</a>
+            {% endif %}
+            {% else %}
+            <div class="price-label">Enrollment</div>
+            <div class="price">Free</div>
+            <div class="price-sub">Join this course and access available sessions and materials.</div>
+            {% if user.is_authenticated %}
+              {% if user_has_access %}
+              <a href="{% url 'student_dashboard' %}" class="btn-primary"><i class="fas fa-th-large mr-2"></i>Open dashboard</a>
+              {% elif course.delivery_type == 'live' and live_sessions_with_join %}
+              <form method="post" action="{% url 'enroll_free_course' course.slug %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-primary"><i class="fas fa-user-plus mr-2"></i>Enroll now</button>
+              </form>
+              {% elif course.lessons.exists %}
+              <a href="{% url 'lesson_detail' course.slug course.lessons.first.slug %}" class="btn-primary"><i class="fas fa-play mr-2"></i>Start learning</a>
+              {% else %}
+              <a href="{% url 'student_dashboard' %}" class="btn-primary">Back to courses</a>
+              {% endif %}
+            {% else %}
+            <a href="{% url 'login' %}?next={% url 'course_detail' course.slug %}" class="btn-primary"><i class="fas fa-sign-in-alt mr-2"></i>Log in to enroll</a>
+            {% endif %}
+            {% endif %}
+          </div>
 
-{% if is_youtube %}
-<script>
-// Detect YouTube embed errors
-document.addEventListener('DOMContentLoaded', function() {
-    const iframe = document.getElementById('youtube-preview');
-    if (iframe) {
-        // Check if iframe loaded successfully after a delay
-        setTimeout(function() {
-            try {
-                // Try to access iframe content (will fail if error occurred)
-                iframe.contentWindow;
-            } catch (e) {
-                // Cross-origin error is normal, but if we can't access it at all, might be an issue
-                console.log('YouTube iframe loaded');
-            }
-        }, 2000);
-        
-        // Listen for iframe load errors (limited browser support)
-        iframe.addEventListener('error', function() {
-            document.getElementById('youtube-error').classList.remove('hidden');
-        });
-    }
-});
-</script>
-{% endif %}
+          <div class="sidebar-divider"></div>
+
+          <div class="includes">
+            <div class="includes-title">What's included</div>
+            {% if course.delivery_type == 'live' %}
+              {% with n=live_sessions_with_join|length %}
+              <div class="include-item"><div class="include-dot"></div>{{ n }} scheduled live session{{ n|pluralize }}</div>
+              {% endwith %}
+              <div class="include-item"><div class="include-dot"></div>Live teaching, Q&amp;A, and follow-up materials</div>
+            {% endif %}
+            <div class="include-item"><div class="include-dot"></div>{{ course.get_lesson_count|default:"0" }} video lesson{{ course.get_lesson_count|pluralize }}</div>
+            {% if course.modules.exists %}
+            <div class="include-item"><div class="include-dot"></div>{{ course.modules.count }} learning module{{ course.modules.count|pluralize }}</div>
+            {% endif %}
+            <div class="include-item"><div class="include-dot"></div>Lifetime access</div>
+            {% if course.is_accredible_certified %}
+            <div class="include-item"><div class="include-dot"></div>Accredited certificate</div>
+            {% endif %}
+            <div class="include-item"><div class="include-dot"></div>Downloadable resources{% if course.delivery_type == 'live' %} (when provided){% endif %}</div>
+          </div>
+
+          <div class="guarantee">
+            <strong>Secure checkout</strong>
+            <p>Payments are processed securely. Your purchase is protected.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% if show_purchase and user.is_authenticated and not user_has_access %}
 <script>
@@ -438,7 +415,7 @@ document.getElementById('purchase-btn').addEventListener('click', function() {
     const btn = this;
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
-    
+
     fetch('{% url "initiate_purchase" course.slug %}', {
         method: 'POST',
         headers: {
@@ -450,35 +427,29 @@ document.getElementById('purchase-btn').addEventListener('click', function() {
     .then(data => {
         if (data.success) {
             if (data.status === 'paid') {
-                // Payment was simulated/approved - redirect to course
                 if (data.redirect) {
                     window.location.href = data.redirect;
                 } else {
-                    // Show success message and reload page
                     alert('Purchase successful! Access granted.');
                     window.location.reload();
                 }
             } else if (data.checkout_url) {
-                // Stripe Checkout flow
                 window.location.href = data.checkout_url;
             } else {
-                // Payment pending - would redirect to payment provider in production
                 alert('Purchase initiated! Redirecting to payment provider...');
-                console.log('Purchase ID:', data.purchase_id);
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i> Buy Course Now';
+                btn.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i> Enrol in this course';
             }
         } else {
             alert('Error: ' + (data.error || 'Failed to initiate purchase'));
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i> Buy Course Now';
+            btn.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i> Enrol in this course';
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
+    .catch(() => {
         alert('An error occurred. Please try again.');
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i> Buy Course Now';
+        btn.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i> Enrol in this course';
     });
 });
 </script>

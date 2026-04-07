@@ -488,6 +488,7 @@
 
         <form method="POST" id="registerForm">
           {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}">
 
           <div class="fields">
 
@@ -563,7 +564,7 @@
         <div class="divider"><span>Already have an account?</span></div>
 
         <!-- Back to login -->
-        <a href="{% url 'login' %}" class="btn-login">
+        <a href="{% if request.GET.next %}{% url 'login' %}?next={{ request.GET.next|urlencode }}{% else %}{% url 'login' %}{% endif %}" class="btn-login">
           <i class="fas fa-arrow-left" style="font-size:11px;"></i>
           Back to login
         </a>

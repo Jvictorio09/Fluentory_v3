@@ -1,22 +1,42 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Gift Sent Successfully{% endblock %}
+{% block title %}Thank You - Gift Purchase{% endblock %}
 
 {% block content %}
 <div class="max-w-2xl mx-auto text-center">
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-12">
         <div class="mb-6">
-            <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-green-100 mb-6">
-                <i class="fas fa-check text-5xl text-green-600"></i>
-            </div>
-            <h1 class="text-4xl font-bold mb-4 text-gray-800">Gift Sent Successfully! 🎉</h1>
-            <p class="text-xl text-gray-700 mb-2">Your gift has been sent to</p>
+            {% if gift.status == 'redeemed' %}
+                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-green-100 mb-6">
+                    <i class="fas fa-check text-5xl text-green-600"></i>
+                </div>
+                <h1 class="text-4xl font-bold mb-4 text-gray-800">Thank you! Gift already redeemed 🎉</h1>
+                <p class="text-xl text-gray-700 mb-2">This gift has already been claimed by</p>
+            {% elif gift.status == 'sent' %}
+                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-green-100 mb-6">
+                    <i class="fas fa-paper-plane text-5xl text-green-600"></i>
+                </div>
+                <h1 class="text-4xl font-bold mb-4 text-gray-800">Thank you! Gift sent 🎁</h1>
+                <p class="text-xl text-gray-700 mb-2">Your gift email has been sent to</p>
+            {% elif gift.status == 'pending' %}
+                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-amber-100 mb-6">
+                    <i class="fas fa-clock text-5xl text-amber-600"></i>
+                </div>
+                <h1 class="text-4xl font-bold mb-4 text-gray-800">Thank you! Payment in progress</h1>
+                <p class="text-xl text-gray-700 mb-2">We are waiting for payment confirmation for</p>
+            {% else %}
+                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-slate-100 mb-6">
+                    <i class="fas fa-gift text-5xl text-slate-600"></i>
+                </div>
+                <h1 class="text-4xl font-bold mb-4 text-gray-800">Gift status updated</h1>
+                <p class="text-xl text-gray-700 mb-2">Gift recipient:</p>
+            {% endif %}
             <p class="text-2xl font-semibold text-teal-soft">{{ gift.recipient_email }}</p>
         </div>
 
         <div class="bg-teal-soft/10 border border-teal-soft/30 rounded-lg p-6 mb-8 text-left">
-            <h2 class="font-bold text-gray-800 mb-4">Gift Details:</h2>
+            <h2 class="font-bold text-gray-800 mb-4">Gift details</h2>
             <div class="space-y-3 text-gray-700">
                 <div class="flex items-start gap-3">
                     <i class="fas fa-graduation-cap text-teal-soft mt-1"></i>
@@ -35,22 +55,38 @@
                 <div class="flex items-start gap-3">
                     <i class="fas fa-calendar text-teal-soft mt-1"></i>
                     <div>
+                        <div class="font-semibold">Status</div>
+                        <div>{{ gift.get_status_display }}</div>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <i class="fas fa-paper-plane text-teal-soft mt-1"></i>
+                    <div>
                         <div class="font-semibold">Sent On</div>
-                        <div>{{ gift.sent_at|date:"F d, Y at g:i A"|default:"Pending" }}</div>
+                        <div>{{ gift.sent_at|date:"F d, Y at g:i A"|default:"Not sent yet" }}</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="space-y-4">
-            <p class="text-gray-700">
-                An email with redemption instructions has been sent to the recipient.
-                {% if gift.status == 'sent' %}
-                They can claim their gift by clicking the link in the email.
-                {% else %}
-                The email will be sent once payment is confirmed.
-                {% endif %}
-            </p>
+            {% if gift.status == 'sent' %}
+                <p class="text-gray-700">
+                    A gift email was sent to the recipient, and a purchase confirmation email was sent to you.
+                </p>
+            {% elif gift.status == 'redeemed' %}
+                <p class="text-gray-700">
+                    This gift was already delivered and redeemed. The recipient no longer needs another gift email for this token.
+                </p>
+            {% elif gift.status == 'pending' %}
+                <p class="text-gray-700">
+                    As soon as payment is confirmed, we will email both you and the recipient automatically.
+                </p>
+            {% else %}
+                <p class="text-gray-700">
+                    You can check this page again for the latest gift delivery status.
+                </p>
+            {% endif %}
 
             <div class="flex gap-4 justify-center">
                 <a
@@ -60,10 +96,10 @@
                     Go to Dashboard
                 </a>
                 <a
-                    href="{% url 'student_dashboard' %}"
+                    href="{% url 'course_detail' gift.course.slug %}"
                     class="px-6 py-3 border border-gray-300 rounded-full font-medium hover:bg-gray-50 transition-all"
                 >
-                    Browse More Courses
+                    Back to Course
                 </a>
             </div>
         </div>

@@ -9,6 +9,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.conf import settings
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.text import slugify
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
@@ -35,6 +36,7 @@ from .models import (
     LessonQuizQuestion,
     LessonQuizAttempt,
     CoursePurchase,
+    PaymentTransaction,
     TeacherRequest,
     TeacherProfile,
     GiftPurchase,
@@ -455,9 +457,20 @@ def _is_teacher_user(user):
 
 def login_view(request):
     """Premium login page"""
+    requested_next = (request.POST.get('next') or request.GET.get('next') or '').strip()
+    safe_next = ''
+    if requested_next and url_has_allowed_host_and_scheme(
+        requested_next,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        safe_next = requested_next
+
     # Allow access to login page even when logged in if ?force=true (for testing)
     force = request.GET.get('force', '').lower() == 'true'
     if request.user.is_authenticated and not force:
+        if safe_next:
+            return redirect(safe_next)
         # Redirect based on user role: admin → admin dashboard, teacher → teacher dashboard, student → student dashboard
         if request.user.is_superuser:
             return redirect('dashboard_home')
@@ -476,14 +489,22 @@ def login_view(request):
         if user is not None:
             login(request, user)
             # Determine redirect based on user role
+            post_next = (request.POST.get('next') or request.GET.get('next') or '').strip()
+            safe_post_next = ''
+            if post_next and url_has_allowed_host_and_scheme(
+                post_next,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                safe_post_next = post_next
             if user.is_superuser:
-                next_url = request.GET.get('next', 'dashboard_home')
+                next_url = safe_post_next or 'dashboard_home'
             elif _is_teacher_user(user):
-                next_url = request.GET.get('next', 'teacher_dashboard')
+                next_url = safe_post_next or 'teacher_dashboard'
             elif user.is_staff:
-                next_url = request.GET.get('next', 'dashboard_home')
+                next_url = safe_post_next or 'dashboard_home'
             else:
-                next_url = request.GET.get('next', 'student_dashboard')
+                next_url = safe_post_next or 'student_dashboard'
             return redirect(next_url)
         else:
             messages.error(request, 'Invalid username or password.')
@@ -493,9 +514,18 @@ def login_view(request):
 
 def register_view(request):
     """Premium registration page"""
+    requested_next = (request.POST.get('next') or request.GET.get('next') or '').strip()
+    safe_next = ''
+    if requested_next and url_has_allowed_host_and_scheme(
+        requested_next,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        safe_next = requested_next
+
     # Redirect if already logged in
     if request.user.is_authenticated:
-        return redirect('student_dashboard')
+        return redirect(safe_next or 'student_dashboard')
     
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -544,13 +574,42 @@ def register_view(request):
                 # Automatically log in the user
                 login(request, user)
                 messages.success(request, 'Account created successfully! Welcome to Fluentory.')
+
+                shared_attribution = request.session.get('shared_course_attribution') or {}
+                shared_course_id = shared_attribution.get('course_id')
+                if shared_course_id:
+                    shared_course = Course.objects.filter(id=shared_course_id).first()
+                    AnalyticsEvent.objects.create(
+                        event_name='shared_course_registration',
+                        user=user,
+                        session_key=request.session.session_key or '',
+                        course=shared_course,
+                        campaign=shared_attribution.get('campaign', ''),
+                        metadata={
+                            'source': shared_attribution.get('source', ''),
+                            'path': shared_attribution.get('path', ''),
+                            'course_slug': shared_attribution.get('course_slug', ''),
+                        },
+                    )
+                    # One-time attribution for registration conversion.
+                    request.session.pop('shared_course_attribution', None)
+                    request.session.modified = True
                 
                 # If registering with a gift, redirect to redeem
                 gift_token = request.GET.get('gift')
                 if gift_token:
                     return redirect('redeem_gift', gift_token=gift_token)
-                
-                return redirect('student_dashboard')
+
+                post_next = (request.POST.get('next') or request.GET.get('next') or '').strip()
+                safe_post_next = ''
+                if post_next and url_has_allowed_host_and_scheme(
+                    post_next,
+                    allowed_hosts={request.get_host()},
+                    require_https=request.is_secure(),
+                ):
+                    safe_post_next = post_next
+
+                return redirect(safe_post_next or 'student_dashboard')
             except Exception as e:
                 messages.error(request, f'Error creating account: {str(e)}')
     
@@ -757,6 +816,21 @@ def course_detail(request, course_slug):
         ),
         slug=course_slug,
     )
+    is_shared_link = (
+        request.GET.get('shared') == '1'
+        or (request.GET.get('utm_source') or '').strip().lower() == 'course_share'
+    )
+    if is_shared_link:
+        request.session['shared_course_attribution'] = {
+            'course_id': course.id,
+            'course_slug': course.slug,
+            'path': request.path,
+            'source': request.GET.get('utm_source', '') or 'course_share',
+            'campaign': request.GET.get('utm_campaign', '') or 'dashboard_share',
+            'captured_at': timezone.now().isoformat(),
+        }
+        request.session.modified = True
+
     if not request.session.session_key:
         request.session.save()
     AnalyticsEvent.objects.create(
@@ -765,8 +839,21 @@ def course_detail(request, course_slug):
         session_key=request.session.session_key or '',
         course=course,
         campaign=request.GET.get('utm_campaign', '') or '',
-        metadata={'path': request.path, 'source': request.GET.get('utm_source', '')},
+        metadata={'path': request.path, 'source': request.GET.get('utm_source', ''), 'shared': is_shared_link},
     )
+    if is_shared_link:
+        AnalyticsEvent.objects.create(
+            event_name='shared_course_visit',
+            user=request.user if request.user.is_authenticated else None,
+            session_key=request.session.session_key or '',
+            course=course,
+            campaign=request.GET.get('utm_campaign', '') or 'dashboard_share',
+            metadata={
+                'path': request.path,
+                'source': request.GET.get('utm_source', '') or 'course_share',
+                'query': request.GET.dict(),
+            },
+        )
     user_has_access = False
     first_lesson = course.lessons.order_by('order', 'id').first()
     course_instructors = get_course_instructors(course)
@@ -3654,6 +3741,68 @@ def gift_course(request, course_slug):
         if not recipient_email:
             messages.error(request, 'Recipient email is required.')
             return render(request, 'gift_course.html', {'course': course})
+
+        simulate_payment = getattr(settings, 'SIMULATE_PAYMENT', True)
+        selected_provider = (request.POST.get('provider') or 'stripe').strip().lower()
+        if selected_provider not in {'stripe', 'paypal'}:
+            selected_provider = 'stripe'
+        stripe_enabled = (
+            not simulate_payment
+            and bool(getattr(settings, 'STRIPE_SECRET_KEY', ''))
+        )
+        paypal_enabled = (
+            not simulate_payment
+            and bool(getattr(settings, 'PAYPAL_CLIENT_ID', ''))
+            and bool(getattr(settings, 'PAYPAL_SECRET', ''))
+        )
+
+        existing_gift = GiftPurchase.objects.filter(
+            purchaser=request.user,
+            course=course,
+            recipient_email__iexact=recipient_email,
+            status__in=['sent', 'redeemed'],
+        ).order_by('-created_at').first()
+        if existing_gift:
+            messages.info(request, 'This recipient already has a gifted copy of this course from you.')
+            return redirect('gift_success', gift_token=existing_gift.gift_token)
+
+        existing_pending = GiftPurchase.objects.filter(
+            purchaser=request.user,
+            course=course,
+            recipient_email__iexact=recipient_email,
+            status='pending',
+        ).order_by('-created_at').first()
+        if existing_pending:
+            purchase = existing_pending.course_purchase
+            if (
+                purchase
+                and purchase.status == 'pending'
+                and not simulate_payment
+            ):
+                if selected_provider == 'paypal' and paypal_enabled:
+                    idempotency_key = request.headers.get('X-Idempotency-Key', '')
+                    result, _txn = create_checkout_for_purchase(
+                        purchase=purchase,
+                        provider='paypal',
+                        request=request,
+                        idempotency_key=idempotency_key,
+                    )
+                    purchase.provider = 'paypal'
+                    purchase.provider_id = result.get('provider_payment_id', '')
+                    purchase.save(update_fields=['provider', 'provider_id'])
+                    checkout_url = result.get('checkout_url')
+                    if checkout_url:
+                        return redirect(checkout_url)
+
+                if stripe_enabled:
+                    try:
+                        checkout_session = _create_stripe_checkout_session(request, purchase)
+                        return redirect(checkout_session.url)
+                    except Exception:
+                        pass
+
+            messages.info(request, 'A gift for this recipient is already being processed.')
+            return redirect('gift_success', gift_token=existing_pending.gift_token)
         
         # Create purchase (same as regular purchase)
         purchase = CoursePurchase.objects.create(
@@ -3667,16 +3816,22 @@ def gift_course(request, course_slug):
             notes=f"Gift purchase for {recipient_email}"
         )
         
-        # Simulate payment (same as regular purchase)
-        from django.conf import settings
-        simulate_payment = getattr(settings, 'SIMULATE_PAYMENT', True)
-        
         if simulate_payment:
             purchase.status = 'paid'
             purchase.paid_at = timezone.now()
             purchase.provider = 'simulated'
             purchase.provider_id = f'sim_gift_{purchase.id}_{int(timezone.now().timestamp())}'
             purchase.save()
+            _log_payment_transaction(
+                purchase=purchase,
+                provider='simulated',
+                provider_id=purchase.provider_id,
+                status='paid',
+                metadata={
+                    'source': 'simulate_gift_payment',
+                    'simulated': True,
+                },
+            )
         
         # Create gift purchase record (token will be auto-generated)
         gift = GiftPurchase.objects.create(
@@ -3691,19 +3846,59 @@ def gift_course(request, course_slug):
         
         # If payment is simulated, send gift email immediately
         if simulate_payment:
-            from .utils.email import send_gift_email
+            from .utils.email import send_gift_email, send_gift_purchaser_confirmation_email
             email_result = send_gift_email(gift)
             
             if email_result['success']:
                 gift.status = 'sent'
                 gift.sent_at = timezone.now()
                 gift.save()
-                messages.success(request, f'Gift purchased and sent to {recipient_email}!')
+                purchaser_email_result = send_gift_purchaser_confirmation_email(gift)
+                if purchaser_email_result.get('success'):
+                    messages.success(request, f'Gift purchased and sent to {recipient_email}. Confirmation emails were sent to both of you.')
+                else:
+                    messages.success(request, f'Gift purchased and sent to {recipient_email}.')
+                    messages.warning(request, 'We could not send your purchaser confirmation email, but the recipient email was sent.')
             else:
                 messages.warning(request, f'Gift purchased but email failed to send. Gift token: {gift.gift_token}')
         else:
-            messages.info(request, 'Gift purchase initiated. Email will be sent after payment confirmation.')
-        
+            # Paid gifts must be paid before they are delivered.
+            if selected_provider == 'paypal' and paypal_enabled:
+                idempotency_key = request.headers.get('X-Idempotency-Key', '')
+                result, _txn = create_checkout_for_purchase(
+                    purchase=purchase,
+                    provider='paypal',
+                    request=request,
+                    idempotency_key=idempotency_key,
+                )
+                purchase.provider = 'paypal'
+                purchase.provider_id = result.get('provider_payment_id', '')
+                purchase.save(update_fields=['provider', 'provider_id'])
+                checkout_url = result.get('checkout_url')
+                if checkout_url:
+                    return redirect(checkout_url)
+
+            if stripe_enabled:
+                try:
+                    checkout_session = _create_stripe_checkout_session(request, purchase)
+                    return redirect(checkout_session.url)
+                except Exception as exc:
+                    purchase.status = 'failed'
+                    purchase.notes = f'Gift checkout creation failed: {str(exc)}'
+                    purchase.save(update_fields=['status', 'notes'])
+                    gift.status = 'cancelled'
+                    gift.save(update_fields=['status'])
+                    messages.error(request, f'Unable to start checkout: {str(exc)}')
+                    return render(request, 'gift_course.html', {'course': course})
+
+            purchase.status = 'failed'
+            purchase.notes = 'No active payment provider configured for gift purchase.'
+            purchase.save(update_fields=['status', 'notes'])
+            gift.status = 'cancelled'
+            gift.save(update_fields=['status'])
+            messages.error(request, 'No payment provider is configured. Please try again later.')
+            return render(request, 'gift_course.html', {'course': course})
+
         return redirect('gift_success', gift_token=gift.gift_token)
     
     return render(request, 'gift_course.html', {'course': course})
@@ -3711,14 +3906,43 @@ def gift_course(request, course_slug):
 
 @login_required
 def gift_success(request, gift_token):
-    """Gift purchase success page"""
+    """Gift purchase thank-you/status page"""
     gift = get_object_or_404(GiftPurchase, gift_token=gift_token)
     
     # Verify purchaser
     if gift.purchaser != request.user:
         messages.error(request, 'You do not have permission to view this gift.')
         return redirect('student_dashboard')
-    
+
+    # Fallback activation for Stripe success redirects when webhooks are delayed.
+    purchase = gift.course_purchase
+    purchase_status = request.GET.get('purchase')
+    checkout_session_id = (request.GET.get('session_id') or '').strip()
+    if (
+        purchase
+        and purchase_status == 'success'
+        and purchase.provider == 'stripe'
+        and purchase.status == 'pending'
+    ):
+        try:
+            if STRIPE_AVAILABLE and getattr(settings, 'STRIPE_SECRET_KEY', ''):
+                stripe.api_key = settings.STRIPE_SECRET_KEY
+                session_to_verify = purchase.provider_id or checkout_session_id
+                if session_to_verify and 'CHECKOUT_SESSION_ID' not in session_to_verify and not session_to_verify.startswith('{'):
+                    checkout_session = stripe.checkout.Session.retrieve(session_to_verify)
+                    payment_status = checkout_session.get('payment_status')
+                    session_status = checkout_session.get('status')
+                    if payment_status == 'paid' or session_status == 'complete':
+                        _finalize_purchase(
+                            purchase=purchase,
+                            provider='stripe',
+                            provider_id=session_to_verify,
+                            status='paid',
+                        )
+                        gift.refresh_from_db()
+        except Exception:
+            pass
+
     return render(request, 'gift_success.html', {'gift': gift})
 
 
@@ -3932,12 +4156,25 @@ def _create_stripe_checkout_session(request, purchase):
 
     stripe.api_key = stripe_secret_key
 
-    success_url = request.build_absolute_uri(
-        f"{reverse('course_detail', args=[purchase.course.slug])}?purchase=success&session_id={{CHECKOUT_SESSION_ID}}"
-    )
-    cancel_url = request.build_absolute_uri(
-        f"{reverse('course_detail', args=[purchase.course.slug])}?purchase=cancelled"
-    )
+    gift_purchase = None
+    try:
+        gift_purchase = purchase.gift_purchase
+    except GiftPurchase.DoesNotExist:
+        gift_purchase = None
+    if gift_purchase:
+        success_url = request.build_absolute_uri(
+            f"{reverse('gift_success', args=[gift_purchase.gift_token])}?purchase=success&session_id={{CHECKOUT_SESSION_ID}}"
+        )
+        cancel_url = request.build_absolute_uri(
+            reverse('gift_course', args=[purchase.course.slug])
+        )
+    else:
+        success_url = request.build_absolute_uri(
+            f"{reverse('course_detail', args=[purchase.course.slug])}?purchase=success&session_id={{CHECKOUT_SESSION_ID}}"
+        )
+        cancel_url = request.build_absolute_uri(
+            f"{reverse('course_detail', args=[purchase.course.slug])}?purchase=cancelled"
+        )
 
     try:
         unit_amount = int((Decimal(str(purchase.amount)) * 100).quantize(Decimal('1')))
@@ -3977,7 +4214,83 @@ def _create_stripe_checkout_session(request, purchase):
     purchase.provider_id = checkout_session.id
     purchase.status = 'pending'
     purchase.save(update_fields=['provider', 'provider_id', 'status'])
+    PaymentTransaction.objects.update_or_create(
+        purchase=purchase,
+        provider='stripe',
+        provider_payment_id=checkout_session.id,
+        defaults={
+            'user': purchase.user,
+            'amount': purchase.amount,
+            'currency': purchase.currency,
+            'status': 'pending',
+            'metadata': {
+                'source': 'stripe_checkout_session',
+                'checkout_session_id': checkout_session.id,
+            },
+        },
+    )
     return checkout_session
+
+
+def _transaction_status_for_purchase_status(status):
+    mapping = {
+        'pending': 'pending',
+        'paid': 'captured',
+        'failed': 'failed',
+        'refunded': 'refunded',
+    }
+    return mapping.get(status, 'pending')
+
+
+def _log_payment_transaction(purchase, provider='', provider_id='', status='pending', metadata=None):
+    """
+    Ensure every payment state change is persisted for reporting/reconciliation.
+    """
+    provider_name = (provider or purchase.provider or 'manual').strip() or 'manual'
+    provider_payment_id = (provider_id or purchase.provider_id or '').strip()
+    transaction_status = _transaction_status_for_purchase_status(status)
+    transaction_metadata = metadata or {}
+
+    txn = None
+    if provider_payment_id:
+        txn = PaymentTransaction.objects.filter(
+            provider=provider_name,
+            provider_payment_id=provider_payment_id,
+        ).order_by('-created_at').first()
+    if not txn:
+        txn = PaymentTransaction.objects.filter(
+            purchase=purchase,
+            provider=provider_name,
+        ).order_by('-created_at').first()
+    if not txn:
+        txn = PaymentTransaction.objects.filter(
+            purchase=purchase,
+        ).order_by('-created_at').first()
+
+    if txn:
+        merged_metadata = dict(txn.metadata or {})
+        merged_metadata.update(transaction_metadata)
+        if provider_payment_id and txn.provider_payment_id != provider_payment_id:
+            txn.provider_payment_id = provider_payment_id
+        txn.provider = provider_name
+        txn.status = transaction_status
+        txn.amount = purchase.amount
+        txn.currency = purchase.currency
+        txn.user = purchase.user
+        txn.metadata = merged_metadata
+        txn.save()
+        return txn
+
+    return PaymentTransaction.objects.create(
+        provider=provider_name,
+        provider_payment_id=provider_payment_id,
+        purchase=purchase,
+        user=purchase.user,
+        amount=purchase.amount,
+        currency=purchase.currency,
+        status=transaction_status,
+        metadata=transaction_metadata,
+    )
 
 
 def _finalize_purchase(purchase, provider='manual', provider_id='', status='paid'):
@@ -3986,6 +4299,16 @@ def _finalize_purchase(purchase, provider='manual', provider_id='', status='paid
     if provider_id:
         purchase.provider_id = provider_id
     purchase.status = status
+    _log_payment_transaction(
+        purchase=purchase,
+        provider=purchase.provider,
+        provider_id=purchase.provider_id,
+        status=status,
+        metadata={
+            'source': 'purchase_finalize',
+            'finalized_at': timezone.now().isoformat(),
+        },
+    )
 
     if status == 'paid':
         purchase.paid_at = timezone.now()
@@ -4004,16 +4327,18 @@ def _finalize_purchase(purchase, provider='manual', provider_id='', status='paid
 
         try:
             gift = GiftPurchase.objects.get(course_purchase=purchase)
-            from .utils.email import send_gift_email
+            from .utils.email import send_gift_email, send_gift_purchaser_confirmation_email
             email_result = send_gift_email(gift)
 
             if email_result['success']:
                 gift.status = 'sent'
                 gift.sent_at = timezone.now()
                 gift.save()
+                purchaser_email_result = send_gift_purchaser_confirmation_email(gift)
                 return {
                     'success': True,
-                    'message': 'Payment confirmed and gift email sent',
+                    'message': 'Payment confirmed and gift emails sent',
+                    'warning': '' if purchaser_email_result.get('success') else purchaser_email_result.get('message', ''),
                     'purchase_id': purchase.id,
                 }
             return {
@@ -4161,6 +4486,16 @@ def initiate_purchase(request, course_slug):
         purchase.provider = 'simulated'
         purchase.provider_id = f'sim_{purchase.id}_{int(timezone.now().timestamp())}'
         purchase.save()
+        _log_payment_transaction(
+            purchase=purchase,
+            provider='simulated',
+            provider_id=purchase.provider_id,
+            status='paid',
+            metadata={
+                'source': 'simulate_payment',
+                'simulated': True,
+            },
+        )
         issue_invoice_for_purchase(purchase)
         
         # Grant course access immediately

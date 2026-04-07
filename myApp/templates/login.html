@@ -641,7 +641,7 @@
 
         <!-- Secondary -->
         <div class="secondary-actions">
-          <a href="{% url 'register' %}" class="btn-register">
+          <a href="{% if request.GET.next %}{% url 'register' %}?next={{ request.GET.next|urlencode }}{% else %}{% url 'register' %}{% endif %}" class="btn-register">
             <i class="fas fa-user-plus"></i>
             Create an account
             <i class="fas fa-arrow-right arrow"></i>

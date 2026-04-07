@@ -51,6 +51,7 @@ from .models import (
     CurrencyConfig,
     Language,
     PartnerProfile,
+    AnalyticsEvent,
 )
 from django.contrib import messages
 from django.db import models
@@ -429,8 +430,65 @@ def get_student_activity_feed(limit=20):
 def dashboard_courses(request):
     """List all courses"""
     courses = Course.objects.annotate(lesson_count=Count('lessons')).order_by('-created_at')
+    total_courses = courses.count()
+    active_courses = courses.filter(status='active').count()
+    draft_courses = courses.filter(status__in=['coming_soon', 'draft']).count()
+    enrolled_students = CourseEnrollment.objects.count()
+
+    shared_visits_qs = AnalyticsEvent.objects.filter(
+        event_name='shared_course_visit',
+        course__isnull=False,
+    )
+    shared_regs_qs = AnalyticsEvent.objects.filter(
+        event_name='shared_course_registration',
+        course__isnull=False,
+    )
+    shared_link_visits = shared_visits_qs.count()
+    shared_link_registrations = shared_regs_qs.count()
+    shared_link_conversion_rate = (
+        round((shared_link_registrations / shared_link_visits) * 100, 2)
+        if shared_link_visits
+        else 0
+    )
+
+    visits_by_course = {
+        row['course_id']: row
+        for row in shared_visits_qs.values(
+            'course_id',
+            'course__name',
+            'course__slug',
+        ).annotate(visits=Count('id'))
+    }
+    regs_by_course = {
+        row['course_id']: row['registrations']
+        for row in shared_regs_qs.values('course_id').annotate(registrations=Count('id'))
+    }
+    shared_link_course_rows = []
+    for course_id, visit_row in visits_by_course.items():
+        visits = visit_row['visits']
+        registrations = regs_by_course.get(course_id, 0)
+        conversion = round((registrations / visits) * 100, 2) if visits else 0
+        shared_link_course_rows.append({
+            'course_id': course_id,
+            'course_name': visit_row['course__name'],
+            'course_slug': visit_row['course__slug'],
+            'visits': visits,
+            'registrations': registrations,
+            'conversion': conversion,
+        })
+    shared_link_course_rows.sort(key=lambda row: row['visits'], reverse=True)
+    shared_link_course_rows = shared_link_course_rows[:8]
+
     return render(request, 'dashboard/courses.html', {
         'courses': courses,
+        'total_courses': total_courses,
+        'active_courses': active_courses,
+        'draft_courses': draft_courses,
+        'enrolled_students': enrolled_students,
+        'shared_link_visits': shared_link_visits,
+        'shared_link_registrations': shared_link_registrations,
+        'shared_link_conversion_rate': shared_link_conversion_rate,
+        'shared_link_course_rows': shared_link_course_rows,
     })
 
 

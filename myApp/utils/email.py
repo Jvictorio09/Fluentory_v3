@@ -7,6 +7,63 @@ from django.conf import settings
 from django.urls import reverse
 
 
+def _resend_emails_endpoint():
+    base_url = os.getenv('RESEND_BASE_URL', 'https://api.resend.com').rstrip('/')
+    return f'{base_url}/emails'
+
+
+def _send_resend_email(to_emails, subject, html_content):
+    resend_api_key = os.getenv('RESEND_API_KEY')
+    resend_from = os.getenv('RESEND_FROM', 'noreply@example.com')
+    resend_reply_to = os.getenv('RESEND_REPLY_TO', resend_from)
+
+    if not resend_api_key:
+        return {
+            'success': False,
+            'message': 'RESEND_API_KEY not configured'
+        }
+
+    try:
+        response = requests.post(
+            _resend_emails_endpoint(),
+            headers={
+                'Authorization': f'Bearer {resend_api_key}',
+                'Content-Type': 'application/json',
+            },
+            json={
+                'from': resend_from,
+                'to': to_emails,
+                'reply_to': resend_reply_to,
+                'subject': subject,
+                'html': html_content,
+            },
+            timeout=10
+        )
+
+        if response.status_code == 200:
+            return {
+                'success': True,
+                'message': 'Email sent successfully',
+                'email_id': response.json().get('id')
+            }
+        return {
+            'success': False,
+            'message': f'Resend API error: {response.status_code} - {response.text}'
+        }
+    except Exception as e:
+        return {
+            'success': False,
+            'message': f'Error sending email: {str(e)}'
+        }
+
+
+def _get_public_domain():
+    domain = settings.ALLOWED_HOSTS[0] if settings.ALLOWED_HOSTS else 'localhost:8000'
+    if not domain.startswith('http'):
+        domain = f"https://{domain}" if not settings.DEBUG else f"http://{domain}"
+    return domain
+
+
 def send_gift_email(gift_purchase):
     """
     Send gift notification email using Resend API
@@ -17,21 +74,8 @@ def send_gift_email(gift_purchase):
     Returns:
         dict with 'success' (bool) and 'message' (str)
     """
-    resend_api_key = os.getenv('RESEND_API_KEY')
-    resend_from = os.getenv('RESEND_FROM', 'noreply@example.com')
-    resend_reply_to = os.getenv('RESEND_REPLY_TO', resend_from)
-    
-    if not resend_api_key:
-        return {
-            'success': False,
-            'message': 'RESEND_API_KEY not configured'
-        }
-    
     # Build redemption URL
-    domain = settings.ALLOWED_HOSTS[0] if settings.ALLOWED_HOSTS else 'localhost:8000'
-    if not domain.startswith('http'):
-        domain = f"https://{domain}" if not settings.DEBUG else f"http://{domain}"
-    
+    domain = _get_public_domain()
     redemption_url = f"{domain}/gift/redeem/{gift_purchase.gift_token}/"
     
     # Email content
@@ -92,40 +136,68 @@ def send_gift_email(gift_purchase):
     </html>
     """
     
-    # Send via Resend API
-    try:
-        response = requests.post(
-            'https://api.resend.com/emails',
-            headers={
-                'Authorization': f'Bearer {resend_api_key}',
-                'Content-Type': 'application/json',
-            },
-            json={
-                'from': resend_from,
-                'to': [gift_purchase.recipient_email],
-                'reply_to': resend_reply_to,
-                'subject': subject,
-                'html': html_content,
-            },
-            timeout=10
-        )
-        
-        if response.status_code == 200:
-            return {
-                'success': True,
-                'message': 'Gift email sent successfully',
-                'email_id': response.json().get('id')
-            }
-        else:
-            return {
-                'success': False,
-                'message': f'Resend API error: {response.status_code} - {response.text}'
-            }
-    except Exception as e:
+    result = _send_resend_email([gift_purchase.recipient_email], subject, html_content)
+    if result.get('success'):
+        result['message'] = 'Gift email sent successfully'
+    return result
+
+
+def send_gift_purchaser_confirmation_email(gift_purchase):
+    """
+    Send purchase confirmation email to the user who gifted the course.
+    """
+    domain = _get_public_domain()
+    purchaser_name = gift_purchase.purchaser.get_full_name() or gift_purchase.purchaser.username
+    recipient_name = gift_purchase.recipient_name or gift_purchase.recipient_email
+    course_name = gift_purchase.course.name
+    status_text = gift_purchase.get_status_display()
+    manage_url = f"{domain}{reverse('gift_success', args=[gift_purchase.gift_token])}"
+
+    subject = f"Thank you! Your gift order for {course_name} is confirmed"
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ background: linear-gradient(135deg, #52A8B5 0%, #4492B3 100%); color: white; padding: 24px; text-align: center; border-radius: 10px 10px 0 0; }}
+        .content {{ background: #f9f9f9; padding: 24px; border-radius: 0 0 10px 10px; }}
+        .button {{ display: inline-block; background: #52A8B5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; }}
+        .box {{ background: white; border-left: 4px solid #52A8B5; padding: 16px; margin: 18px 0; }}
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header"><h1>Thank You for Your Gift Purchase</h1></div>
+        <div class="content">
+          <p>Hi {purchaser_name},</p>
+          <p>Your gift order is confirmed.</p>
+          <div class="box">
+            <p><strong>Course:</strong> {course_name}</p>
+            <p><strong>Recipient:</strong> {recipient_name} ({gift_purchase.recipient_email})</p>
+            <p><strong>Status:</strong> {status_text}</p>
+          </div>
+          <p>You can view this gift anytime from the page below:</p>
+          <p><a href="{manage_url}" class="button">Open Gift Thank You Page</a></p>
+        </div>
+      </div>
+    </body>
+    </html>
+    """
+
+    purchaser_email = (gift_purchase.purchaser.email or '').strip()
+    if not purchaser_email:
         return {
             'success': False,
-            'message': f'Error sending email: {str(e)}'
+            'message': 'Purchaser email is missing'
         }
+
+    result = _send_resend_email([purchaser_email], subject, html_content)
+    if result.get('success'):
+        result['message'] = 'Gift purchaser confirmation email sent successfully'
+    return result
 
 
 def send_teacher_request_email(teacher_request):
