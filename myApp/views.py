@@ -18,6 +18,7 @@ import re
 import requests
 import os
 import threading
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 try:
     import stripe
     STRIPE_AVAILABLE = True
@@ -52,6 +53,7 @@ from django.utils import timezone
 from .utils.transcription import transcribe_video
 from .utils.access import has_course_access, grant_course_access, check_course_prerequisites
 from .utils.teacher import get_course_instructors, require_course_teacher
+from .utils.seo import build_course_json_ld, build_course_seo_metadata
 from .services.invoicing import issue_invoice_for_purchase
 from .services.notifications import queue_notification
 from .services.automation import queue_sequence
@@ -574,6 +576,11 @@ def register_view(request):
                 # Automatically log in the user
                 login(request, user)
                 messages.success(request, 'Account created successfully! Welcome to Fluentory.')
+                queue_sequence(
+                    trigger_key='user.registered',
+                    user=user,
+                    payload={'user_id': user.id},
+                )
 
                 shared_attribution = request.session.get('shared_course_attribution') or {}
                 shared_course_id = shared_attribution.get('course_id')
@@ -804,6 +811,25 @@ def courses(request):
     })
 
 
+def _apply_preview_time_limit(embed_url, video_type, limit_seconds=30):
+    """
+    Enforce 30s preview where platform supports URL-level clipping.
+    """
+    if not embed_url:
+        return embed_url
+    if video_type != 'youtube':
+        return embed_url
+
+    parsed = urlparse(embed_url)
+    query = parse_qs(parsed.query)
+    query['start'] = ['0']
+    query['end'] = [str(limit_seconds)]
+    query['rel'] = ['0']
+    query['modestbranding'] = ['1']
+    new_query = urlencode(query, doseq=True)
+    return urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
+
+
 def course_detail(request, course_slug):
     """Course detail page - premium sales page"""
     course = get_object_or_404(
@@ -854,6 +880,15 @@ def course_detail(request, course_slug):
                 'query': request.GET.dict(),
             },
         )
+    viewed_session_key = f"course_view_seq_{course.id}"
+    if not request.session.get(viewed_session_key):
+        queue_sequence(
+            trigger_key='course.viewed',
+            user=request.user if request.user.is_authenticated else None,
+            payload={'course_id': course.id, 'course_slug': course.slug},
+        )
+        request.session[viewed_session_key] = True
+        request.session.modified = True
     user_has_access = False
     first_lesson = course.lessons.order_by('order', 'id').first()
     course_instructors = get_course_instructors(course)
@@ -979,6 +1014,7 @@ def course_detail(request, course_slug):
         if not preview_video_embed_url:
             preview_video_embed_url = url
             video_type = 'direct'
+        preview_video_embed_url = _apply_preview_time_limit(preview_video_embed_url, video_type, limit_seconds=30)
 
     # Live courses: per-session rows for template (join links only for enrolled students)
     live_sessions_with_join = []
@@ -999,6 +1035,10 @@ def course_detail(request, course_slug):
                 'user_booking': booking_map.get(s.id),
             })
     
+    canonical_url = request.build_absolute_uri(request.path)
+    seo = build_course_seo_metadata(course, canonical_url=canonical_url, site_name='Swedish Wealth Institute')
+    seo_json_ld = build_course_json_ld(course, canonical_url=canonical_url, provider_name='Swedish Wealth Institute')
+
     # Show premium sales page for non-authenticated or users without access
     # Include purchase information if course is paid
     return render(request, 'course_detail.html', {
@@ -1015,6 +1055,14 @@ def course_detail(request, course_slug):
         'is_cloudinary': video_type == 'cloudinary',
         'is_direct': video_type == 'direct',
         'live_sessions_with_join': live_sessions_with_join,
+        'preview_limit_seconds': 30,
+        'seo_title': seo['title'],
+        'seo_description': seo['description'],
+        'seo_canonical_url': seo['canonical_url'],
+        'seo_image_url': seo['image_url'],
+        'seo_type': seo['type'],
+        'seo_site_name': seo['site_name'],
+        'seo_json_ld': seo_json_ld,
     })
 
 
@@ -1259,6 +1307,27 @@ def lesson_quiz_view(request, course_slug, lesson_slug):
             quiz=quiz,
             score=score,
             passed=passed,
+        )
+        queue_sequence(
+            trigger_key='quiz.submitted',
+            user=request.user,
+            payload={
+                'quiz_id': quiz.id,
+                'lesson_id': lesson.id,
+                'course_id': course.id,
+                'score': round(score, 1),
+                'passed': passed,
+            },
+        )
+        queue_sequence(
+            trigger_key='quiz.passed' if passed else 'quiz.failed',
+            user=request.user,
+            payload={
+                'quiz_id': quiz.id,
+                'lesson_id': lesson.id,
+                'course_id': course.id,
+                'score': round(score, 1),
+            },
         )
 
         cert_is_last = False

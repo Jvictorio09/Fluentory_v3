@@ -159,7 +159,7 @@
             {% elif is_vimeo or is_google_drive %}
             <iframe src="{{ preview_video_embed_url }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             {% elif is_cloudinary or is_direct %}
-            <video controls>
+            <video controls class="js-preview-video">
               <source src="{{ preview_video_embed_url }}" type="video/mp4">
               Your browser does not support the video tag.
             </video>
@@ -450,6 +450,21 @@ document.getElementById('purchase-btn').addEventListener('click', function() {
         alert('An error occurred. Please try again.');
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i> Enrol in this course';
+    });
+});
+</script>
+{% endif %}
+{% if preview_limit_seconds %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const limit = Number("{{ preview_limit_seconds|default:'30' }}");
+    document.querySelectorAll('.js-preview-video').forEach(function (videoEl) {
+        videoEl.addEventListener('timeupdate', function () {
+            if (videoEl.currentTime >= limit) {
+                videoEl.pause();
+                videoEl.currentTime = 0;
+            }
+        });
     });
 });
 </script>
