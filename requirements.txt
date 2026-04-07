@@ -87,3 +87,4 @@ pytesseract==0.3.13
 
 django-countries==7.6.1
 reportlab==4.0.9
+stripe==12.5.1
