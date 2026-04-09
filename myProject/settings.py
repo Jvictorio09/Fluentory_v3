@@ -196,4 +196,4 @@ PAYPAL_MODE = os.getenv('PAYPAL_MODE', 'sandbox')
 SIMULATE_PAYMENT = os.getenv('SIMULATE_PAYMENT', 'true').strip().lower() in ('1', 'true', 'yes', 'on')
 
 # Multi-currency defaults
-SUPPORTED_CURRENCIES = os.getenv('SUPPORTED_CURRENCIES', 'USD,EUR,SAR,AED,JOD,GBP').split(',')
+SUPPORTED_CURRENCIES = os.getenv('SUPPORTED_CURRENCIES', 'USD,EUR,GBP,AED,SAR,JOD,PHP,QAR,KWD,OMR').split(',')

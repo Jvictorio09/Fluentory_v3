@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static currency_tags %}
 
 {% block title %}{{ course.name }} - Swedish Wealth Institute{% endblock %}
 
@@ -329,7 +329,8 @@
           <div class="sidebar-top">
             {% if show_purchase %}
             <div class="price-label">One-time payment</div>
-            <div class="price">{{ course.price|floatformat:2 }} {{ course.currency }}</div>
+            {% local_money course.price course.currency as localized_price %}
+            <div class="price">{{ localized_price }}</div>
             <div class="price-sub">
               {% if course.delivery_type == 'live' %}
               Lifetime access to live sessions, materials, and any recordings your instructor provides.

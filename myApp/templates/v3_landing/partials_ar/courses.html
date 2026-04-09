@@ -1,3 +1,4 @@
+{% load currency_tags %}
 <!-- COURSES -->
 <section class="section" id="courses" style="background:#fff">
   <div class="si">
@@ -48,7 +49,8 @@
           <div class="cc-foot">
             <div class="cc-price">
               {% if course.is_paid and course.price %}
-              {{ course.price|floatformat:0 }} {{ course.currency }}
+              {% local_money course.price course.currency as localized_price %}
+              {{ localized_price }}
               {% else %}
               مجاني
               {% endif %}
