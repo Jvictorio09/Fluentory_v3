@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+{% include 'v3_landing/partials_ar/head.html' %}
+<body class="rtl-landing">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
+  .rtl-landing { direction: rtl; text-align: right; font-family: 'Cairo', 'Plus Jakarta Sans', sans-serif; }
+  .rtl-landing .nav-inner { gap: 12px; }
+  .rtl-landing .nav-links { gap: 20px; }
+  .rtl-landing .nav-links a { white-space: nowrap; font-size: 14px; line-height: 1.2; }
+  .rtl-landing .lang-switch { flex-shrink: 0; padding: 6px 9px; }
+  .rtl-landing .nav-actions { gap: 8px; flex-shrink: 0; }
+  .rtl-landing .btn-ghost { padding: 8px 12px; font-size: 14px; }
+  .rtl-landing .btn-teal { padding: 10px 16px; font-size: 14px; }
+  .rtl-landing .hero-sub, .rtl-landing .sdesc, .rtl-landing .fi-btn { text-align: right; }
+  .rtl-landing .stag::before { margin-left: 8px; margin-right: 0; }
+  .rtl-landing .hero-live { text-align: right; }
+  .rtl-landing .hero-stats .stat-item { border-right: none; border-left: 1px solid rgba(255,255,255,0.14); padding: 0 22px; }
+  .rtl-landing .hero-stats .stat-item:first-child { padding-right: 0; }
+  .rtl-landing .hero-stats .stat-item:last-child { border-left: none; }
+  .rtl-landing .prob:hover { transform: translateX(-4px); }
+  .rtl-landing .fbot { direction: rtl; }
+  @media (max-width: 1150px) {
+    .rtl-landing .nav-links { gap: 14px; }
+    .rtl-landing .nav-links a { font-size: 13px; }
+    .rtl-landing .btn-ghost, .rtl-landing .btn-teal { font-size: 13px; }
+  }
+</style>
+<script>
+  document.title = 'فلونتوري - تحدث بثقة وانطلق في أي مكان';
+</script>
+{% include 'v3_landing/partials_ar/nav.html' %}
+{% include 'v3_landing/partials_ar/hero.html' %}
+{% include 'v3_landing/partials_ar/marquee.html' %}
+{% include 'v3_landing/partials_ar/stats_bar.html' %}
+{% include 'v3_landing/partials_ar/why.html' %}
+{% include 'v3_landing/partials_ar/how_it_works.html' %}
+{% include 'v3_landing/partials_ar/before_after.html' %}
+{% include 'v3_landing/partials_ar/courses.html' %}
+{% include 'v3_landing/partials_ar/gift.html' %}
+{% include 'v3_landing/partials_ar/reviews.html' %}
+{% include 'v3_landing/partials_ar/faq.html' %}
+{% include 'v3_landing/partials_ar/cta_final.html' %}
+{% include 'v3_landing/partials_ar/teach.html' %}
+{% include 'v3_landing/partials_ar/footer.html' %}
+{% include 'v3_landing/partials/scripts.html' %}
+</body>
+</html>

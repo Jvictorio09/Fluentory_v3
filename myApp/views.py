@@ -46,6 +46,8 @@ from .models import (
     VideoAccessToken,
     CourseBadge,
     AnalyticsEvent,
+    PartnerProfile,
+    PartnerCourseSale,
 )
 from django.db.models import Avg, Count, Max, Prefetch, Q
 from django.db import models
@@ -58,6 +60,94 @@ from .services.invoicing import issue_invoice_for_purchase
 from .services.notifications import queue_notification
 from .services.automation import queue_sequence
 from .services.payments import create_checkout_for_purchase
+
+
+def _resolve_partner_profile_from_query(request):
+    """Resolve partner profile from query params (id or username)."""
+    ref = (
+        request.GET.get('partner')
+        or request.GET.get('partner_id')
+        or request.GET.get('ref')
+        or ''
+    ).strip()
+    if not ref:
+        return None
+
+    qs = PartnerProfile.objects.filter(is_active=True).select_related('user')
+    if ref.isdigit():
+        return qs.filter(id=int(ref)).first()
+    return qs.filter(user__username__iexact=ref).first()
+
+
+def _capture_partner_attribution(request):
+    """Persist partner attribution in session if present in query."""
+    profile = _resolve_partner_profile_from_query(request)
+    if not profile:
+        return None
+
+    request.session['partner_attribution'] = {
+        'partner_profile_id': profile.id,
+        'partner_name': profile.partner_name,
+        'region': profile.region or '',
+        'captured_at': timezone.now().isoformat(),
+    }
+    request.session.modified = True
+    return profile
+
+
+def _partner_profile_from_session(request):
+    info = request.session.get('partner_attribution') or {}
+    partner_id = info.get('partner_profile_id')
+    if not partner_id:
+        return None
+    return PartnerProfile.objects.filter(id=partner_id, is_active=True).first()
+
+
+def _append_partner_note(existing_notes, profile):
+    """Add deterministic partner attribution token into purchase notes."""
+    note = existing_notes or ''
+    token = f'partner_profile_id:{profile.id}'
+    if token in note:
+        return note
+    suffix = f'{token};partner_region:{profile.region or ""};partner_name:{profile.partner_name}'
+    return f'{note}\n{suffix}'.strip() if note else suffix
+
+
+def _extract_partner_id_from_notes(notes):
+    if not notes:
+        return None
+    match = re.search(r'partner_profile_id:(\d+)', notes)
+    if not match:
+        return None
+    try:
+        return int(match.group(1))
+    except (TypeError, ValueError):
+        return None
+
+
+def _ensure_partner_sale_for_purchase(purchase):
+    """Create PartnerCourseSale from purchase notes if attributed and paid."""
+    if purchase.status != 'paid':
+        return None
+    if PartnerCourseSale.objects.filter(purchase=purchase).exists():
+        return PartnerCourseSale.objects.filter(purchase=purchase).first()
+
+    partner_id = _extract_partner_id_from_notes(purchase.notes or '')
+    if not partner_id:
+        return None
+    profile = PartnerProfile.objects.filter(id=partner_id, is_active=True).first()
+    if not profile:
+        return None
+
+    commission_rate = Decimal(str(profile.commission_rate or 0))
+    amount = Decimal(str(purchase.amount or 0))
+    commission = (amount * commission_rate / Decimal('100')).quantize(Decimal('0.01'))
+    return PartnerCourseSale.objects.create(
+        partner=profile,
+        purchase=purchase,
+        commission_amount=commission,
+        region=profile.region or '',
+    )
 
 
 def _lessons_list_redirect(request, course_slug):
@@ -81,11 +171,35 @@ def landing(request):
         'courses': courses,
     })
 
+
+def _get_v3_landing_courses(limit=3):
+    """Return up to `limit` public courses chosen for V3 landing."""
+    base_qs = Course.objects.filter(status='active', visibility='public').exclude(course_type='tawjehi')
+    selected = list(
+        base_qs.filter(show_on_v3_landing=True)
+        .order_by('v3_landing_order', '-created_at')[:limit]
+    )
+
+    if len(selected) < limit:
+        selected_ids = [course.id for course in selected]
+        fallback = base_qs.exclude(id__in=selected_ids).order_by('-created_at')[: limit - len(selected)]
+        selected.extend(list(fallback))
+
+    return selected
+
+
 def v3_landing(request):
     """V3 Premium landing page view"""
-    # Get featured courses for the landing page (exclude Tawjehi courses)
-    courses = Course.objects.filter(status='active', visibility='public').exclude(course_type='tawjehi')[:6]
+    courses = _get_v3_landing_courses(limit=3)
     return render(request, 'v3_landing/index.html', {
+        'courses': courses,
+    })
+
+
+def v3_landing_ar(request):
+    """V3 Arabic landing page view."""
+    courses = _get_v3_landing_courses(limit=3)
+    return render(request, 'v3_landing/index_ar.html', {
         'courses': courses,
     })
 
@@ -842,6 +956,23 @@ def course_detail(request, course_slug):
         ),
         slug=course_slug,
     )
+    partner_profile = _capture_partner_attribution(request)
+    if partner_profile and not request.session.session_key:
+        request.session.save()
+    if partner_profile:
+        AnalyticsEvent.objects.create(
+            event_name='partner_ref_visit',
+            user=request.user if request.user.is_authenticated else None,
+            session_key=request.session.session_key or '',
+            course=course,
+            campaign=request.GET.get('utm_campaign', '') or '',
+            metadata={
+                'partner_profile_id': partner_profile.id,
+                'partner_name': partner_profile.partner_name,
+                'path': request.path,
+                'query': request.GET.dict(),
+            },
+        )
     is_shared_link = (
         request.GET.get('shared') == '1'
         or (request.GET.get('utm_source') or '').strip().lower() == 'course_share'
@@ -4429,6 +4560,8 @@ def _finalize_purchase(purchase, provider='manual', provider_id='', status='paid
                 'purchase_id': purchase.id,
                 'access_id': access.id,
             }
+        finally:
+            _ensure_partner_sale_for_purchase(purchase)
 
     purchase.save()
     return {
@@ -4491,6 +4624,12 @@ def initiate_purchase(request, course_slug):
                 'error': 'You already have a paid purchase for this course'
             }, status=400)
         else:
+            partner_profile = _partner_profile_from_session(request)
+            if partner_profile:
+                updated_notes = _append_partner_note(existing_purchase.notes, partner_profile)
+                if updated_notes != (existing_purchase.notes or ''):
+                    existing_purchase.notes = updated_notes
+                    existing_purchase.save(update_fields=['notes'])
             if selected_provider == 'paypal' and paypal_enabled:
                 idempotency_key = request.headers.get('X-Idempotency-Key', '')
                 result, _txn = create_checkout_for_purchase(
@@ -4538,6 +4677,10 @@ def initiate_purchase(request, course_slug):
             })
     
     # Create new pending purchase
+    partner_profile = _partner_profile_from_session(request)
+    purchase_notes = ''
+    if partner_profile:
+        purchase_notes = _append_partner_note('', partner_profile)
     purchase = CoursePurchase.objects.create(
         user=user,
         course=course,
@@ -4546,6 +4689,7 @@ def initiate_purchase(request, course_slug):
         status='pending',
         provider='',  # Will be set by webhook
         provider_id='',  # Will be set by webhook
+        notes=purchase_notes,
     )
     
     if simulate_payment:
@@ -4566,6 +4710,7 @@ def initiate_purchase(request, course_slug):
             },
         )
         issue_invoice_for_purchase(purchase)
+        _ensure_partner_sale_for_purchase(purchase)
         
         # Grant course access immediately
         from .utils.access import grant_purchase_access

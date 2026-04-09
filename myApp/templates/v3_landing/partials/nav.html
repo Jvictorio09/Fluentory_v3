@@ -17,6 +17,11 @@
       <a href="#faq">FAQ</a>
       <a href="mailto:Fluentory.me@gmail.com">Contact</a>
     </div>
+    <div class="lang-switch" aria-label="Language switch">
+      <a href="{% url 'v3_landing' %}" class="lang-link is-active">EN</a>
+      <span>|</span>
+      <a href="{% url 'v3_landing_ar' %}" class="lang-link">AR</a>
+    </div>
     <div class="nav-actions">
       <a href="{% url 'login' %}" class="btn-ghost">Login</a>
       <a href="{% url 'register' %}" class="btn-teal"><i class="fa-solid fa-play" style="font-size:10px"></i> Free Demo</a>

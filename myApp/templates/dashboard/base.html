@@ -103,6 +103,10 @@
                     <i class="fas fa-chalkboard-teacher w-5"></i>
                     <span>Teachers</span>
                 </a>
+                <a href="{% url 'teacher_live_sessions' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'teacher_live_session' in request.resolver_match.url_name or request.resolver_match.url_name == 'teacher_live_sessions' %}bg-teal-soft/20 text-black border-l-2 border-teal-soft{% else %}text-gray-700 hover:bg-teal-soft/10 hover:text-black{% endif %}">
+                    <i class="fas fa-calendar-video w-5"></i>
+                    <span>Live Sessions</span>
+                </a>
                 
                 <a href="{% url 'dashboard_site_settings' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if request.resolver_match.url_name == 'dashboard_site_settings' %}bg-blue-soft/20 text-blue-soft border-l-2 border-blue-soft{% else %}text-gray-700 hover:bg-blue-soft/10 hover:text-blue-soft{% endif %}">
                     <i class="fas fa-sliders-h w-5"></i>

@@ -1,0 +1,32 @@
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-inner">
+    <a href="{% url 'v3_landing_ar' %}" class="nav-logo">
+      <img
+        src="https://res.cloudinary.com/dwooadxdj/image/upload/v1771294639/copy_of_copy_of_fluentory_-_branding-05_ijgdpz_a6f568_7b4fc3.png"
+        alt="شعار فلونتوري"
+        style="height: 34px; width: auto; object-fit: contain;"
+      >
+    </a>
+    <div class="nav-links">
+      <a href="#hiw">كيف تعمل المنصة</a>
+      <a href="#courses">الدورات</a>
+      <a href="{% url 'tawjehi_page' %}">التوجيهي</a>
+      <a href="#stories">قصص الطلاب</a>
+      <a href="#faq">الاسئلة الشائعة</a>
+      <a href="mailto:Fluentory.me@gmail.com">تواصل معنا</a>
+    </div>
+    <div class="lang-switch" aria-label="Language switch">
+      <a href="{% url 'v3_landing_ar' %}" class="lang-link is-active">AR</a>
+      <span>|</span>
+      <a href="{% url 'v3_landing' %}" class="lang-link">EN</a>
+    </div>
+    <div class="nav-actions">
+      <a href="{% url 'login' %}" class="btn-ghost">تسجيل الدخول</a>
+      <a href="{% url 'register' %}" class="btn-teal"><i class="fa-solid fa-play" style="font-size:10px"></i> تجربة مجانية</a>
+    </div>
+    <div class="mobile-tog" onclick="">
+      <i class="fa-solid fa-bars" style="color:var(--navy)"></i>
+    </div>
+  </div>
+</nav>

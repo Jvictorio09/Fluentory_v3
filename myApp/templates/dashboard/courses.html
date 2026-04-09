@@ -513,6 +513,9 @@
           {% else %}
             <span class="mc-tag"><i class="fas fa-film"></i> Pre-recorded</span>
           {% endif %}
+          {% if course.show_on_v3_landing %}
+            <span class="mc-tag"><i class="fas fa-star"></i> V3 Landing #{{ course.v3_landing_order }}</span>
+          {% endif %}
           {% if course.is_paid %}
             <span class="mc-tag mc-tag-price">{{ course.price|floatformat:2 }} {{ course.currency }}</span>
           {% else %}

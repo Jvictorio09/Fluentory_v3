@@ -107,10 +107,9 @@ def teacher_required(view_func):
         # Check if user has approved TeacherRequest or teaches courses
         # TeacherRequest and Course are already imported at the top
         
-        # Superusers are admins, not teachers
-        if user.is_superuser:
-            messages.error(request, 'You must be a teacher to access this page.')
-            return redirect('dashboard_home')
+        # Admin/staff users are allowed to access teacher tooling.
+        if user.is_superuser or user.is_staff:
+            return view_func(request, *args, **kwargs)
         
         # Refresh user from database to ensure we have latest data
         try:

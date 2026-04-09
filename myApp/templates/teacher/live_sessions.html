@@ -6,8 +6,21 @@
 {% block content %}
 <div class="space-y-6">
     <section class="rounded-2xl border border-teal-soft/20 bg-gradient-to-r from-[#ffffff] to-[#f8fafc] p-6 sm:p-8 shadow-sm">
-        <h2 class="text-2xl sm:text-3xl font-bold text-black">Live Sessions</h2>
-        <p class="mt-2 text-sm text-gray-600">Manage schedule, attendance, and session operations.</p>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+                <h2 class="text-2xl sm:text-3xl font-bold text-black">Live Sessions</h2>
+                <p class="mt-2 text-sm text-gray-600">Manage schedule, attendance, and session operations.</p>
+            </div>
+            {% if courses %}
+            <a href="{% url 'teacher_live_session_create' courses.0.slug %}" class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-teal-soft text-white font-semibold hover:bg-teal-soft/90 transition-all whitespace-nowrap">
+                <i class="fas fa-plus mr-2"></i>Create Live Session
+            </a>
+            {% else %}
+            <a href="{% url 'teacher_add_course' %}" class="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-teal-soft text-white font-semibold hover:bg-teal-soft/90 transition-all whitespace-nowrap">
+                <i class="fas fa-plus mr-2"></i>Create Course First
+            </a>
+            {% endif %}
+        </div>
     </section>
 
     <section class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-sm">

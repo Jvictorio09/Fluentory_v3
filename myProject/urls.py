@@ -12,6 +12,7 @@ urlpatterns = [
     # Public-facing URLs
     path('v1/', views.landing, name='landing'),
     path('', views.v3_landing, name='v3_landing'),
+    path('ar/', views.v3_landing_ar, name='v3_landing_ar'),
     path('home/', views.home, name='home'),
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),

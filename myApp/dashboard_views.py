@@ -528,6 +528,12 @@ def dashboard_course_detail(request, course_slug):
         price = request.POST.get('price', '') or None
         course.price = float(price) if price else None
         course.currency = request.POST.get('currency', course.currency)
+        course.show_on_v3_landing = request.POST.get('show_on_v3_landing') == 'on'
+        v3_landing_order_raw = request.POST.get('v3_landing_order', '').strip()
+        try:
+            course.v3_landing_order = int(v3_landing_order_raw) if v3_landing_order_raw else 100
+        except ValueError:
+            course.v3_landing_order = 100
         
         course.save()
         
@@ -743,6 +749,12 @@ def dashboard_add_course(request):
         is_paid = request.POST.get('is_paid') == 'on'
         price = request.POST.get('price', '') or None
         currency = request.POST.get('currency', 'USD')
+        show_on_v3_landing = request.POST.get('show_on_v3_landing') == 'on'
+        v3_landing_order_raw = request.POST.get('v3_landing_order', '').strip()
+        try:
+            v3_landing_order = int(v3_landing_order_raw) if v3_landing_order_raw else 100
+        except ValueError:
+            v3_landing_order = 100
         
         preview_video_url = request.POST.get('preview_video_url', '').strip()
         
@@ -758,6 +770,8 @@ def dashboard_add_course(request):
             is_paid=is_paid,
             price=float(price) if price else None,
             currency=currency,
+            show_on_v3_landing=show_on_v3_landing,
+            v3_landing_order=v3_landing_order,
             preview_video_url=preview_video_url if preview_video_url else None,
         )
         

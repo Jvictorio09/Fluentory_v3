@@ -3,10 +3,10 @@
   <div class="si">
     <div style="display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px;" class="fade">
       <div>
-        <div class="stag">Featured Courses</div>
-        <h2 class="sh" style="margin-bottom:0">Choose your path <em>to fluency</em></h2>
+        <div class="stag">الدورات المميزة</div>
+        <h2 class="sh" style="margin-bottom:0">اختر مسارك <em>نحو الطلاقة</em></h2>
       </div>
-      <a href="#" style="font-size:15px; font-weight:700; color:var(--teal); text-decoration:none;">View All Courses →</a>
+      <a href="#" style="font-size:15px; font-weight:700; color:var(--teal); text-decoration:none;">عرض كل الدورات ←</a>
     </div>
     <div class="courses-grid">
       {% for course in courses %}
@@ -18,9 +18,9 @@
           <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&q=80&auto=format&fit=crop" class="cc-img" alt="{{ course.name }}"/>
           {% endif %}
           {% if forloop.first %}
-          <span class="cc-pill cp-lime">Featured</span>
+          <span class="cc-pill cp-lime">مميز</span>
           {% elif forloop.counter == 2 %}
-          <span class="cc-pill cp-teal">Popular</span>
+          <span class="cc-pill cp-teal">الاكثر طلبا</span>
           {% else %}
           <span class="cc-pill cp-navy">{{ course.get_course_type_display }}</span>
           {% endif %}
@@ -34,15 +34,15 @@
           <div class="cc-desc">{{ course.short_description|default:course.description|truncatewords:22 }}</div>
           <div class="cc-tags">
             {% if course.access_duration_type == 'lifetime' %}
-            <span class="cc-tag"><i class="fa-solid fa-infinity"></i> Lifetime Access</span>
+            <span class="cc-tag"><i class="fa-solid fa-infinity"></i> وصول مدى الحياة</span>
             {% endif %}
             {% if course.is_accredible_certified %}
-            <span class="cc-tag"><i class="fa-solid fa-certificate"></i> Certificate</span>
+            <span class="cc-tag"><i class="fa-solid fa-certificate"></i> شهادة</span>
             {% endif %}
             {% if course.is_paid %}
-            <span class="cc-tag"><i class="fa-solid fa-lock"></i> Paid Course</span>
+            <span class="cc-tag"><i class="fa-solid fa-lock"></i> دورة مدفوعة</span>
             {% else %}
-            <span class="cc-tag"><i class="fa-solid fa-unlock"></i> Free Enrollment</span>
+            <span class="cc-tag"><i class="fa-solid fa-unlock"></i> تسجيل مجاني</span>
             {% endif %}
           </div>
           <div class="cc-foot">
@@ -50,11 +50,11 @@
               {% if course.is_paid and course.price %}
               {{ course.price|floatformat:0 }} {{ course.currency }}
               {% else %}
-              Free
+              مجاني
               {% endif %}
             </div>
             <a href="{% url 'course_detail' course.slug %}" class="cc-btn {% if not course.is_paid %}cc-btn-lime{% endif %}">
-              {% if course.is_paid %}Enroll Now{% else %}Start Free{% endif %} →
+              {% if course.is_paid %}سجل الان{% else %}ابدأ مجانا{% endif %} ←
             </a>
           </div>
         </div>
@@ -62,12 +62,11 @@
       {% empty %}
       <div class="cc fade" style="grid-column: 1 / -1;">
         <div class="cc-body">
-          <div class="cc-title">Courses coming soon</div>
-          <div class="cc-desc">We are preparing new courses right now. Check back shortly.</div>
+          <div class="cc-title">الدورات قادمة قريبا</div>
+          <div class="cc-desc">نعمل حاليا على تجهيز دورات جديدة. ارجع قريبا.</div>
         </div>
       </div>
       {% endfor %}
     </div>
   </div>
 </section>
-

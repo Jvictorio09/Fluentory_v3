@@ -58,6 +58,14 @@ class Course(models.Model):
     is_paid = models.BooleanField(default=False, help_text="Whether this course requires payment")
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Course price")
     currency = models.CharField(max_length=3, default='USD', help_text="Currency code (e.g., USD, EUR, GBP)")
+    show_on_v3_landing = models.BooleanField(
+        default=False,
+        help_text="Show this course in the V3 landing featured section.",
+    )
+    v3_landing_order = models.PositiveSmallIntegerField(
+        default=100,
+        help_text="Lower number appears first on V3 landing featured courses.",
+    )
     
     # Course Availability & Access Rules
     VISIBILITY_CHOICES = [
