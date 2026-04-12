@@ -330,7 +330,14 @@
       .section { padding:64px 20px; }
       .rev-grid { grid-template-columns:1fr; }
     }
-    .mobile-tog { display:none; cursor:pointer; }
+    .mobile-tog { display:none; cursor:pointer; background:#fff; }
+    .mobile-menu { display:none; border-top:1px solid var(--border); background:#fff; padding:12px 0; }
+    .mobile-menu.open { display:block; }
+    .mobile-menu a { display:block; padding:10px 20px; font-size:15px; font-weight:600; color:var(--text-mid); text-decoration:none; }
+    .mobile-menu a:hover { color:var(--teal); background:var(--teal-pale); }
+    .mobile-menu .mobile-lang { display:flex; gap:8px; padding:10px 20px; border-top:1px solid var(--border); margin-top:8px; }
+    .mobile-menu .mobile-lang a { padding:0; font-size:13px; font-weight:700; }
+    .mobile-menu .mobile-actions { display:flex; gap:10px; padding:12px 20px 2px; border-top:1px solid var(--border); margin-top:8px; flex-wrap:wrap; }
     @media(max-width:1000px){
       .nav-links,.nav-actions,.lang-switch { display:none; }
       .mobile-tog { display:flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:10px; border:1px solid var(--border); }

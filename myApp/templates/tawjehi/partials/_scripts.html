@@ -17,6 +17,31 @@
                 }
             });
         }
+
+        var reveals = document.querySelectorAll('.reveal');
+        if (reveals.length > 0) {
+            var observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.12 });
+            reveals.forEach(function(el) {
+                observer.observe(el);
+            });
+        }
+
+        var bars = document.querySelectorAll('.score-fill');
+        bars.forEach(function(bar) {
+            var fill = bar.style.getPropertyValue('--fill') || '80%';
+            bar.style.width = '0';
+            setTimeout(function() {
+                bar.style.width = fill;
+                bar.style.transition = 'width 1.4s ease';
+            }, 800);
+        });
     });
 </script>
 

@@ -1,7 +1,40 @@
 <script>
+  function toggleMobileMenu(event) {
+    event.preventDefault();
+    const menu = document.getElementById('mobile-menu');
+    const toggleBtn = event.currentTarget;
+    if (!menu || !toggleBtn) return;
+    const willOpen = !menu.classList.contains('open');
+    menu.classList.toggle('open', willOpen);
+    toggleBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+  }
+
   window.addEventListener('scroll', () => {
-    document.getElementById('nav').classList.toggle('shadow', window.scrollY > 20);
+    const nav = document.getElementById('nav');
+    if (nav) {
+      nav.classList.toggle('shadow', window.scrollY > 20);
+    }
   });
+
+  document.addEventListener('click', (event) => {
+    const menu = document.getElementById('mobile-menu');
+    const toggleBtn = document.querySelector('.mobile-tog');
+    if (!menu || !toggleBtn || !menu.classList.contains('open')) return;
+    if (!menu.contains(event.target) && !toggleBtn.contains(event.target)) {
+      menu.classList.remove('open');
+      toggleBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  document.querySelectorAll('#mobile-menu a').forEach((link) => {
+    link.addEventListener('click', () => {
+      const menu = document.getElementById('mobile-menu');
+      const toggleBtn = document.querySelector('.mobile-tog');
+      if (menu) menu.classList.remove('open');
+      if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+    });
+  });
+
   const obs = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
   }, { threshold: 0.1, rootMargin: '0px 0px -48px 0px' });

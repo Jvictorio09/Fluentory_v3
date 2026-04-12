@@ -25,8 +25,25 @@
       <a href="{% url 'login' %}" class="btn-ghost">تسجيل الدخول</a>
       <a href="{% url 'register' %}" class="btn-teal"><i class="fa-solid fa-play" style="font-size:10px"></i> تجربة مجانية</a>
     </div>
-    <div class="mobile-tog" onclick="">
+    <button class="mobile-tog" onclick="toggleMobileMenu(event)" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
       <i class="fa-solid fa-bars" style="color:var(--navy)"></i>
+    </button>
+  </div>
+  <div id="mobile-menu" class="mobile-menu">
+    <a href="#hiw">كيف تعمل المنصة</a>
+    <a href="#courses">الدورات</a>
+    <a href="{% url 'tawjehi_page' %}">التوجيهي</a>
+    <a href="#stories">قصص الطلاب</a>
+    <a href="#faq">الاسئلة الشائعة</a>
+    <a href="mailto:Fluentory.me@gmail.com">تواصل معنا</a>
+    <div class="mobile-lang" aria-label="Language switch">
+      <a href="{% url 'v3_landing_ar' %}">AR</a>
+      <span>|</span>
+      <a href="{% url 'v3_landing' %}">EN</a>
+    </div>
+    <div class="mobile-actions">
+      <a href="{% url 'login' %}" class="btn-ghost">تسجيل الدخول</a>
+      <a href="{% url 'register' %}" class="btn-teal"><i class="fa-solid fa-play" style="font-size:10px"></i> تجربة مجانية</a>
     </div>
   </div>
 </nav>

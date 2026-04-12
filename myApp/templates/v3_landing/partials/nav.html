@@ -26,8 +26,25 @@
       <a href="{% url 'login' %}" class="btn-ghost">Login</a>
       <a href="{% url 'register' %}" class="btn-teal"><i class="fa-solid fa-play" style="font-size:10px"></i> Free Demo</a>
     </div>
-    <div class="mobile-tog" onclick="">
+    <button class="mobile-tog" onclick="toggleMobileMenu(event)" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
       <i class="fa-solid fa-bars" style="color:var(--navy)"></i>
+    </button>
+  </div>
+  <div id="mobile-menu" class="mobile-menu">
+    <a href="#hiw">How It Works</a>
+    <a href="#courses">Courses</a>
+    <a href="{% url 'tawjehi_page' %}">Tawjehi</a>
+    <a href="#stories">Stories</a>
+    <a href="#faq">FAQ</a>
+    <a href="mailto:Fluentory.me@gmail.com">Contact</a>
+    <div class="mobile-lang" aria-label="Language switch">
+      <a href="{% url 'v3_landing' %}">EN</a>
+      <span>|</span>
+      <a href="{% url 'v3_landing_ar' %}">AR</a>
+    </div>
+    <div class="mobile-actions">
+      <a href="{% url 'login' %}" class="btn-ghost">Login</a>
+      <a href="{% url 'register' %}" class="btn-teal"><i class="fa-solid fa-play" style="font-size:10px"></i> Free Demo</a>
     </div>
   </div>
 </nav>

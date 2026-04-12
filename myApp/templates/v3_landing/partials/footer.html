@@ -19,19 +19,19 @@
           <a href="tel:+96277500306"><i class="fa-solid fa-phone"></i> +962 77 500 3006</a>
         </div>
         <div class="fsoc">
-          <a href="#" class="fs"><i class="fa-brands fa-instagram"></i></a>
-          <a href="#" class="fs"><i class="fa-brands fa-tiktok"></i></a>
-          <a href="#" class="fs"><i class="fa-brands fa-youtube"></i></a>
-          <a href="#" class="fs"><i class="fa-brands fa-linkedin"></i></a>
+          <a href="https://instagram.com" class="fs" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-instagram"></i></a>
+          <a href="https://tiktok.com" class="fs" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-tiktok"></i></a>
+          <a href="https://youtube.com" class="fs" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-youtube"></i></a>
+          <a href="https://linkedin.com" class="fs" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-linkedin"></i></a>
         </div>
       </div>
-      <div><div class="fct">Quick Links</div><div class="fcl"><a href="#">Courses</a><a href="#">About</a><a href="#">How It Works</a><a href="#">Tawjehi</a><a href="#">FAQ</a><a href="#">Login</a></div></div>
-      <div><div class="fct">Educators</div><div class="fcl"><a href="#">Teach with Us</a><a href="#">Apply as Teacher</a><a href="#">What We Look For</a><a href="#">Contact</a></div></div>
-      <div><div class="fct">Get Started</div><div class="fcl" style="margin-bottom:20px"><a href="#">Free Account</a><a href="#">Book Demo</a><a href="#">Gift a Course</a><a href="#">Pricing</a></div><a href="#" class="btn-teal" style="font-size:14px; padding:10px 18px;"><i class="fa-solid fa-calendar"></i> Free Demo</a></div>
+      <div><div class="fct">Quick Links</div><div class="fcl"><a href="{% url 'v3_landing' %}#courses">Courses</a><a href="{% url 'v3_landing' %}#hiw">About</a><a href="{% url 'v3_landing' %}#hiw">How It Works</a><a href="{% url 'tawjehi_page' %}">Tawjehi</a><a href="{% url 'v3_landing' %}#faq">FAQ</a><a href="{% url 'login' %}">Login</a></div></div>
+      <div><div class="fct">Educators</div><div class="fcl"><a href="{% url 'become_teacher_page' %}">Teach with Us</a><a href="{% url 'register_teacher' %}">Apply as Teacher</a><a href="{% url 'become_teacher_page' %}">What We Look For</a><a href="mailto:Fluentory.me@gmail.com">Contact</a></div></div>
+      <div><div class="fct">Get Started</div><div class="fcl" style="margin-bottom:20px"><a href="{% url 'register' %}">Free Account</a><a href="{% url 'register' %}">Book Demo</a><a href="{% url 'courses' %}">Gift a Course</a><a href="{% url 'courses' %}">Pricing</a></div><a href="{% url 'register' %}" class="btn-teal" style="font-size:14px; padding:10px 18px;"><i class="fa-solid fa-calendar"></i> Free Demo</a></div>
     </div>
     <div class="fbot">
       <p>© 2026 Fluentory. All rights reserved.</p>
-      <div class="fbotl"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a></div>
+      <div class="fbotl"><a href="{% url 'v3_landing' %}#faq">Privacy Policy</a><a href="{% url 'v3_landing' %}#faq">Terms of Service</a></div>
     </div>
   </div>
 </footer>
