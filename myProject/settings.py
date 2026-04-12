@@ -28,7 +28,7 @@ DEBUG = True
 
 # Allow configuration via environment variable (comma-separated)
 # Default hosts for backward compatibility
-default_hosts = ['localhost', '127.0.0.1', 'kane-sproject-production.up.railway.app', 'danielwoodcourses-production.up.railway.app', 'edmarincourse-production.up.railway.app', 'fluentoryv3-production.up.railway.app']
+default_hosts = ['localhost', '127.0.0.1', 'kane-sproject-production.up.railway.app', 'danielwoodcourses-production.up.railway.app', 'edmarincourse-production.up.railway.app', 'fluentoryv3-production.up.railway.app', 'www.fluentory.me', 'fluentory.me']
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', ','.join(default_hosts)).split(',')
 
 # CSRF trusted origins - can be configured via environment variable
