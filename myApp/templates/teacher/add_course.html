@@ -34,11 +34,12 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Course Type</label>
-                        <select name="course_type" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50">
-                            {% for value, label in course_types %}
-                            <option value="{{ value }}">{{ label }}</option>
+                        <input type="text" name="course_type" list="course-type-options" value="sprint" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" placeholder="e.g., Business English">
+                        <datalist id="course-type-options">
+                            {% for value in course_type_options %}
+                            <option value="{{ value }}"></option>
                             {% endfor %}
-                        </select>
+                        </datalist>
                     </div>
                     
                     <div>

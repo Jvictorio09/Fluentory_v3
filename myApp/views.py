@@ -1521,10 +1521,19 @@ def add_lesson(request, course_slug):
     if request.method == 'POST':
         # Handle form submission
         skip_ai = request.POST.get('skip_ai')
+        ai_generation_requested = not bool(skip_ai)
         vimeo_url = request.POST.get('vimeo_url', '')
         working_title = request.POST.get('working_title', '')
         rough_notes = request.POST.get('rough_notes', '')
         transcription = request.POST.get('transcription', '')
+
+        # AI lesson generation is temporarily disabled for this flow.
+        if ai_generation_requested:
+            messages.info(
+                request,
+                'AI lesson generation is coming soon. Your lesson will be created manually for now.',
+            )
+        skip_ai = '1'
 
         if skip_ai and not (working_title or '').strip():
             messages.error(
@@ -1714,16 +1723,7 @@ def generate_lesson_ai(request, course_slug, lesson_id):
         action = request.POST.get('action')
         
         if action == 'generate':
-            # Generate AI content
-            ai_content = generate_ai_lesson_content(lesson)
-            
-            lesson.ai_clean_title = ai_content.get('clean_title', lesson.working_title)
-            lesson.ai_short_summary = ai_content.get('short_summary', '')
-            lesson.ai_full_description = ai_content.get('full_description', '')
-            lesson.ai_outcomes = ai_content.get('outcomes', [])
-            lesson.ai_coach_actions = ai_content.get('coach_actions', [])
-            lesson.ai_generation_status = 'generated'
-            lesson.save()
+            messages.info(request, 'AI regeneration is coming soon.')
             
         elif action == 'approve':
             # Approve and finalize lesson

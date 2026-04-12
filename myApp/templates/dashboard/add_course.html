@@ -32,6 +32,7 @@
                 </div>
 
                 <!-- AI Generation -->
+                <!--
                 <div class="border-t border-teal-soft/20 pt-6">
                     <h3 class="text-lg font-semibold text-gray-800 mb-3">AI Course Generation</h3>
                     <label class="flex items-start gap-3 cursor-pointer">
@@ -44,16 +45,17 @@
                         </span>
                     </label>
                 </div>
+                -->
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm text-black font-semibold text-gray-700 mb-2">Course Type</label>
-                        <select name="course_type" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50">
-                            <option value="sprint">Sprint</option>
-                            <option value="speaking">Speaking</option>
-                            <option value="consultancy">Consultancy</option>
-                            <option value="special">Special</option>
-                        </select>
+                        <input type="text" name="course_type" list="course-type-options" value="sprint" class="w-full bg-[#ffffff]/40 border border-teal-soft/20 rounded-lg px-4 py-3 focus:outline-none focus:border-teal-soft/50" placeholder="e.g., Business English">
+                        <datalist id="course-type-options">
+                            {% for value in course_type_options %}
+                            <option value="{{ value }}"></option>
+                            {% endfor %}
+                        </datalist>
                     </div>
                     
                     <div>

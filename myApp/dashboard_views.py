@@ -62,6 +62,27 @@ from django.utils import timezone
 from .utils.teacher import get_eligible_course_teacher_users
 
 
+def _course_type_options():
+    """Return course type suggestions (built-ins + existing custom values)."""
+    built_in = [value for value, _label in Course.COURSE_TYPES]
+    existing = list(
+        Course.objects.exclude(course_type__isnull=True)
+        .exclude(course_type__exact='')
+        .values_list('course_type', flat=True)
+        .distinct()
+        .order_by('course_type')
+    )
+    seen = set()
+    options = []
+    for value in built_in + existing:
+        key = str(value).strip()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        options.append(key)
+    return options
+
+
 @staff_member_required
 def dashboard_home(request):
     """Main dashboard overview with analytics"""
@@ -513,7 +534,7 @@ def dashboard_course_detail(request, course_slug):
         course.short_description = request.POST.get('short_description', course.short_description)
         course.description = request.POST.get('description', course.description)
         course.status = request.POST.get('status', course.status)
-        course.course_type = request.POST.get('course_type', course.course_type)
+        course.course_type = (request.POST.get('course_type') or course.course_type).strip() or course.course_type
         course.coach_name = request.POST.get('coach_name', course.coach_name)
         preview_video_url = request.POST.get('preview_video_url', '').strip()
         course.preview_video_url = preview_video_url if preview_video_url else None
@@ -556,7 +577,7 @@ def dashboard_course_detail(request, course_slug):
     return render(request, 'dashboard/course_detail.html', {
         'course': course,
         'potential_teachers': potential_teachers,
-        'course_types': Course.COURSE_TYPES,
+        'course_type_options': _course_type_options(),
         'delivery_types': Course.DELIVERY_TYPE_CHOICES,
     })
 
@@ -739,7 +760,7 @@ def dashboard_add_course(request):
         slug = generate_slug(name)
         short_description = request.POST.get('short_description', '')
         description = request.POST.get('description', '')
-        course_type = request.POST.get('course_type', 'sprint')
+        course_type = (request.POST.get('course_type') or 'sprint').strip() or 'sprint'
         status = request.POST.get('status', 'active')
         coach_name = request.POST.get('coach_name', 'Sprint Coach')
         use_ai = request.POST.get('use_ai') == 'on'
@@ -822,6 +843,7 @@ def dashboard_add_course(request):
     
     return render(request, 'dashboard/add_course.html', {
         'potential_teachers': potential_teachers,
+        'course_type_options': _course_type_options(),
     })
 
 

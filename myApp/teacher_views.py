@@ -24,6 +24,27 @@ from .utils.teacher import (
     get_eligible_course_teacher_users,
 )
 
+
+def _course_type_options():
+    """Return course type suggestions (built-ins + existing custom values)."""
+    built_in = [value for value, _label in Course.COURSE_TYPES]
+    existing = list(
+        Course.objects.exclude(course_type__isnull=True)
+        .exclude(course_type__exact='')
+        .values_list('course_type', flat=True)
+        .distinct()
+        .order_by('course_type')
+    )
+    seen = set()
+    options = []
+    for value in built_in + existing:
+        key = str(value).strip()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        options.append(key)
+    return options
+
 try:
     import cloudinary
     import cloudinary.uploader
@@ -316,7 +337,7 @@ def teacher_add_course(request):
         if not name:
             messages.error(request, 'Course name is required.')
             return render(request, 'teacher/add_course.html', {
-                'course_types': Course.COURSE_TYPES,
+                'course_type_options': _course_type_options(),
             })
         
         # Generate slug
@@ -340,7 +361,7 @@ def teacher_add_course(request):
             slug=slug,
             short_description=request.POST.get('short_description', ''),
             description=request.POST.get('description', ''),
-            course_type=request.POST.get('course_type', 'sprint'),
+            course_type=(request.POST.get('course_type') or 'sprint').strip() or 'sprint',
             status=request.POST.get('status', 'active'),
             coach_name=request.POST.get('coach_name', ''),
             delivery_type=delivery_type,
@@ -365,7 +386,7 @@ def teacher_add_course(request):
     potential_teachers = get_eligible_course_teacher_users()
     
     return render(request, 'teacher/add_course.html', {
-        'course_types': Course.COURSE_TYPES,
+        'course_type_options': _course_type_options(),
         'potential_teachers': potential_teachers,
     })
 
@@ -382,7 +403,7 @@ def teacher_course_detail(request, course_slug):
         course.short_description = request.POST.get('short_description', course.short_description)
         course.description = request.POST.get('description', course.description)
         course.status = request.POST.get('status', course.status)
-        course.course_type = request.POST.get('course_type', course.course_type)
+        course.course_type = (request.POST.get('course_type') or course.course_type).strip() or course.course_type
         course.coach_name = request.POST.get('coach_name', course.coach_name)
         preview_video_url = request.POST.get('preview_video_url', '').strip()
         course.preview_video_url = preview_video_url if preview_video_url else None
@@ -422,7 +443,7 @@ def teacher_course_detail(request, course_slug):
     return render(request, 'teacher/course_detail.html', {
         'course': course,
         'potential_teachers': potential_teachers,
-        'course_types': Course.COURSE_TYPES,
+        'course_type_options': _course_type_options(),
         'delivery_types': Course.DELIVERY_TYPE_CHOICES,
     })
 
