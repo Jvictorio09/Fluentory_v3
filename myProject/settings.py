@@ -39,9 +39,19 @@ default_origins = [
     'https://danielwoodcourses-production.up.railway.app',
     'https://edmarincourse-production.up.railway.app',
     'https://fluentoryv3-production.up.railway.app',
+    'https://www.fluentory.me',
+    'https://fluentory.me',
 ]
 csrf_origins_env = os.getenv('CSRF_TRUSTED_ORIGINS')
-CSRF_TRUSTED_ORIGINS = csrf_origins_env.split(',') if csrf_origins_env else default_origins
+if csrf_origins_env:
+    env_origins = [origin.strip().rstrip('/') for origin in csrf_origins_env.split(',') if origin.strip()]
+else:
+    env_origins = []
+
+# Always include Fluentory production domains, even when CSRF_TRUSTED_ORIGINS is set via environment.
+required_origins = ['https://www.fluentory.me', 'https://fluentory.me']
+combined_origins = (env_origins or [origin.rstrip('/') for origin in default_origins]) + required_origins
+CSRF_TRUSTED_ORIGINS = list(dict.fromkeys(combined_origins))
 
 # Application definition
 
