@@ -3,8 +3,12 @@ Email utilities using Resend API
 """
 import os
 import requests
+from email.utils import parseaddr, formataddr
+from dotenv import load_dotenv
 from django.conf import settings
 from django.urls import reverse
+
+load_dotenv()
 
 
 def _resend_emails_endpoint():
@@ -16,6 +20,8 @@ def _send_resend_email(to_emails, subject, html_content):
     resend_api_key = os.getenv('RESEND_API_KEY')
     resend_from = os.getenv('RESEND_FROM', 'noreply@example.com')
     resend_reply_to = os.getenv('RESEND_REPLY_TO', resend_from)
+    resend_from = _normalize_sender_address(resend_from)
+    resend_reply_to = _normalize_sender_address(resend_reply_to)
 
     if not resend_api_key:
         return {
@@ -40,7 +46,7 @@ def _send_resend_email(to_emails, subject, html_content):
             timeout=10
         )
 
-        if response.status_code == 200:
+        if response.status_code in (200, 201, 202):
             return {
                 'success': True,
                 'message': 'Email sent successfully',
@@ -57,11 +63,72 @@ def _send_resend_email(to_emails, subject, html_content):
         }
 
 
+def _normalize_sender_address(raw_address):
+    """
+    Normalize sender domain casing for providers that strictly compare domains.
+    Example: "Fluentory <noreply@Fluentory.me>" -> "Fluentory <noreply@fluentory.me>"
+    """
+    display_name, email_addr = parseaddr(raw_address or '')
+    if not email_addr or '@' not in email_addr:
+        return raw_address
+    local_part, domain = email_addr.rsplit('@', 1)
+    normalized_email = f'{local_part}@{domain.lower()}'
+    if display_name:
+        return formataddr((display_name, normalized_email))
+    return normalized_email
+
+
 def _get_public_domain():
     domain = settings.ALLOWED_HOSTS[0] if settings.ALLOWED_HOSTS else 'localhost:8000'
     if not domain.startswith('http'):
         domain = f"https://{domain}" if not settings.DEBUG else f"http://{domain}"
     return domain
+
+
+def send_password_reset_email(user, reset_url):
+    """Send password reset email using Resend."""
+    if not user.email:
+        return {
+            'success': False,
+            'message': 'User email is missing'
+        }
+
+    display_name = user.get_full_name() or user.username or 'there'
+    subject = 'Reset your Fluentory password'
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ background: linear-gradient(135deg, #52A8B5 0%, #4492B3 100%); color: white; padding: 24px; text-align: center; border-radius: 10px 10px 0 0; }}
+        .content {{ background: #f9f9f9; padding: 24px; border-radius: 0 0 10px 10px; }}
+        .button {{ display: inline-block; background: #52A8B5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; }}
+        .note {{ font-size: 12px; color: #666; margin-top: 18px; }}
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Password Reset Request</h1>
+        </div>
+        <div class="content">
+          <p>Hi {display_name},</p>
+          <p>We received a request to reset your Fluentory password.</p>
+          <p>
+            <a href="{reset_url}" class="button">Reset Password</a>
+          </p>
+          <p>If the button does not work, copy and paste this URL into your browser:</p>
+          <p><a href="{reset_url}" style="word-break: break-all;">{reset_url}</a></p>
+          <p class="note">If you did not request this, you can safely ignore this email.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    """
+    return _send_resend_email([user.email], subject, html_content)
 
 
 def send_gift_email(gift_purchase):

@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -10,7 +11,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.conf import settings
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.text import slugify
+from django.utils.encoding import force_bytes
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 import json
@@ -846,6 +849,96 @@ def logout_view(request):
     logout(request)
     messages.success(request, 'You have been logged out successfully.')
     return redirect('login')
+
+
+def forgot_password_view(request):
+    """Start password reset flow via Resend email."""
+    if request.method == 'POST':
+        email = (request.POST.get('email') or '').strip()
+        generic_message = (
+            'If an account exists for that email, a password reset link has been sent.'
+        )
+
+        if not email:
+            messages.error(request, 'Please enter your email address.')
+            return render(request, 'forgot_password.html')
+
+        user = User.objects.filter(email__iexact=email, is_active=True).first()
+        if user:
+            from .utils.email import send_password_reset_email
+            import logging
+            logger = logging.getLogger(__name__)
+
+            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            reset_url = request.build_absolute_uri(
+                reverse('reset_password', kwargs={'uidb64': uidb64, 'token': token})
+            )
+            email_result = send_password_reset_email(user, reset_url)
+            if not email_result.get('success'):
+                logger.warning(
+                    'Password reset email failed for user_id=%s email=%s: %s',
+                    user.id,
+                    user.email,
+                    email_result.get('message', 'unknown error'),
+                )
+                messages.warning(
+                    request,
+                    'Password reset email could not be sent right now. Please try again in a moment.',
+                )
+                return render(request, 'forgot_password.html')
+
+        messages.success(request, generic_message)
+        return redirect('forgot_password')
+
+    return render(request, 'forgot_password.html')
+
+
+def reset_password_view(request, uidb64, token):
+    """Complete password reset flow."""
+    user = None
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.filter(pk=uid, is_active=True).first()
+    except Exception:
+        user = None
+
+    valid_link = bool(user and default_token_generator.check_token(user, token))
+
+    if request.method == 'POST':
+        if not valid_link:
+            messages.error(request, 'This password reset link is invalid or has expired.')
+            return redirect('forgot_password')
+
+        password = (request.POST.get('password') or '').strip()
+        password_confirm = (request.POST.get('password_confirm') or '').strip()
+
+        if len(password) < 8:
+            messages.error(request, 'Password must be at least 8 characters long.')
+            return render(
+                request,
+                'reset_password.html',
+                {'valid_link': valid_link, 'uidb64': uidb64, 'token': token},
+            )
+
+        if password != password_confirm:
+            messages.error(request, 'Passwords do not match.')
+            return render(
+                request,
+                'reset_password.html',
+                {'valid_link': valid_link, 'uidb64': uidb64, 'token': token},
+            )
+
+        user.set_password(password)
+        user.save(update_fields=['password'])
+        messages.success(request, 'Your password has been reset. You can now sign in.')
+        return redirect('login')
+
+    return render(
+        request,
+        'reset_password.html',
+        {'valid_link': valid_link, 'uidb64': uidb64, 'token': token},
+    )
 
 
 def courses(request):
