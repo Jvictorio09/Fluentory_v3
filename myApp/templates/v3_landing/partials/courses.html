@@ -7,7 +7,7 @@
         <div class="stag">Featured Courses</div>
         <h2 class="sh" style="margin-bottom:0">Choose your path <em>to fluency</em></h2>
       </div>
-      <a href="{% url 'courses' %}" style="font-size:15px; font-weight:700; color:var(--teal); text-decoration:none;">View All Courses →</a>
+      <a href="{% url 'v3_landing' %}" style="font-size:15px; font-weight:700; color:var(--teal); text-decoration:none;">View All Courses →</a>
     </div>
     <div class="courses-grid">
       {% for course in courses %}
@@ -55,7 +55,7 @@
               Free
               {% endif %}
             </div>
-            <a href="{% url 'course_detail' course.slug %}" class="cc-btn {% if not course.is_paid %}cc-btn-lime{% endif %}">
+            <a href="{% url 'v3_landing' %}" class="cc-btn {% if not course.is_paid %}cc-btn-lime{% endif %}">
               {% if course.is_paid %}Enroll Now{% else %}Start Free{% endif %} →
             </a>
           </div>

@@ -10,7 +10,8 @@ from myApp import feature_views
 
 urlpatterns = [
     # Public-facing URLs
-    path('v1/', views.landing, name='landing'),
+    path('v1/', views.landing, name='landing_v1'),
+    path('', views.v3_landing, name='landing'),
     path('', views.v3_landing, name='v3_landing'),
     path('ar/', views.v3_landing_ar, name='v3_landing_ar'),
     path('home/', views.home, name='home'),
