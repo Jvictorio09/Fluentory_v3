@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load currency_tags %}
 
 {% block title %}My Dashboard - Fluentory{% endblock %}
 
@@ -885,9 +886,10 @@
         </div>
 
         {% if data.course.is_paid and data.course.price %}
+        {% local_money data.course.price data.course.currency as unlock_price %}
         <div class="fld-unlock-price">
           <div>
-            <div class="fld-unlock-price-num">{{ data.course.price|floatformat:2 }} {{ data.course.currency }}</div>
+            <div class="fld-unlock-price-num">{{ unlock_price }}</div>
             <div class="fld-unlock-price-label">One-time · Lifetime access</div>
           </div>
           {% if data.has_pending_purchase %}
@@ -916,7 +918,10 @@
           {% for bundle in data.bundles %}
           <div class="fld-bundle-row">
             <span><i class="fas fa-gift" style="color:var(--amber);margin-right:.4rem"></i>{{ bundle.name }}</span>
-            {% if bundle.price %}<span class="fld-bundle-price">${{ bundle.price }}</span>{% endif %}
+            {% if bundle.price %}
+              {% local_money bundle.price 'USD' as bundle_price %}
+              <span class="fld-bundle-price">{{ bundle_price }}</span>
+            {% endif %}
           </div>
           {% endfor %}
         </div>
