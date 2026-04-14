@@ -1,3 +1,4 @@
+{% load currency_tags %}
 <!-- GIFT -->
 <section class="section gift-bg">
   <div class="si">
@@ -29,7 +30,8 @@
               <div class="gm-to">الى</div>
               <div class="gm-name">ماريا غونزاليس</div>
               <div class="gm-msg">"انا مؤمن بك في كل خطوة. اتمنى ان تفتح لك هذه الدورة ابوابا رائعة. ✨"</div>
-              <div class="gm-foot"><div class="gm-price">$129</div><div class="gm-tag">دورة انجليزي</div></div>
+              {% local_money 129 'USD' as gift_price %}
+              <div class="gm-foot"><div class="gm-price">{{ gift_price }}</div><div class="gm-tag">دورة انجليزي</div></div>
             </div>
           </div>
           <p style="text-align:center; font-size:13px; color:var(--text-light); margin-top:14px;">✦ بدون انتهاء · تسليم فوري</p>
