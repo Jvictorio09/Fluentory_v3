@@ -91,7 +91,12 @@ def format_currency_amount(amount, currency_code, symbol=""):
     value = _to_decimal(amount, Decimal("0")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     numeric = f"{value:,.2f}"
     if symbol:
-        return f"{symbol}{numeric} {currency_code}"
+        clean_symbol = str(symbol).strip()
+        clean_code = str(currency_code).strip().upper()
+        # Avoid duplicate output like "PHP7,329.55 PHP" when symbol is already a code.
+        if clean_symbol.upper() == clean_code:
+            return f"{clean_symbol} {numeric}"
+        return f"{clean_symbol}{numeric} {clean_code}"
     return f"{numeric} {currency_code}"
 
 
