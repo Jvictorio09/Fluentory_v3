@@ -76,6 +76,13 @@ class CurrencySwitchMiddleware:
         "HTTP_X_VERCEL_IP_COUNTRY",
         "HTTP_X_APPENGINE_COUNTRY",
     )
+    IP_HEADER_KEYS = (
+        "HTTP_CF_CONNECTING_IP",
+        "HTTP_TRUE_CLIENT_IP",
+        "HTTP_X_REAL_IP",
+        "HTTP_X_FORWARDED_FOR",
+        "REMOTE_ADDR",
+    )
 
     COUNTRY_LOOKUP_URL = os.getenv("GEOIP_LOOKUP_URL", "https://ipapi.co/{ip}/json/")
     COUNTRY_LOOKUP_TIMEOUT = float(os.getenv("GEOIP_LOOKUP_TIMEOUT", "1.5") or 1.5)
@@ -143,14 +150,30 @@ class CurrencySwitchMiddleware:
         return (default or "USD").upper()
 
     def _extract_client_ip(self, request):
-        xff = (request.META.get("HTTP_X_FORWARDED_FOR") or "").split(",")
-        for candidate in [c.strip() for c in xff if c.strip()]:
-            return candidate
-        return (
-            request.META.get("HTTP_X_REAL_IP")
-            or request.META.get("REMOTE_ADDR")
-            or ""
-        ).strip()
+        candidates = []
+
+        for key in self.IP_HEADER_KEYS:
+            raw = (request.META.get(key) or "").strip()
+            if not raw:
+                continue
+            if key == "HTTP_X_FORWARDED_FOR":
+                candidates.extend([part.strip() for part in raw.split(",") if part.strip()])
+            else:
+                candidates.append(raw)
+
+        # Prefer the first publicly-routable IP in the chain.
+        for candidate in candidates:
+            if self._is_public_ip(candidate):
+                return candidate
+
+        # Fallback to first syntactically valid IP if all are private/reserved.
+        for candidate in candidates:
+            try:
+                ip_address(candidate)
+                return candidate
+            except ValueError:
+                continue
+        return ""
 
     def _is_public_ip(self, value):
         try:
@@ -217,9 +240,9 @@ class CurrencySwitchMiddleware:
         if not country:
             country = self._country_code_from_headers(request)
         if not country:
-            country = self._country_code_from_accept_language(request)
-        if not country:
             country = self._country_code_from_lookup(self._extract_client_ip(request))
+        if not country:
+            country = self._country_code_from_accept_language(request)
         if not country:
             return default_code
 
@@ -244,10 +267,15 @@ class CurrencySwitchMiddleware:
             request.session[self.SESSION_KEY] = hinted_currency
             request.session[self.SOURCE_KEY] = "auto"
 
-        if not request.session.get(self.SESSION_KEY):
+        selected_in_session = request.session.get(self.SESSION_KEY)
+        source_in_session = request.session.get(self.SOURCE_KEY)
+        if not selected_in_session:
             auto_currency = self._auto_detect_currency(request, active_codes, default_code)
             request.session[self.SESSION_KEY] = auto_currency
             request.session[self.SOURCE_KEY] = "auto"
+        elif source_in_session == "auto" and not currency and not country_hint:
+            refreshed_auto_currency = self._auto_detect_currency(request, active_codes, default_code)
+            request.session[self.SESSION_KEY] = refreshed_auto_currency
 
         selected = (request.session.get(self.SESSION_KEY) or default_code).upper()
         if selected not in active_codes:
