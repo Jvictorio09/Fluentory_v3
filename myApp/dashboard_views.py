@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+from django.contrib.auth import update_session_auth_hash
 from django.db.models import Count, Q
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.cache import cache
@@ -14,6 +15,8 @@ import csv
 import io
 import os
 import threading
+import secrets
+import string
 try:
     import fitz  # PyMuPDF
     PDF_AVAILABLE = True
@@ -52,6 +55,7 @@ from .models import (
     Language,
     PartnerProfile,
     AnalyticsEvent,
+    TeacherProfile,
 )
 from django.contrib import messages
 from django.db import models
@@ -3804,6 +3808,119 @@ def dashboard_site_settings(request):
         'settings_rows': settings_rows,
         'currencies': currencies,
         'languages': languages,
+    })
+
+
+@staff_member_required
+def dashboard_user_management(request):
+    """Superuser-only control panel for password and account provisioning."""
+    if not request.user.is_superuser:
+        messages.error(request, 'Only superusers can access user management.')
+        return redirect('dashboard_home')
+
+    if request.method == 'POST':
+        action = (request.POST.get('action') or '').strip()
+
+        if action == 'change_password':
+            current_password = request.POST.get('current_password', '')
+            new_password = request.POST.get('new_password', '')
+            confirm_password = request.POST.get('confirm_password', '')
+
+            if not request.user.check_password(current_password):
+                messages.error(request, 'Current password is incorrect.')
+            elif len(new_password) < 8:
+                messages.error(request, 'New password must be at least 8 characters long.')
+            elif new_password != confirm_password:
+                messages.error(request, 'New password and confirmation do not match.')
+            else:
+                request.user.set_password(new_password)
+                request.user.save(update_fields=['password'])
+                update_session_auth_hash(request, request.user)
+                messages.success(request, 'Your password has been updated.')
+            return redirect('dashboard_user_management')
+
+        if action in {'create_admin', 'create_student', 'create_teacher'}:
+            first_name = (request.POST.get('first_name') or '').strip()
+            last_name = (request.POST.get('last_name') or '').strip()
+            username = (request.POST.get('username') or '').strip()
+            email = (request.POST.get('email') or '').strip().lower()
+
+            if not first_name or not last_name:
+                messages.error(request, 'First name and last name are required.')
+                return redirect('dashboard_user_management')
+            if not username:
+                messages.error(request, 'Username is required.')
+                return redirect('dashboard_user_management')
+            if User.objects.filter(username=username).exists():
+                messages.error(request, f'Username "{username}" is already taken.')
+                return redirect('dashboard_user_management')
+            if not email:
+                messages.error(request, 'Email is required.')
+                return redirect('dashboard_user_management')
+            if User.objects.filter(email__iexact=email).exists():
+                messages.error(request, f'Email "{email}" is already in use.')
+                return redirect('dashboard_user_management')
+
+            alphabet = string.ascii_letters + string.digits
+            temp_password = ''.join(secrets.choice(alphabet) for _ in range(12))
+
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=temp_password,
+                first_name=first_name,
+                last_name=last_name,
+            )
+
+            SystemSetting.objects.update_or_create(
+                key=f'force_password_change_user_{user.id}',
+                defaults={
+                    'value': '1',
+                    'value_type': 'bool',
+                    'updated_by': request.user,
+                },
+            )
+
+            if action == 'create_admin':
+                user.is_staff = True
+                user.is_superuser = False
+                user.save(update_fields=['is_staff', 'is_superuser'])
+                messages.success(
+                    request,
+                    f'Admin user "{username}" created. Temporary password: {temp_password}. '
+                    'They will be required to update it on first login.',
+                )
+            elif action == 'create_teacher':
+                user.is_staff = True
+                user.is_superuser = False
+                user.save(update_fields=['is_staff', 'is_superuser'])
+                TeacherProfile.objects.get_or_create(
+                    user=user,
+                    defaults={
+                        'headline': (request.POST.get('headline') or '').strip(),
+                        'bio': (request.POST.get('bio') or '').strip(),
+                    },
+                )
+                messages.success(
+                    request,
+                    f'Teacher user "{username}" created. Temporary password: {temp_password}. '
+                    'They will be required to update it on first login.',
+                )
+            else:
+                messages.success(
+                    request,
+                    f'Student user "{username}" created. Temporary password: {temp_password}. '
+                    'They will be required to update it on first login.',
+                )
+
+            return redirect('dashboard_user_management')
+
+        messages.error(request, 'Invalid action.')
+        return redirect('dashboard_user_management')
+
+    recent_users = User.objects.order_by('-date_joined')[:12]
+    return render(request, 'dashboard/user_management.html', {
+        'recent_users': recent_users,
     })
 
 

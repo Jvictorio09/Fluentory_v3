@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.models import User
 from django.http import JsonResponse
@@ -51,6 +51,7 @@ from .models import (
     AnalyticsEvent,
     PartnerProfile,
     PartnerCourseSale,
+    SystemSetting,
 )
 from django.db.models import Avg, Count, Max, Prefetch, Q
 from django.db import models
@@ -574,6 +575,29 @@ def _is_teacher_user(user):
     return False
 
 
+def _force_password_change_setting_key(user_id):
+    return f'force_password_change_user_{user_id}'
+
+
+def _user_requires_forced_password_change(user):
+    if not user or not user.is_authenticated:
+        return False
+    row = SystemSetting.objects.filter(
+        key=_force_password_change_setting_key(user.id)
+    ).first()
+    return bool(row and row.parsed_value())
+
+
+def _default_dashboard_for_user(user):
+    if user.is_superuser:
+        return 'dashboard_home'
+    if _is_teacher_user(user):
+        return 'teacher_dashboard'
+    if user.is_staff:
+        return 'dashboard_home'
+    return 'student_dashboard'
+
+
 def login_view(request):
     """Premium login page"""
     requested_next = (request.POST.get('next') or request.GET.get('next') or '').strip()
@@ -588,17 +612,12 @@ def login_view(request):
     # Allow access to login page even when logged in if ?force=true (for testing)
     force = request.GET.get('force', '').lower() == 'true'
     if request.user.is_authenticated and not force:
+        if _user_requires_forced_password_change(request.user):
+            return redirect('force_password_change')
         if safe_next:
             return redirect(safe_next)
         # Redirect based on user role: admin → admin dashboard, teacher → teacher dashboard, student → student dashboard
-        if request.user.is_superuser:
-            return redirect('dashboard_home')
-        elif _is_teacher_user(request.user):
-            return redirect('teacher_dashboard')
-        elif request.user.is_staff:
-            return redirect('dashboard_home')  # Staff but not teacher → admin dashboard
-        else:
-            return redirect('student_dashboard')
+        return redirect(_default_dashboard_for_user(request.user))
     
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -607,6 +626,8 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
+            if _user_requires_forced_password_change(user):
+                return redirect('force_password_change')
             # Determine redirect based on user role
             post_next = (request.POST.get('next') or request.GET.get('next') or '').strip()
             safe_post_next = ''
@@ -616,19 +637,42 @@ def login_view(request):
                 require_https=request.is_secure(),
             ):
                 safe_post_next = post_next
-            if user.is_superuser:
-                next_url = safe_post_next or 'dashboard_home'
-            elif _is_teacher_user(user):
-                next_url = safe_post_next or 'teacher_dashboard'
-            elif user.is_staff:
-                next_url = safe_post_next or 'dashboard_home'
-            else:
-                next_url = safe_post_next or 'student_dashboard'
+            next_url = safe_post_next or _default_dashboard_for_user(user)
             return redirect(next_url)
         else:
             messages.error(request, 'Invalid username or password.')
     
     return render(request, 'login.html')
+
+
+@login_required
+def force_password_change_view(request):
+    """Force users created with temp passwords to set a new one."""
+    if not _user_requires_forced_password_change(request.user):
+        return redirect(_default_dashboard_for_user(request.user))
+
+    if request.method == 'POST':
+        password = (request.POST.get('password') or '').strip()
+        password_confirm = (request.POST.get('password_confirm') or '').strip()
+
+        if len(password) < 8:
+            messages.error(request, 'Password must be at least 8 characters long.')
+            return render(request, 'force_password_change.html')
+
+        if password != password_confirm:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'force_password_change.html')
+
+        request.user.set_password(password)
+        request.user.save(update_fields=['password'])
+        update_session_auth_hash(request, request.user)
+        SystemSetting.objects.filter(
+            key=_force_password_change_setting_key(request.user.id)
+        ).delete()
+        messages.success(request, 'Password updated successfully.')
+        return redirect(_default_dashboard_for_user(request.user))
+
+    return render(request, 'force_password_change.html')
 
 
 def register_view(request):
@@ -931,6 +975,7 @@ def reset_password_view(request, uidb64, token):
 
         user.set_password(password)
         user.save(update_fields=['password'])
+        SystemSetting.objects.filter(key=_force_password_change_setting_key(user.id)).delete()
         messages.success(request, 'Your password has been reset. You can now sign in.')
         return redirect('login')
 

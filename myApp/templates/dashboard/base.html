@@ -116,6 +116,12 @@
                     <i class="fas fa-sliders-h w-5"></i>
                     <span>Site Settings</span>
                 </a>
+                {% if user.is_superuser %}
+                <a href="{% url 'dashboard_user_management' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if request.resolver_match.url_name == 'dashboard_user_management' %}bg-blue-soft/20 text-blue-soft border-l-2 border-blue-soft{% else %}text-gray-700 hover:bg-blue-soft/10 hover:text-blue-soft{% endif %}">
+                    <i class="fas fa-user-cog w-5"></i>
+                    <span>User Management</span>
+                </a>
+                {% endif %}
                 <a href="{% url 'cms_page_editor' 'home' %}" class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all {% if 'cms_page_editor' in request.resolver_match.url_name %}bg-blue-soft/20 text-blue-soft border-l-2 border-blue-soft{% else %}text-gray-700 hover:bg-blue-soft/10 hover:text-blue-soft{% endif %}">
                     <i class="fas fa-file-alt w-5"></i>
                     <span>CMS Editor</span>

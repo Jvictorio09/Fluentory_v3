@@ -1,0 +1,319 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}User Management - Dashboard{% endblock %}
+{% block page_title %}User Management{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white border border-teal-soft/20 rounded-xl p-5">
+        <h2 class="text-xl font-bold text-black">Superuser Controls</h2>
+        <p class="text-sm text-gray-600 mt-1">
+            Manage privileged accounts, create users, and update your password from one place.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <!-- ============ Change Password ============ -->
+        <div class="bg-white border border-teal-soft/20 rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-black mb-4">
+                <i class="fas fa-key mr-2 text-teal-500"></i>
+                Change Your Password
+            </h3>
+            <form method="post" class="space-y-4" onsubmit="return validatePasswordMatch(this, 'new_password', 'confirm_password')">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="change_password">
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                    <div class="relative">
+                        <input type="password" name="current_password" required
+                               class="w-full px-3 py-2 pr-10 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-teal-200 focus:border-teal-300">
+                        <button type="button" onclick="togglePw(this)" tabindex="-1"
+                                class="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                    <div class="relative">
+                        <input type="password" name="new_password" minlength="8" required
+                               oninput="updateStrength(this); updateMatch(this.form)"
+                               class="w-full px-3 py-2 pr-10 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-teal-200 focus:border-teal-300">
+                        <button type="button" onclick="togglePw(this)" tabindex="-1"
+                                class="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="mt-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div data-strength-bar class="h-full bg-gray-300 transition-all duration-200" style="width: 0%"></div>
+                    </div>
+                    <p data-strength-label class="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                    <div class="relative">
+                        <input type="password" name="confirm_password" minlength="8" required
+                               oninput="updateMatch(this.form)"
+                               class="w-full px-3 py-2 pr-10 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-teal-200 focus:border-teal-300">
+                        <button type="button" onclick="togglePw(this)" tabindex="-1"
+                                class="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <p data-match-label class="text-xs text-gray-500 mt-1 hidden"></p>
+                </div>
+
+                <button type="submit" class="px-4 py-2 rounded-lg bg-teal-500 text-white font-semibold hover:bg-teal-600 transition-colors">
+                    Update Password
+                </button>
+            </form>
+        </div>
+
+        <!-- ============ Create User (tabbed) ============ -->
+        <div class="bg-white border border-teal-soft/20 rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-black mb-4">
+                <i class="fas fa-user-plus mr-2 text-blue-500"></i>
+                Create New User
+            </h3>
+            <p class="text-sm text-gray-600 mb-4">
+                A temporary password is generated automatically. The user will be forced to set a new password on first login.
+            </p>
+
+            <!-- Tabs -->
+            <div class="flex gap-1 mb-5 border-b border-gray-200" role="tablist">
+                <button type="button" data-tab="admin"
+                        class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-500 text-blue-600 -mb-px">
+                    <i class="fas fa-user-shield mr-1"></i> Admin
+                </button>
+                <button type="button" data-tab="student"
+                        class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 -mb-px">
+                    <i class="fas fa-user-graduate mr-1"></i> Student
+                </button>
+                <button type="button" data-tab="teacher"
+                        class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 -mb-px">
+                    <i class="fas fa-chalkboard-teacher mr-1"></i> Teacher
+                </button>
+            </div>
+
+            <!-- Admin form -->
+            <form method="post" class="space-y-3 tab-panel" data-panel="admin">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_admin">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" name="first_name" placeholder="First name" required class="px-3 py-2 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-blue-200 focus:border-blue-300">
+                    <input type="text" name="last_name" placeholder="Last name" required class="px-3 py-2 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-blue-200 focus:border-blue-300">
+                </div>
+                <input type="text" name="username" placeholder="Username" required class="w-full px-3 py-2 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-blue-200 focus:border-blue-300">
+                <input type="email" name="email" placeholder="Email" required class="w-full px-3 py-2 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-blue-200 focus:border-blue-300">
+                <button type="submit" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 transition-colors">
+                    <i class="fas fa-user-shield mr-1"></i> Create Admin
+                </button>
+            </form>
+
+            <!-- Student form -->
+            <form method="post" class="space-y-3 tab-panel hidden" data-panel="student">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_student">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" name="first_name" placeholder="First name" required class="px-3 py-2 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300">
+                    <input type="text" name="last_name" placeholder="Last name" required class="px-3 py-2 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300">
+                </div>
+                <input type="text" name="username" placeholder="Username" required class="w-full px-3 py-2 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300">
+                <input type="email" name="email" placeholder="Email" required class="w-full px-3 py-2 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-emerald-200 focus:border-emerald-300">
+                <button type="submit" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-emerald-500 text-white font-semibold hover:bg-emerald-600 transition-colors">
+                    <i class="fas fa-user-graduate mr-1"></i> Create Student
+                </button>
+            </form>
+
+            <!-- Teacher form -->
+            <form method="post" class="space-y-3 tab-panel hidden" data-panel="teacher">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_teacher">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input type="text" name="first_name" placeholder="First name" required class="px-3 py-2 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-purple-200 focus:border-purple-300">
+                    <input type="text" name="last_name" placeholder="Last name" required class="px-3 py-2 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-purple-200 focus:border-purple-300">
+                </div>
+                <input type="text" name="username" placeholder="Username" required class="w-full px-3 py-2 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-purple-200 focus:border-purple-300">
+                <input type="email" name="email" placeholder="Email" required class="w-full px-3 py-2 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-purple-200 focus:border-purple-300">
+                <input type="text" name="headline" placeholder="Teacher headline (optional)" class="w-full px-3 py-2 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-purple-200 focus:border-purple-300">
+                <textarea name="bio" rows="3" placeholder="Teacher bio (optional)" class="w-full px-3 py-2 rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-purple-200 focus:border-purple-300"></textarea>
+                <button type="submit" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-purple-500 text-white font-semibold hover:bg-purple-600 transition-colors">
+                    <i class="fas fa-chalkboard-teacher mr-1"></i> Create Teacher
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============ Recent Users ============ -->
+    <div class="bg-white border border-teal-soft/20 rounded-xl p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h3 class="text-lg font-semibold text-black">Recently Created Users</h3>
+            <div class="relative w-full sm:w-64">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                <input type="text" id="userSearch" placeholder="Search username, email, role..."
+                       oninput="filterUsers(this.value)"
+                       class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-gray-300 text-black focus:ring-2 focus:ring-teal-200 focus:border-teal-300">
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead>
+                    <tr class="text-left text-gray-500 border-b border-gray-200">
+                        <th class="py-2 pr-4 font-medium">Username</th>
+                        <th class="py-2 pr-4 font-medium">Email</th>
+                        <th class="py-2 pr-4 font-medium">Role</th>
+                        <th class="py-2 font-medium">Joined</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    {% for row in recent_users %}
+                    <tr class="border-b border-gray-100 text-black hover:bg-gray-50 transition-colors">
+                        <td class="py-2 pr-4 font-medium">{{ row.username }}</td>
+                        <td class="py-2 pr-4 text-gray-600">{{ row.email|default:'-' }}</td>
+                        <td class="py-2 pr-4">
+                            {% if row.is_superuser %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                                    <i class="fas fa-crown mr-1"></i> Superuser
+                                </span>
+                            {% elif row.is_staff %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                                    <i class="fas fa-user-shield mr-1"></i> Staff
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                                    <i class="fas fa-user-graduate mr-1"></i> Student
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-2 text-gray-600">{{ row.date_joined|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="py-8 text-center text-gray-500">
+                            <i class="fas fa-users-slash text-2xl mb-2 block text-gray-300"></i>
+                            No users found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    <tr id="noSearchResults" class="hidden">
+                        <td colspan="4" class="py-6 text-center text-gray-500">
+                            <i class="fas fa-search text-xl mb-2 block text-gray-300"></i>
+                            No users match your search.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Tab switching ---
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = btn.dataset.tab;
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                const active = b.dataset.tab === target;
+                b.classList.toggle('border-blue-500', active);
+                b.classList.toggle('text-blue-600', active);
+                b.classList.toggle('border-transparent', !active);
+                b.classList.toggle('text-gray-500', !active);
+            });
+            document.querySelectorAll('.tab-panel').forEach(p => {
+                p.classList.toggle('hidden', p.dataset.panel !== target);
+            });
+        });
+    });
+
+    // --- Show/hide password ---
+    function togglePw(btn) {
+        const input = btn.parentElement.querySelector('input');
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    // --- Password strength meter ---
+    function updateStrength(input) {
+        const val = input.value;
+        const bar = input.form.querySelector('[data-strength-bar]');
+        const label = input.form.querySelector('[data-strength-label]');
+        if (!bar || !label) return;
+
+        let score = 0;
+        if (val.length >= 8) score++;
+        if (val.length >= 12) score++;
+        if (/[A-Z]/.test(val) && /[a-z]/.test(val)) score++;
+        if (/\d/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+
+        const levels = [
+            { w: '0%',   c: 'bg-gray-300',    t: 'Minimum 8 characters',       tc: 'text-gray-500' },
+            { w: '25%',  c: 'bg-red-400',     t: 'Weak password',              tc: 'text-red-600' },
+            { w: '50%',  c: 'bg-orange-400',  t: 'Fair password',              tc: 'text-orange-600' },
+            { w: '75%',  c: 'bg-yellow-400',  t: 'Good password',              tc: 'text-yellow-700' },
+            { w: '90%',  c: 'bg-emerald-400', t: 'Strong password',            tc: 'text-emerald-600' },
+            { w: '100%', c: 'bg-emerald-500', t: 'Very strong password',       tc: 'text-emerald-700' },
+        ];
+        const l = levels[val.length === 0 ? 0 : Math.min(score, 5)];
+        bar.style.width = l.w;
+        bar.className = 'h-full transition-all duration-200 ' + l.c;
+        label.textContent = l.t;
+        label.className = 'text-xs mt-1 ' + l.tc;
+    }
+
+    // --- Password match indicator ---
+    function updateMatch(form) {
+        const newPw = form.querySelector('[name="new_password"]');
+        const confirm = form.querySelector('[name="confirm_password"]');
+        const label = form.querySelector('[data-match-label]');
+        if (!newPw || !confirm || !label) return;
+        if (!confirm.value) { label.classList.add('hidden'); return; }
+        label.classList.remove('hidden');
+        if (newPw.value === confirm.value) {
+            label.textContent = '✓ Passwords match';
+            label.className = 'text-xs text-emerald-600 mt-1';
+        } else {
+            label.textContent = '✗ Passwords do not match';
+            label.className = 'text-xs text-red-600 mt-1';
+        }
+    }
+
+    // --- Submit-time validation (applies to all forms) ---
+    function validatePasswordMatch(form, pwField, confirmField) {
+        const pw = form.querySelector(`[name="${pwField}"]`);
+        const cf = form.querySelector(`[name="${confirmField}"]`);
+        if (pw && cf && pw.value !== cf.value) {
+            alert('Passwords do not match.');
+            cf.focus();
+            return false;
+        }
+        return true;
+    }
+
+    // --- Recent-users search ---
+    function filterUsers(q) {
+        q = q.trim().toLowerCase();
+        const rows = document.querySelectorAll('#userTableBody tr:not(#noSearchResults)');
+        let visible = 0;
+        rows.forEach(r => {
+            if (r.querySelector('td[colspan]')) return; // skip empty-state row
+            const match = r.textContent.toLowerCase().includes(q);
+            r.classList.toggle('hidden', !match);
+            if (match) visible++;
+        });
+        const noMatch = document.getElementById('noSearchResults');
+        if (noMatch) noMatch.classList.toggle('hidden', visible > 0 || !q);
+    }
+</script>
+{% endblock %}
