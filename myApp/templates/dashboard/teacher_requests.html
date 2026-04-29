@@ -66,6 +66,58 @@
         </form>
     </div>
 
+    <!-- Create Teacher Invite -->
+    <details class="bg-[#ffffff]/60 backdrop-blur-sm border border-blue-500/20 rounded-xl p-6 group">
+        <summary class="list-none cursor-pointer">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold text-gray-800">Create Teacher</h2>
+                <span class="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-all shadow-md hover:shadow-lg">
+                    <i class="fas fa-user-plus mr-2"></i>Open Create Teacher Form
+                </span>
+            </div>
+        </summary>
+        <div class="mt-5 pt-5 border-t border-blue-200/60">
+            <form method="post" action="{% url 'dashboard_teacher_create_invite' %}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-gray-800">First Name *</label>
+                    <input type="text" name="first_name" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-soft text-gray-800">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-gray-800">Last Name *</label>
+                    <input type="text" name="last_name" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-soft text-gray-800">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-gray-800">Email *</label>
+                    <input type="email" name="email" required placeholder="teacher@email.com"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-soft text-gray-800 placeholder-gray-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-gray-800">Username (optional)</label>
+                    <input type="text" name="username" placeholder="Auto-generated if empty"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-soft text-gray-800 placeholder-gray-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-gray-800">Languages</label>
+                    <input type="text" name="languages_spoken" placeholder="English, Spanish"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-soft text-gray-800 placeholder-gray-500">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium mb-2 text-gray-800">Short Bio (optional)</label>
+                    <textarea name="bio" rows="3" placeholder="Optional profile intro for the teacher"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-teal-soft text-gray-800 placeholder-gray-500"></textarea>
+                </div>
+                <div class="md:col-span-2">
+                    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-all shadow-md hover:shadow-lg">
+                        <i class="fas fa-paper-plane mr-2"></i>Create Teacher & Send Invite
+                    </button>
+                </div>
+            </form>
+        </div>
+    </details>
+
     <!-- Approved Teachers List -->
     <div class="bg-[#ffffff]/60 backdrop-blur-sm border border-teal-soft/10 rounded-xl p-6">
         <div class="flex items-center justify-between mb-4">

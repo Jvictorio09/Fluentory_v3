@@ -3533,6 +3533,105 @@ def dashboard_teacher_requests(request):
 
 
 @staff_member_required
+@require_http_methods(["POST"])
+def dashboard_teacher_create_invite(request):
+    """Create a teacher account and send a first-time password setup invite."""
+    from django.contrib.auth.tokens import default_token_generator
+    from django.utils.encoding import force_bytes
+    from django.utils.http import urlsafe_base64_encode
+    from django.urls import reverse
+    from .utils.email import send_teacher_invite_email
+
+    first_name = (request.POST.get('first_name') or '').strip()
+    last_name = (request.POST.get('last_name') or '').strip()
+    email = (request.POST.get('email') or '').strip().lower()
+    username_input = (request.POST.get('username') or '').strip().lower()
+    languages_spoken = (request.POST.get('languages_spoken') or 'English').strip()
+    bio = (request.POST.get('bio') or '').strip()
+
+    if not first_name or not last_name or not email:
+        messages.error(request, 'First name, last name, and email are required.')
+        return redirect('dashboard_teacher_requests')
+
+    if User.objects.filter(email__iexact=email).exists():
+        messages.error(request, f'Email "{email}" is already in use.')
+        return redirect('dashboard_teacher_requests')
+
+    username_base = username_input or email.split('@')[0] or f'{first_name}.{last_name}'
+    username_base = re.sub(r'[^a-z0-9._-]+', '', username_base.lower()).strip('._-')
+    if not username_base:
+        username_base = 'teacher'
+
+    username = username_base
+    suffix = 1
+    while User.objects.filter(username=username).exists():
+        suffix += 1
+        username = f'{username_base}{suffix}'
+
+    user = User.objects.create_user(
+        username=username,
+        email=email,
+        password=None,
+        first_name=first_name,
+        last_name=last_name,
+    )
+    user.is_staff = True
+    user.save(update_fields=['is_staff'])
+
+    TeacherRequest.objects.create(
+        user=user,
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
+        phone='',
+        bio=bio or 'Teacher invited by admin.',
+        qualifications='Added by admin invite',
+        languages_spoken=languages_spoken or 'English',
+        teaching_experience='Added by admin invite',
+        motivation='Added by admin invite',
+        status='approved',
+        reviewed_by=request.user,
+        reviewed_at=timezone.now(),
+        admin_notes='Created directly by admin and invited by email.',
+    )
+
+    TeacherProfile.objects.get_or_create(
+        user=user,
+        defaults={
+            'headline': 'Fluentory Teacher',
+            'bio': bio,
+        },
+    )
+
+    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    set_password_url = request.build_absolute_uri(
+        reverse('reset_password', kwargs={'uidb64': uidb64, 'token': token})
+    )
+    email_result = send_teacher_invite_email(
+        user=user,
+        set_password_url=set_password_url,
+        invited_by_name=request.user.get_full_name() or request.user.username or 'Admin Team',
+    )
+
+    if email_result.get('success'):
+        messages.success(
+            request,
+            f'Teacher "{username}" created and invite sent to {email}.',
+        )
+    else:
+        messages.warning(
+            request,
+            (
+                f'Teacher "{username}" was created, but invite email failed to send: '
+                f'{email_result.get("message", "unknown error")}'
+            ),
+        )
+
+    return redirect('dashboard_teacher_requests')
+
+
+@staff_member_required
 def dashboard_teacher_request_detail(request, request_id):
     """View detailed teacher request"""
     teacher_request = get_object_or_404(TeacherRequest, id=request_id)

@@ -156,6 +156,7 @@ urlpatterns = [
     
     # Teacher Request Management
     path('dashboard/teacher-requests/', dashboard_views.dashboard_teacher_requests, name='dashboard_teacher_requests'),
+    path('dashboard/teacher-requests/create-invite/', dashboard_views.dashboard_teacher_create_invite, name='dashboard_teacher_create_invite'),
     path('dashboard/teacher-requests/<int:request_id>/', dashboard_views.dashboard_teacher_request_detail, name='dashboard_teacher_request_detail'),
     path('dashboard/teacher-requests/<int:request_id>/approve/', dashboard_views.dashboard_teacher_request_approve, name='dashboard_teacher_request_approve'),
     path('dashboard/teacher-requests/<int:request_id>/reject/', dashboard_views.dashboard_teacher_request_reject, name='dashboard_teacher_request_reject'),

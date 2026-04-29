@@ -131,6 +131,53 @@ def send_password_reset_email(user, reset_url):
     return _send_resend_email([user.email], subject, html_content)
 
 
+def send_teacher_invite_email(user, set_password_url, invited_by_name='Admin Team'):
+    """Send teacher onboarding invite with first-time password setup link."""
+    if not user.email:
+        return {
+            'success': False,
+            'message': 'User email is missing'
+        }
+
+    display_name = user.get_full_name() or user.username or 'there'
+    subject = 'You are invited to teach on Fluentory'
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ background: linear-gradient(135deg, #52A8B5 0%, #4492B3 100%); color: white; padding: 24px; text-align: center; border-radius: 10px 10px 0 0; }}
+        .content {{ background: #f9f9f9; padding: 24px; border-radius: 0 0 10px 10px; }}
+        .button {{ display: inline-block; background: #52A8B5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; }}
+        .note {{ font-size: 12px; color: #666; margin-top: 18px; }}
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Welcome to Fluentory</h1>
+        </div>
+        <div class="content">
+          <p>Hi {display_name},</p>
+          <p>{invited_by_name} invited you to join Fluentory as a teacher.</p>
+          <p>To activate your account, create your password using the secure link below:</p>
+          <p>
+            <a href="{set_password_url}" class="button">Create Your Password</a>
+          </p>
+          <p>If the button does not work, copy and paste this URL into your browser:</p>
+          <p><a href="{set_password_url}" style="word-break: break-all;">{set_password_url}</a></p>
+          <p class="note">For your security, this link can expire. If needed, ask an admin to send a new invite.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    """
+    return _send_resend_email([user.email], subject, html_content)
+
+
 def send_gift_email(gift_purchase):
     """
     Send gift notification email using Resend API
