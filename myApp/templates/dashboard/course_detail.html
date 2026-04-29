@@ -195,6 +195,11 @@
                 <a href="{% url 'dashboard_add_lesson' %}?course={{ course.id }}" class="block w-full px-4 py-2 bg-blue-soft/10 border border-blue-soft/30 rounded-lg text-center font-medium hover:bg-blue-soft/20 transition-all text-black">
                     Add Lesson
                 </a>
+                {% if course.delivery_type == 'live' %}
+                <a href="{% url 'teacher_live_session_create' course.slug %}" class="block w-full px-4 py-2 bg-purple-500/10 border border-purple-500/30 rounded-lg text-center font-medium hover:bg-purple-500/20 transition-all text-black">
+                    <i class="fas fa-video mr-2"></i>Create Live Session
+                </a>
+                {% endif %}
                 <a href="{% url 'dashboard_sample_certificate' course.slug %}" target="_blank" class="block w-full px-4 py-2 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-center font-medium hover:bg-yellow-500/20 transition-all text-black">
                     <i class="fas fa-certificate mr-2"></i>View Sample Certificate
                 </a>
