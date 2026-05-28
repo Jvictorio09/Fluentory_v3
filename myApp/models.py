@@ -8,19 +8,14 @@ import secrets
 
 
 class Course(models.Model):
+    # Course categories aligned with Fluentory's language-learning brand
+    # (speaking confidence, conversation practice, exam prep). Legacy wellness
+    # categories from the platform this was adapted from were removed.
     COURSE_TYPES = [
         ('sprint', 'Sprint'),
         ('speaking', 'Speaking'),
         ('consultancy', 'Consultancy'),
         ('special', 'Special'),
-        ('positive_psychology', 'Positive Psychology'),
-        ('nlp', 'NLP'),
-        ('nutrition', 'Nutrition'),
-        ('naturopathy', 'Naturopathy'),
-        ('hypnotherapy', 'Hypnotherapy'),
-        ('ayurveda', 'Ayurveda'),
-        ('art_therapy', 'Art Therapy'),
-        ('aroma_therapy', 'Aroma Therapy'),
         ('tawjehi', 'Tawjehi'),
     ]
     

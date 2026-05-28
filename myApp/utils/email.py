@@ -580,3 +580,105 @@ def send_teacher_rejection_email(teacher_request, rejection_reason=''):
             return {'success': False, 'message': f'Resend API error: {response.status_code} - {response.text}'}
     except Exception as e:
         return {'success': False, 'message': f'Error sending email: {str(e)}'}
+
+
+def send_verification_email(user, verify_url):
+    """Send an account email-verification link using Resend."""
+    if not user.email:
+        return {'success': False, 'message': 'User email is missing'}
+
+    display_name = user.get_full_name() or user.username or 'there'
+    subject = 'Confirm your email for Fluentory'
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ background: linear-gradient(135deg, #52A8B5 0%, #4492B3 100%); color: white; padding: 24px; text-align: center; border-radius: 10px 10px 0 0; }}
+        .content {{ background: #f9f9f9; padding: 24px; border-radius: 0 0 10px 10px; }}
+        .button {{ display: inline-block; background: #52A8B5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; }}
+        .note {{ font-size: 12px; color: #666; margin-top: 18px; }}
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Confirm your email</h1>
+        </div>
+        <div class="content">
+          <p>Hi {display_name},</p>
+          <p>Welcome to Fluentory! Please confirm your email address to activate your account.</p>
+          <p>
+            <a href="{verify_url}" class="button">Confirm Email</a>
+          </p>
+          <p>If the button does not work, copy and paste this URL into your browser:</p>
+          <p><a href="{verify_url}" style="word-break: break-all;">{verify_url}</a></p>
+          <p class="note">This link will expire in a few days. If you did not create a Fluentory account, you can safely ignore this email.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    """
+    return _send_resend_email([user.email], subject, html_content)
+
+
+def _contact_inbox():
+    """The inbox that should receive contact-form submissions."""
+    return os.getenv('CONTACT_INBOX') or os.getenv('RESEND_REPLY_TO') or 'Fluentory.me@gmail.com'
+
+
+def send_contact_message_email(name, email, subject, message):
+    """Send a contact-form submission to the team inbox, with reply-to set to the sender."""
+    resend_api_key = os.getenv('RESEND_API_KEY')
+    resend_from = _normalize_sender_address(os.getenv('RESEND_FROM', 'noreply@example.com'))
+
+    if not resend_api_key:
+        return {'success': False, 'message': 'RESEND_API_KEY not configured'}
+
+    safe_name = (name or 'Website visitor').strip()
+    safe_subject = (subject or 'New contact message').strip()
+    # Render the message preserving line breaks, escaping handled by caller/templating context.
+    body_html = (message or '').replace('\n', '<br>')
+
+    full_subject = f'[Contact] {safe_subject}'
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="utf-8"></head>
+    <body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;">
+      <div style="max-width:600px;margin:0 auto;padding:20px;">
+        <h2 style="color:#1B3A5C;">New contact form submission</h2>
+        <p><strong>Name:</strong> {safe_name}</p>
+        <p><strong>Email:</strong> {email}</p>
+        <p><strong>Subject:</strong> {safe_subject}</p>
+        <p><strong>Message:</strong></p>
+        <div style="background:#f7fafb;border-left:4px solid #2A8FA8;padding:14px 16px;border-radius:6px;">{body_html}</div>
+      </div>
+    </body>
+    </html>
+    """
+
+    try:
+        response = requests.post(
+            _resend_emails_endpoint(),
+            headers={
+                'Authorization': f'Bearer {resend_api_key}',
+                'Content-Type': 'application/json',
+            },
+            json={
+                'from': resend_from,
+                'to': [_contact_inbox()],
+                'reply_to': email,
+                'subject': full_subject,
+                'html': html_content,
+            },
+            timeout=10,
+        )
+        if response.status_code in (200, 201, 202):
+            return {'success': True, 'message': 'Contact message sent', 'email_id': response.json().get('id')}
+        return {'success': False, 'message': f'Resend API error: {response.status_code} - {response.text}'}
+    except Exception as e:
+        return {'success': False, 'message': f'Error sending email: {str(e)}'}

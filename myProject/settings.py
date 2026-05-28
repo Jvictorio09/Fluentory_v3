@@ -146,6 +146,14 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# Authentication backends
+# Allow sign-in with either username or email, falling back to Django's default.
+AUTHENTICATION_BACKENDS = [
+    'myApp.auth_backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 

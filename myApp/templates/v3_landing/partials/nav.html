@@ -2,12 +2,12 @@
 <nav id="nav">
   <div class="nav-inner">
     <a href="{% url 'v3_landing' %}" class="nav-logo">
-      <img 
-        src="https://res.cloudinary.com/dwooadxdj/image/upload/v1771294639/copy_of_copy_of_fluentory_-_branding-05_ijgdpz_a6f568_7b4fc3.png" 
-        alt="Fluentory Logo" 
+      <img
+        src="https://res.cloudinary.com/dwooadxdj/image/upload/v1771294639/copy_of_copy_of_fluentory_-_branding-05_ijgdpz_a6f568_7b4fc3.png"
+        alt="Fluentory Logo"
         style="height: 34px; width: auto; object-fit: contain;"
       >
-     
+
     </a>
     <div class="nav-links">
       <a href="#hiw">How It Works</a>
@@ -15,7 +15,7 @@
       <a href="{% url 'tawjehi_page' %}">Tawjehi</a>
       <a href="#stories">Stories</a>
       <a href="#faq">FAQ</a>
-      <a href="mailto:Fluentory.me@gmail.com">Contact</a>
+      <a href="{% url 'contact' %}">Contact</a>
     </div>
     <div class="lang-switch" aria-label="Language switch">
       <a href="{% url 'v3_landing' %}" class="lang-link is-active">EN</a>
@@ -23,29 +23,44 @@
       <a href="{% url 'v3_landing_ar' %}" class="lang-link">AR</a>
     </div>
     <div class="nav-actions">
+      {% if user.is_authenticated %}
+      <a href="{{ user_dashboard_url|default:'/my-dashboard/' }}" class="btn-ghost"><i class="fa-solid fa-gauge" style="font-size:11px"></i> Dashboard</a>
+      <a href="{% url 'logout' %}" class="btn-teal"><i class="fa-solid fa-arrow-right-from-bracket" style="font-size:10px"></i> Log out</a>
+      {% else %}
       <a href="{% url 'login' %}" class="btn-ghost">Login</a>
       <a href="{% url 'courses' %}" class="btn-teal"><i class="fa-solid fa-book-open" style="font-size:10px"></i> Explore Courses</a>
+      {% endif %}
     </div>
-    <button class="mobile-tog" onclick="toggleMobileMenu(event)" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
-      <i class="fa-solid fa-bars" style="color:var(--navy)"></i>
-    </button>
+    <!-- Mobile-only header controls: language switch stays visible + hamburger -->
+    <div class="nav-mobile-controls">
+      <div class="lang-switch lang-switch--mobile" aria-label="Language switch">
+        <a href="{% url 'v3_landing' %}" class="lang-link is-active">EN</a>
+        <span>|</span>
+        <a href="{% url 'v3_landing_ar' %}" class="lang-link">AR</a>
+      </div>
+      <button class="mobile-tog" onclick="toggleMobileMenu(event)" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
+        <i class="fa-solid fa-bars" style="color:var(--navy)"></i>
+      </button>
+    </div>
   </div>
   <div id="mobile-menu" class="mobile-menu">
+    {% if user.is_authenticated %}
+    <div class="mobile-actions mobile-actions--top">
+      <a href="{{ user_dashboard_url|default:'/my-dashboard/' }}" class="btn-teal"><i class="fa-solid fa-gauge" style="font-size:11px"></i> Go to Dashboard</a>
+      <a href="{% url 'logout' %}" class="btn-ghost"><i class="fa-solid fa-arrow-right-from-bracket" style="font-size:10px"></i> Log out</a>
+    </div>
+    {% else %}
+    <div class="mobile-actions mobile-actions--top">
+      <a href="{% url 'login' %}" class="btn-teal"><i class="fa-solid fa-arrow-right-to-bracket" style="font-size:10px"></i> Login</a>
+      <a href="{% url 'register' %}" class="btn-ghost"><i class="fa-solid fa-user-plus" style="font-size:10px"></i> Sign up</a>
+    </div>
+    {% endif %}
     <a href="#hiw">How It Works</a>
     <a href="#courses">Courses</a>
     <a href="{% url 'tawjehi_page' %}">Tawjehi</a>
     <a href="#stories">Stories</a>
     <a href="#faq">FAQ</a>
-    <a href="mailto:Fluentory.me@gmail.com">Contact</a>
-    <div class="mobile-lang" aria-label="Language switch">
-      <a href="{% url 'v3_landing' %}">EN</a>
-      <span>|</span>
-      <a href="{% url 'v3_landing_ar' %}">AR</a>
-    </div>
-    <div class="mobile-actions">
-      <a href="{% url 'login' %}" class="btn-ghost">Login</a>
-      <a href="{% url 'courses' %}" class="btn-teal"><i class="fa-solid fa-book-open" style="font-size:10px"></i> Explore Courses</a>
-    </div>
+    <a href="{% url 'contact' %}">Contact</a>
+    <a href="{% url 'courses' %}" class="mobile-cta">Explore Courses →</a>
   </div>
 </nav>
-

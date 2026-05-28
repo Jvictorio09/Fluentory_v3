@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confirm your email — Fluentory</title>
+  <link rel="icon" type="image/jpeg" href="https://res.cloudinary.com/dzgnshpxi/image/upload/v1775774517/fluentory_icon_dmqezt.jpg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink:#1a1d27; --ink-mid:#3d4155; --ink-soft:#7a7f96;
+      --teal:#52A8B5; --teal-dim:#3d8a96; --blue:#4492B3;
+      --coral:#DE604D; --coral-dim:#c44d3b;
+      --bg:#f5f4f0; --card:#fff; --border:rgba(26,29,39,0.10);
+    }
+    html, body { min-height:100%; font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased; }
+    .wrap { min-height:100svh; display:flex; align-items:center; justify-content:center; padding:32px 20px; }
+    .card { background:var(--card); border-radius:20px; border:1px solid var(--border); padding:40px 34px 32px; max-width:440px; width:100%; text-align:center; box-shadow:0 2px 3px rgba(26,29,39,0.04),0 20px 60px rgba(26,29,39,0.07); position:relative; }
+    .card::before { content:''; position:absolute; top:0; left:28px; right:28px; height:2px; background:linear-gradient(to right,transparent,var(--teal) 40%,var(--blue) 60%,transparent); border-radius:0 0 4px 4px; }
+    .logo { height:38px; margin-bottom:24px; }
+    .icon-circle { width:64px; height:64px; border-radius:50%; background:rgba(82,168,181,0.12); color:var(--teal-dim); display:flex; align-items:center; justify-content:center; font-size:26px; margin:0 auto 20px; }
+    h1 { font-family:'DM Serif Display',serif; font-size:26px; margin-bottom:12px; }
+    .lead { font-size:14.5px; line-height:1.7; color:var(--ink-mid); margin-bottom:6px; }
+    .email { font-weight:600; color:var(--ink); }
+    .hint { font-size:12.5px; color:var(--ink-soft); margin-top:14px; line-height:1.6; }
+
+    .messages { margin:18px 0 4px; display:flex; flex-direction:column; gap:8px; text-align:left; }
+    .msg { display:flex; align-items:flex-start; gap:10px; padding:11px 13px; border-radius:10px; font-size:13px; line-height:1.5; }
+    .msg.error { background:#fef2f2; border:1px solid #fecaca; color:#b91c1c; }
+    .msg.success { background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; }
+    .msg.warning { background:#fffbeb; border:1px solid #fde68a; color:#92400e; }
+    .msg.info { background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; }
+
+    .actions { margin-top:24px; display:flex; flex-direction:column; gap:12px; }
+    .btn-resend { height:48px; border:none; border-radius:12px; background:var(--coral); color:#fff; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:background 0.2s, transform 0.15s; box-shadow:0 4px 18px rgba(222,96,77,0.28); }
+    .btn-resend:hover { background:var(--coral-dim); transform:translateY(-1px); }
+    .login-link { font-size:13px; color:var(--teal-dim); text-decoration:none; font-weight:600; }
+    .login-link:hover { color:var(--teal); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <img class="logo" src="https://res.cloudinary.com/dwooadxdj/image/upload/v1771294639/copy_of_copy_of_fluentory_-_branding-05_ijgdpz_a6f568_7b4fc3.png" alt="Fluentory" />
+      <div class="icon-circle"><i class="fas fa-envelope-open-text"></i></div>
+      <h1>Check your inbox</h1>
+      <p class="lead">We've sent a confirmation link to<br><span class="email">{{ email }}</span></p>
+      <p class="lead">Click the link in that email to activate your account and start learning.</p>
+
+      {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+        <div class="msg {{ message.tags }}">
+          <i class="fas {% if message.tags == 'error' %}fa-circle-exclamation{% elif message.tags == 'success' %}fa-check-circle{% elif message.tags == 'warning' %}fa-triangle-exclamation{% else %}fa-info-circle{% endif %}"></i>
+          <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <p class="hint">Didn't get it? Check your spam folder, or resend the email below.</p>
+
+      <div class="actions">
+        <form method="POST" action="{% url 'resend_verification' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn-resend" style="width:100%;">
+            <i class="fas fa-paper-plane"></i> Resend confirmation email
+          </button>
+        </form>
+        <a href="{% url 'login' %}" class="login-link">Back to login</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

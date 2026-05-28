@@ -498,13 +498,13 @@
               <div class="field-group">
                 <label class="field-label" for="first_name">First name <span class="req">*</span></label>
                 <div class="field-wrap">
-                  <input class="field-input" type="text" id="first_name" name="first_name" placeholder="First name" required />
+                  <input class="field-input" type="text" id="first_name" name="first_name" placeholder="First name" required maxlength="50" pattern="[A-Za-zÀ-ɏ؀-ۿ'’\- ]{1,50}" title="Letters, spaces, hyphens and apostrophes only" />
                 </div>
               </div>
               <div class="field-group">
                 <label class="field-label" for="last_name">Last name <span class="req">*</span></label>
                 <div class="field-wrap">
-                  <input class="field-input" type="text" id="last_name" name="last_name" placeholder="Last name" required />
+                  <input class="field-input" type="text" id="last_name" name="last_name" placeholder="Last name" required maxlength="50" pattern="[A-Za-zÀ-ɏ؀-ۿ'’\- ]{1,50}" title="Letters, spaces, hyphens and apostrophes only" />
                 </div>
               </div>
             </div>
@@ -513,7 +513,7 @@
             <div class="field-group">
               <label class="field-label" for="username">Username <span class="req">*</span></label>
               <div class="field-wrap">
-                <input class="field-input has-icon" type="text" id="username" name="username" placeholder="Choose a username" required />
+                <input class="field-input has-icon" type="text" id="username" name="username" placeholder="Choose a username" required minlength="3" maxlength="30" pattern="[A-Za-z0-9_.]{3,30}" title="3–30 characters: letters, numbers, dots and underscores only" />
                 <i class="fas fa-at field-icon"></i>
               </div>
             </div>

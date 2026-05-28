@@ -640,8 +640,23 @@ def login_view(request):
             next_url = safe_post_next or _default_dashboard_for_user(user)
             return redirect(next_url)
         else:
+            # Distinguish "wrong credentials" from "correct credentials, unverified email".
+            identifier = (username or '').strip()
+            inactive_user = (
+                User.objects.filter(is_active=False)
+                .filter(Q(username__iexact=identifier) | Q(email__iexact=identifier))
+                .first()
+            )
+            if inactive_user and password and inactive_user.check_password(password):
+                request.session['pending_verification_email'] = inactive_user.email
+                messages.error(
+                    request,
+                    'Please confirm your email address before signing in. '
+                    'You can resend the confirmation link below.',
+                )
+                return redirect('verify_email_sent')
             messages.error(request, 'Invalid username or password.')
-    
+
     return render(request, 'login.html')
 
 
@@ -675,6 +690,53 @@ def force_password_change_view(request):
     return render(request, 'force_password_change.html')
 
 
+# Allowed characters for registration fields.
+# Names: letters (Latin + accented + Arabic), spaces, hyphen, apostrophe.
+NAME_RE = re.compile(r"^[A-Za-zÀ-ɏ؀-ۿ'’\- ]{1,50}$")
+# Username: letters, numbers, dot, underscore (3-30 chars).
+USERNAME_RE = re.compile(r"^[A-Za-z0-9_.]{3,30}$")
+
+
+def _clean_name(value, field_label):
+    """Validate a first/last name field. Returns (cleaned_value, error_or_None)."""
+    value = (value or '').strip()
+    if not value:
+        return value, f'{field_label} is required.'
+    if not NAME_RE.match(value):
+        return value, (
+            f'{field_label} may only contain letters, spaces, hyphens, and apostrophes.'
+        )
+    return value, None
+
+
+def _clean_username(value):
+    """Validate a username field. Returns (cleaned_value, error_or_None)."""
+    value = (value or '').strip()
+    if not value:
+        return value, 'Username is required.'
+    if len(value) < 3:
+        return value, 'Username must be at least 3 characters.'
+    if len(value) > 30:
+        return value, 'Username must be 30 characters or fewer.'
+    if not USERNAME_RE.match(value):
+        return value, 'Username may only contain letters, numbers, dots, and underscores.'
+    return value, None
+
+
+def _clean_email(value):
+    """Validate an email field's format. Returns (cleaned_value, error_or_None)."""
+    from django.core.validators import validate_email
+    from django.core.exceptions import ValidationError as DjangoValidationError
+    value = (value or '').strip()
+    if not value:
+        return value, 'Email is required.'
+    try:
+        validate_email(value)
+    except DjangoValidationError:
+        return value, 'Please enter a valid email address.'
+    return value, None
+
+
 def register_view(request):
     """Premium registration page"""
     requested_next = (request.POST.get('next') or request.GET.get('next') or '').strip()
@@ -691,33 +753,37 @@ def register_view(request):
         return redirect(safe_next or 'student_dashboard')
     
     if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
         password = request.POST.get('password')
         password_confirm = request.POST.get('password_confirm')
-        first_name = request.POST.get('first_name', '')
-        last_name = request.POST.get('last_name', '')
-        
+
         # Validation
         errors = []
-        
-        if not username:
-            errors.append('Username is required.')
-        elif len(username) < 3:
-            errors.append('Username must be at least 3 characters.')
-        elif User.objects.filter(username=username).exists():
+
+        first_name, first_name_error = _clean_name(request.POST.get('first_name'), 'First name')
+        if first_name_error:
+            errors.append(first_name_error)
+
+        last_name, last_name_error = _clean_name(request.POST.get('last_name'), 'Last name')
+        if last_name_error:
+            errors.append(last_name_error)
+
+        username, username_error = _clean_username(request.POST.get('username'))
+        if username_error:
+            errors.append(username_error)
+        elif User.objects.filter(username__iexact=username).exists():
             errors.append('Username already exists.')
-        
-        if not email:
-            errors.append('Email is required.')
-        elif User.objects.filter(email=email).exists():
+
+        email, email_error = _clean_email(request.POST.get('email'))
+        if email_error:
+            errors.append(email_error)
+        elif User.objects.filter(email__iexact=email).exists():
             errors.append('Email already registered.')
-        
+
         if not password:
             errors.append('Password is required.')
         elif len(password) < 8:
             errors.append('Password must be at least 8 characters.')
-        
+
         if password != password_confirm:
             errors.append('Passwords do not match.')
         
@@ -725,18 +791,17 @@ def register_view(request):
             for error in errors:
                 messages.error(request, error)
         else:
-            # Create user
+            # Create user — inactive until they confirm their email address.
             try:
                 user = User.objects.create_user(
                     username=username,
                     email=email,
                     password=password,
                     first_name=first_name,
-                    last_name=last_name
+                    last_name=last_name,
+                    is_active=False,
                 )
-                # Automatically log in the user
-                login(request, user)
-                messages.success(request, 'Account created successfully! Welcome to Fluentory.')
+
                 queue_sequence(
                     trigger_key='user.registered',
                     user=user,
@@ -762,12 +827,8 @@ def register_view(request):
                     # One-time attribution for registration conversion.
                     request.session.pop('shared_course_attribution', None)
                     request.session.modified = True
-                
-                # If registering with a gift, redirect to redeem
-                gift_token = request.GET.get('gift')
-                if gift_token:
-                    return redirect('redeem_gift', gift_token=gift_token)
 
+                # Preserve post-verification destination (next / gift) across the email round-trip.
                 post_next = (request.POST.get('next') or request.GET.get('next') or '').strip()
                 safe_post_next = ''
                 if post_next and url_has_allowed_host_and_scheme(
@@ -776,12 +837,106 @@ def register_view(request):
                     require_https=request.is_secure(),
                 ):
                     safe_post_next = post_next
+                request.session['post_verification_next'] = safe_post_next
+                request.session['post_verification_gift'] = (request.GET.get('gift') or '').strip()
+                request.session['pending_verification_email'] = user.email
 
-                return redirect(safe_post_next or 'student_dashboard')
+                send_result = _send_email_verification(request, user)
+                if not send_result.get('success'):
+                    import logging
+                    logging.getLogger(__name__).warning(
+                        'Verification email failed for user_id=%s email=%s: %s',
+                        user.id, user.email, send_result.get('message', 'unknown error'),
+                    )
+                    messages.warning(
+                        request,
+                        'Your account was created, but we could not send the confirmation email. '
+                        'Please use the resend button below.',
+                    )
+                return redirect('verify_email_sent')
             except Exception as e:
                 messages.error(request, f'Error creating account: {str(e)}')
-    
+
     return render(request, 'register.html')
+
+
+def _send_email_verification(request, user):
+    """Build a signed verification link for `user` and email it. Returns the send result dict."""
+    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    verify_url = request.build_absolute_uri(
+        reverse('verify_email', kwargs={'uidb64': uidb64, 'token': token})
+    )
+    from .utils.email import send_verification_email
+    return send_verification_email(user, verify_url)
+
+
+def verify_email_sent_view(request):
+    """Post-registration page telling the user to check their inbox."""
+    email = request.session.get('pending_verification_email')
+    if not email:
+        return redirect('register')
+    return render(request, 'verify_email_sent.html', {'email': email})
+
+
+def resend_verification_view(request):
+    """Resend the verification email to the pending (inactive) account."""
+    email = request.session.get('pending_verification_email')
+    if not email:
+        messages.error(request, 'Please register first.')
+        return redirect('register')
+
+    user = User.objects.filter(email__iexact=email, is_active=False).first()
+    if user:
+        result = _send_email_verification(request, user)
+        if result.get('success'):
+            messages.success(request, f'A new confirmation email has been sent to {email}.')
+        else:
+            messages.warning(request, 'We could not send the email right now. Please try again shortly.')
+    else:
+        # Already verified (or no such account): keep the message generic.
+        messages.info(request, 'If your account still needs confirmation, a new email has been sent.')
+    return redirect('verify_email_sent')
+
+
+def verify_email_view(request, uidb64, token):
+    """Activate an account from a verification link, then log the user in."""
+    user = None
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.filter(pk=uid).first()
+    except Exception:
+        user = None
+
+    if user is None or not default_token_generator.check_token(user, token):
+        messages.error(request, 'This confirmation link is invalid or has expired. Please request a new one.')
+        # If we know who is pending, send them to the resend page; otherwise to login.
+        if request.session.get('pending_verification_email'):
+            return redirect('verify_email_sent')
+        return redirect('login')
+
+    if not user.is_active:
+        user.is_active = True
+        user.save(update_fields=['is_active'])
+
+    # Log the user in (explicit backend required when multiple backends are configured).
+    login(request, user, backend='myApp.auth_backends.EmailOrUsernameModelBackend')
+    messages.success(request, 'Your email is confirmed. Welcome to Fluentory!')
+
+    # Clear pending-verification session state.
+    next_url = request.session.pop('post_verification_next', '') or ''
+    gift_token = request.session.pop('post_verification_gift', '') or ''
+    request.session.pop('pending_verification_email', None)
+
+    if gift_token:
+        return redirect('redeem_gift', gift_token=gift_token)
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return redirect(next_url)
+    return redirect('student_dashboard')
 
 
 def register_teacher_view(request):
@@ -804,7 +959,20 @@ def register_teacher_view(request):
         if not all([first_name, last_name, email, bio, qualifications, languages_spoken, teaching_experience, motivation, username, password]):
             messages.error(request, 'Please fill in all required fields.')
             return render(request, 'register_teacher.html')
-        
+
+        # Character/format validation for identity fields
+        field_errors = [
+            _clean_name(first_name, 'First name')[1],
+            _clean_name(last_name, 'Last name')[1],
+            _clean_username(username)[1],
+            _clean_email(email)[1],
+        ]
+        field_errors = [e for e in field_errors if e]
+        if field_errors:
+            for err in field_errors:
+                messages.error(request, err)
+            return render(request, 'register_teacher.html')
+
         if password != password_confirm:
             messages.error(request, 'Passwords do not match.')
             return render(request, 'register_teacher.html')
@@ -886,6 +1054,46 @@ def become_teacher_page(request):
         'benefits': benefits,
         'default_commission': default_commission,
     })
+
+
+def contact_view(request):
+    """Dedicated contact page with a form. Submissions are emailed via Resend."""
+    prefill = {'name': '', 'email': '', 'subject': '', 'message': ''}
+    if request.method == 'POST':
+        name = (request.POST.get('name') or '').strip()
+        email = (request.POST.get('email') or '').strip()
+        subject = (request.POST.get('subject') or '').strip()
+        message = (request.POST.get('message') or '').strip()
+        prefill = {'name': name, 'email': email, 'subject': subject, 'message': message}
+
+        errors = []
+        if not name:
+            errors.append('Please enter your name.')
+        _, email_error = _clean_email(email)
+        if email_error:
+            errors.append(email_error)
+        if len(message) < 10:
+            errors.append('Please enter a message (at least 10 characters).')
+
+        if errors:
+            for err in errors:
+                messages.error(request, err)
+        else:
+            from .utils.email import send_contact_message_email
+            result = send_contact_message_email(name, email, subject, message)
+            if result.get('success'):
+                messages.success(
+                    request,
+                    "Thanks for reaching out! We'll get back to you within 1–2 business days.",
+                )
+                return redirect('contact')
+            messages.warning(
+                request,
+                "We couldn't send your message right now. Please try again shortly, "
+                "or email us directly at Fluentory.me@gmail.com.",
+            )
+
+    return render(request, 'contact.html', {'prefill': prefill})
 
 
 def logout_view(request):
