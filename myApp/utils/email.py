@@ -682,3 +682,75 @@ def send_contact_message_email(name, email, subject, message):
         return {'success': False, 'message': f'Resend API error: {response.status_code} - {response.text}'}
     except Exception as e:
         return {'success': False, 'message': f'Error sending email: {str(e)}'}
+
+
+def send_course_access_email(user, course, amount=None, currency=None):
+    """Send a confirmation email after a user gains access to a course.
+
+    When `amount` is provided the email reads as a purchase receipt; otherwise it
+    reads as an enrollment confirmation (free courses).
+    """
+    if not user or not getattr(user, 'email', ''):
+        return {'success': False, 'message': 'User email is missing'}
+
+    display_name = user.get_full_name() or user.username or 'there'
+    course_name = getattr(course, 'name', 'your course')
+    domain = _get_public_domain()
+    try:
+        course_url = f"{domain}{reverse('course_detail', kwargs={'course_slug': course.slug})}"
+    except Exception:
+        course_url = domain
+    dashboard_url = f"{domain}/my-dashboard/"
+
+    is_purchase = amount is not None
+    if is_purchase:
+        subject = f'Your Fluentory purchase is confirmed — {course_name}'
+        heading = 'Purchase confirmed 🎉'
+        amount_row = (
+            f'<p><strong>Amount paid:</strong> {currency or ""} {amount}</p>'
+        )
+        intro = f'Thank you for your purchase! You now have full access to <strong>{course_name}</strong>.'
+    else:
+        subject = f"You're enrolled in {course_name} — Fluentory"
+        heading = "You're enrolled 🎉"
+        amount_row = ''
+        intro = f'You now have access to <strong>{course_name}</strong>. Time to start learning!'
+
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ background: linear-gradient(135deg, #52A8B5 0%, #4492B3 100%); color: white; padding: 24px; text-align: center; border-radius: 10px 10px 0 0; }}
+        .content {{ background: #f9f9f9; padding: 24px; border-radius: 0 0 10px 10px; }}
+        .button {{ display: inline-block; background: #52A8B5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; }}
+        .detail-box {{ background: #fff; border-left: 4px solid #52A8B5; padding: 14px 16px; border-radius: 6px; margin: 16px 0; }}
+        .note {{ font-size: 12px; color: #666; margin-top: 18px; }}
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>{heading}</h1>
+        </div>
+        <div class="content">
+          <p>Hi {display_name},</p>
+          <p>{intro}</p>
+          <div class="detail-box">
+            <p><strong>Course:</strong> {course_name}</p>
+            {amount_row}
+          </div>
+          <p>
+            <a href="{dashboard_url}" class="button">Go to My Dashboard</a>
+          </p>
+          <p>Or jump straight into the course: <a href="{course_url}">{course_name}</a></p>
+          <p class="note">If you have any questions, just reply to this email or contact us at {_contact_inbox()}.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    """
+    return _send_resend_email([user.email], subject, html_content)

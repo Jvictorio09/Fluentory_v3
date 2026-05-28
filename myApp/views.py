@@ -1566,7 +1566,9 @@ def enroll_free_course(request, course_slug):
         'manual',
         notes='Self-enrolled (free)',
     )
-    CourseEnrollment.objects.get_or_create(user=request.user, course=course)
+    _, enrollment_created = CourseEnrollment.objects.get_or_create(user=request.user, course=course)
+    if enrollment_created:
+        _send_purchase_confirmation_safe(request.user, course)
     messages.success(request, f'You are enrolled in {course.name}.')
     return redirect('course_detail', course_slug=course.slug)
 
@@ -4839,8 +4841,33 @@ def _log_payment_transaction(purchase, provider='', provider_id='', status='pend
     )
 
 
+def _send_purchase_confirmation_safe(user, course, amount=None, currency=None):
+    """Send the course-access confirmation email, logging (never raising) on failure."""
+    import logging
+    logger = logging.getLogger(__name__)
+    try:
+        from .utils.email import send_course_access_email
+        result = send_course_access_email(user, course, amount=amount, currency=currency)
+        if not result.get('success'):
+            logger.warning(
+                'Course confirmation email failed for user_id=%s course_id=%s: %s',
+                getattr(user, 'id', None), getattr(course, 'id', None),
+                result.get('message', 'unknown error'),
+            )
+        return result
+    except Exception as exc:
+        logger.exception(
+            'Course confirmation email raised for user_id=%s course_id=%s',
+            getattr(user, 'id', None), getattr(course, 'id', None),
+        )
+        return {'success': False, 'message': str(exc)}
+
+
 def _finalize_purchase(purchase, provider='manual', provider_id='', status='paid'):
     """Apply final purchase status and grant access if paid."""
+    # Capture prior state so we only send the buyer's confirmation email once,
+    # even if both the webhook and the redirect-return path finalize the purchase.
+    was_already_paid = purchase.status == 'paid'
     purchase.provider = provider or purchase.provider or 'manual'
     if provider_id:
         purchase.provider_id = provider_id
@@ -4900,6 +4927,12 @@ def _finalize_purchase(purchase, provider='manual', provider_id='', status='paid
                 course=purchase.course,
                 purchase=purchase,
             )
+            # Send the buyer a purchase confirmation (once). Never let an email
+            # failure break the payment/access flow.
+            if not was_already_paid:
+                _send_purchase_confirmation_safe(
+                    purchase.user, purchase.course, purchase.amount, purchase.currency
+                )
             return {
                 'success': True,
                 'message': 'Purchase confirmed and access granted',
@@ -5061,7 +5094,8 @@ def initiate_purchase(request, course_slug):
         # Grant course access immediately
         from .utils.access import grant_purchase_access
         grant_purchase_access(user, course, purchase)
-        
+        _send_purchase_confirmation_safe(user, course, purchase.amount, purchase.currency)
+
         return JsonResponse({
             'success': True,
             'purchase_id': purchase.id,
