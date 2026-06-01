@@ -10,7 +10,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from django.db.models import Count, Avg
+from django.db.models import Count, Avg, Q
 from django.utils import timezone
 from datetime import timedelta
 from io import BytesIO
@@ -23,6 +23,25 @@ from .utils.teacher import (
     get_teacher_course_scope, require_session_teacher, require_booking_teacher,
     get_eligible_course_teacher_users,
 )
+
+
+def _notify_enrolled_students_workshop_link(course):
+    """Notify active students with the latest workshop links for a course."""
+    from .models import CourseAccess
+    from .utils.email import send_course_workshop_links_email
+
+    active_accesses = CourseAccess.objects.filter(
+        course=course,
+        status='unlocked',
+    ).exclude(
+        Q(expires_at__isnull=False) & Q(expires_at__lt=timezone.now())
+    ).select_related('user')
+
+    for access in active_accesses:
+        user = access.user
+        if not user or not user.email:
+            continue
+        send_course_workshop_links_email(user, course)
 
 
 def _course_type_options():
@@ -561,6 +580,9 @@ def teacher_live_session_create(request, course_slug):
             capacity=int(capacity) if capacity else None,
             created_by=request.user,
         )
+
+        if session.meeting_link and session.status != 'cancelled':
+            _notify_enrolled_students_workshop_link(course)
         
         messages.success(request, f'Session "{session.title}" created successfully.')
         return redirect('teacher_live_session_detail', session_id=session.id)
@@ -593,6 +615,7 @@ def teacher_live_session_edit(request, session_id):
     require_session_teacher(request.user, session)
     
     if request.method == 'POST':
+        previous_meeting_link = session.meeting_link or ''
         session.title = request.POST.get('title', session.title)
         session.description = request.POST.get('description', session.description)
         scheduled_at_str = request.POST.get('scheduled_at')
@@ -613,6 +636,13 @@ def teacher_live_session_edit(request, session_id):
         session.status = request.POST.get('status', session.status)
         session.notes = request.POST.get('notes', session.notes)
         session.save()
+
+        if (
+            session.status != 'cancelled'
+            and (session.meeting_link or '')
+            and (session.meeting_link or '') != previous_meeting_link
+        ):
+            _notify_enrolled_students_workshop_link(session.course)
         
         messages.success(request, 'Session updated successfully.')
         return redirect('teacher_live_session_detail', session_id=session.id)

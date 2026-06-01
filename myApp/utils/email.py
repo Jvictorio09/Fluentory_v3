@@ -7,6 +7,7 @@ from email.utils import parseaddr, formataddr
 from dotenv import load_dotenv
 from django.conf import settings
 from django.urls import reverse
+from django.utils import timezone
 
 load_dotenv()
 
@@ -748,6 +749,95 @@ def send_course_access_email(user, course, amount=None, currency=None):
           </p>
           <p>Or jump straight into the course: <a href="{course_url}">{course_name}</a></p>
           <p class="note">If you have any questions, just reply to this email or contact us at {_contact_inbox()}.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+    """
+    return _send_resend_email([user.email], subject, html_content)
+
+
+def send_course_workshop_links_email(user, course):
+    """Send workshop meeting links for a course to a student."""
+    if not user or not getattr(user, 'email', ''):
+        return {'success': False, 'message': 'User email is missing'}
+
+    from ..models import LiveSession
+
+    sessions = (
+        LiveSession.objects.filter(course=course)
+        .exclude(status='cancelled')
+        .exclude(meeting_link__exact='')
+        .order_by('scheduled_at')
+    )
+
+    if not sessions.exists():
+        return {'success': False, 'message': 'No workshop link available yet'}
+
+    display_name = user.get_full_name() or user.username or 'there'
+    course_name = getattr(course, 'name', 'your course')
+    domain = _get_public_domain()
+    try:
+        course_url = f"{domain}{reverse('course_detail', kwargs={'course_slug': course.slug})}"
+    except Exception:
+        course_url = domain
+
+    session_rows = []
+    for session in sessions[:5]:
+        when = timezone.localtime(session.scheduled_at).strftime('%A, %b %d, %Y at %I:%M %p')
+        password_row = (
+            f"<p style=\"margin:6px 0 0;\"><strong>Password:</strong> {session.meeting_password}</p>"
+            if session.meeting_password else ''
+        )
+        session_rows.append(
+            f"""
+            <div style="background:#fff;border-left:4px solid #52A8B5;padding:14px 16px;border-radius:6px;margin:12px 0;">
+              <p style="margin:0;"><strong>{session.title}</strong></p>
+              <p style="margin:6px 0;"><strong>When:</strong> {when}</p>
+              <p style="margin:6px 0;">
+                <a href="{session.meeting_link}" style="color:#2A8FA8;text-decoration:underline;">Join workshop</a>
+              </p>
+              {password_row}
+            </div>
+            """
+        )
+
+    more_links_note = ''
+    if sessions.count() > 5:
+        remaining = sessions.count() - 5
+        more_links_note = (
+            f'<p style="font-size:13px;color:#666;">There are {remaining} more session link(s) in your course dashboard.</p>'
+        )
+
+    subject = f'Your workshop link for {course_name}'
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ background: linear-gradient(135deg, #52A8B5 0%, #4492B3 100%); color: white; padding: 24px; text-align: center; border-radius: 10px 10px 0 0; }}
+        .content {{ background: #f9f9f9; padding: 24px; border-radius: 0 0 10px 10px; }}
+        .button {{ display: inline-block; background: #52A8B5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; }}
+        .note {{ font-size: 12px; color: #666; margin-top: 18px; }}
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Your workshop link</h1>
+        </div>
+        <div class="content">
+          <p>Hi {display_name},</p>
+          <p>Here are the live workshop links currently available for <strong>{course_name}</strong>:</p>
+          {"".join(session_rows)}
+          {more_links_note}
+          <p>
+            <a href="{course_url}" class="button">Open Course Dashboard</a>
+          </p>
+          <p class="note">If a new session is added later, you can always find the latest link in your course dashboard.</p>
         </div>
       </div>
     </body>

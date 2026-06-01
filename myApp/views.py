@@ -4863,6 +4863,29 @@ def _send_purchase_confirmation_safe(user, course, amount=None, currency=None):
         return {'success': False, 'message': str(exc)}
 
 
+def _send_workshop_link_safe(user, course):
+    """Send workshop link email, logging non-blocking warnings on hard failures."""
+    import logging
+    logger = logging.getLogger(__name__)
+    try:
+        from .utils.email import send_course_workshop_links_email
+        result = send_course_workshop_links_email(user, course)
+        if not result.get('success'):
+            message = result.get('message', 'unknown error')
+            if message != 'No workshop link available yet':
+                logger.warning(
+                    'Workshop link email failed for user_id=%s course_id=%s: %s',
+                    getattr(user, 'id', None), getattr(course, 'id', None), message,
+                )
+        return result
+    except Exception as exc:
+        logger.exception(
+            'Workshop link email raised for user_id=%s course_id=%s',
+            getattr(user, 'id', None), getattr(course, 'id', None),
+        )
+        return {'success': False, 'message': str(exc)}
+
+
 def _finalize_purchase(purchase, provider='manual', provider_id='', status='paid'):
     """Apply final purchase status and grant access if paid."""
     # Capture prior state so we only send the buyer's confirmation email once,
@@ -4933,6 +4956,7 @@ def _finalize_purchase(purchase, provider='manual', provider_id='', status='paid
                 _send_purchase_confirmation_safe(
                     purchase.user, purchase.course, purchase.amount, purchase.currency
                 )
+                _send_workshop_link_safe(purchase.user, purchase.course)
             return {
                 'success': True,
                 'message': 'Purchase confirmed and access granted',
@@ -5095,6 +5119,7 @@ def initiate_purchase(request, course_slug):
         from .utils.access import grant_purchase_access
         grant_purchase_access(user, course, purchase)
         _send_purchase_confirmation_safe(user, course, purchase.amount, purchase.currency)
+        _send_workshop_link_safe(user, course)
 
         return JsonResponse({
             'success': True,
